@@ -44,13 +44,6 @@ export default function PlaygroundPage() {
         <Badge variant="default">Default</Badge>
         <Badge variant="outline">Outline</Badge>
         </div>
-
-        <div className="flex flex-col gap-3">
-            <RatingStars rating={4.9} size="sm" showCount={false} />
-            <RatingStars rating={4.9} reviewCount={124} size="md" />
-            <RatingStars rating={4.6} reviewCount={67} size="lg" />
-            <RatingStars rating={4.9} showValue={false} showCount={false} />
-        </div>
     </div>
   );
 }
