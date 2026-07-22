@@ -18,6 +18,7 @@ import SearchBar from "@/src/app/components/shared/SearchBar";
 
 // Layout
 import Header from "@/src/app/components/layout/Header";
+import Footer from "@/src/app/components/layout/Footer";
 
 import { Home, ArrowLeft, RefreshCw, AlertCircle, Search, Mail } from "lucide-react";
 
@@ -189,6 +190,30 @@ export default function PlaygroundPage() {
             <Header showSearch cartCount={3} announcementText="FREE SHIPPING ON ORDERS OVER R1000!" />
             <Header showSearch cartCount={0} />
             <Header variant="minimal" minimalRightLink={{ label: "Help Center", href: "/help" }} />
+        </div>
+
+        <div className="flex flex-col gap-8 -mx-10">
+            <Footer
+                brandBlurb="Elevating everyday life through curated premium essentials."
+                columns={[
+                {
+                    title: "Shop",
+                    links: [
+                    { label: "Catalogue", href: "/catalogue" },
+                    { label: "Categories", href: "/categories" },
+                    ],
+                },
+                {
+                    title: "Support",
+                    links: [
+                    { label: "Contact", href: "/contact" },
+                    { label: "FAQ", href: "/faq" },
+                    ],
+                },
+                ]}
+                showNewsletter
+            />
+            <Footer variant="minimal" />
         </div>
     </div>
   );
