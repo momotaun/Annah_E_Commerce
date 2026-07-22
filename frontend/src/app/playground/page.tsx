@@ -6,6 +6,7 @@ import Input from "@/src/app/components/ui/Input";
 import Textarea from "@/src/app/components/ui/Textarea";
 import Select from "@/src/app/components/ui/Select";
 import Checkbox from "@/src/app/components/ui/Checkbox";
+import Avatar from "@/src/app/components/ui/Avatar";
 import { Home, ArrowLeft, RefreshCw, AlertCircle, Search, Mail } from "lucide-react";
 
 export default function PlaygroundPage() {
@@ -121,6 +122,13 @@ export default function PlaygroundPage() {
             <Checkbox id="remember" label="Remember Me" />
             <Checkbox id="laptops" label="Laptops & PC" defaultChecked />
             <Checkbox id="disabled" label="Disabled option" disabled />
+        </div>
+
+        <div className="flex gap-4 items-center">
+            <Avatar src="/images/thandi.jpg" alt="Thandi Mthembu" size="sm" />
+            <Avatar src="/images/johan.jpg" alt="Johan de Beer" size="md" />
+            <Avatar src="/broken-url.jpg" alt="Lwazi Nkosi" size="lg" />
+            <Avatar alt="No Image User" size="md" />
         </div>
     </div>
   );
