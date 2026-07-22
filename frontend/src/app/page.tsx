@@ -1,65 +1,205 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Image from "next/image";
+import Link from "next/link";
+import { Truck, ShieldCheck, Award, Headset } from "lucide-react";
+import Header from "@/src/app/components/layout/Header";
+import Footer from "@/src/app/components/layout/Footer";
+import Button from "@/src/app/components/ui/Button";
+import Badge from "@/src/app/components/ui/Badge";
+import RatingStars from "@/src/app/components/ui/RatingStars";
+import Avatar from "@/src/app/components/ui/Avatar";
+import InfoCard from "@/src/app/components/shared/InfoCard";
+import ProductCard from "@/src/app/components/shared/ProductCard";
+import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
+
+const essentials = [
+  { title: "Aero-Pulse ANC Headphones", category: "Electronics", price: "R4,299", image: "/images/headphones.jpg", badge: { label: "Bestseller" } },
+  { title: "Apex Barista Pro", category: "Home & Living", price: "R12,499", image: "/images/barista.jpg" },
+  { title: "Horologer Series IV", category: "Fashion", price: "R8,950", image: "/images/watch.jpg" },
+  { title: "Terra-Guard 4P Tent", category: "Outdoor", price: "R3,199", image: "/images/tent.jpg" },
+  { title: "Omni-Key Wireless", category: "Electronics", price: "R2,450", image: "/images/keyboard.jpg" },
+  { title: "Slate Dinnerware Set", category: "Home", price: "R1,299", image: "/images/dinnerware.jpg" },
+  { title: "Vantage 4K Cam", category: "Electronics", price: "R5,800", image: "/images/camera.jpg" },
+  { title: "Hydro-Core Flask", category: "Outdoor", price: "R550", image: "/images/flask.jpg" },
+];
+
+const testimonials = [
+  { name: "Thandi Mthembu", role: "Interior Designer, Joburg", quote: "The curated selection at Apex is unmatched. I recently refurbished my studio and every piece exceeded expectations. Delivery was prompt even in Sandton traffic.", rating: 4, avatar: "/images/thandi.jpg" },
+  { name: "Johan de Beer", role: "Tech Lead", quote: "Apex is my go-to for tech gear. Their service is elite and the products are always authentic. The Aero-Pulse headphones changed my work-from-home life.", rating: 5, avatar: "/images/johan.jpg" },
+  { name: "Lwazi Nkosi", role: "Outdoor Enthusiast", quote: "The camping gear is top-tier. Finally a marketplace that understands the quality needed for South African trails. Exceptional stock.", rating: 5, avatar: "/images/lwazi.jpg" },
+];
+
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div className="flex min-h-screen flex-col">
+      <Header
+        announcementText="FREE SHIPPING ON ORDERS OVER R1000!"
+        showSearch
+        cartCount={0}
+      />
+
+      <main className="flex-1">
+        <HeroSection />
+        <CuratedCategories />
+        <TopRatedEssentials />
+        <PromoBanner />
+        <TrustBadges />
+        <Testimonials />
+        <NewsletterBand />
       </main>
+
+      <Footer
+        brandBlurb="Elevating everyday life through curated premium essentials. Your destination for high-end lifestyle and tech products."
+        columns={[
+          { title: "Shop", links: [{ label: "Catalogue", href: "/catalogue" }, { label: "Featured Items", href: "/featured" }, { label: "New Arrivals", href: "/new" }, { label: "Promotions", href: "/promotions" }] },
+          { title: "Company", links: [{ label: "About Us", href: "/about" }, { label: "Sustainability", href: "/sustainability" }, { label: "Contact", href: "/contact" }, { label: "Careers", href: "/careers" }] },
+        ]}
+      />
     </div>
+  );
+}
+
+function HeroSection() {
+  return (
+    <section className="relative flex min-h-[420px] items-center overflow-hidden bg-gray-100">
+      <Image src="/images/hero-desk.jpg" alt="" fill priority className="object-cover" />
+      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-transparent" />
+      <div className="relative mx-auto max-w-7xl px-6">
+        <Badge variant="primary" className="mb-4">SPRING COLLECTION 2024</Badge>
+        <h1 className="max-w-lg text-5xl font-extrabold leading-tight text-gray-900">
+          Elevate Your <span className="text-primary-600">Everyday</span>
+        </h1>
+        <p className="mt-4 max-w-md text-gray-500">
+          Discover curated premium essentials for a modern lifestyle. From
+          technical excellence to aesthetic perfection.
+        </p>
+        <div className="mt-6 flex gap-4">
+          <Button size="lg" href="/catalogue">Shop Now</Button>
+          <Button size="lg" variant="outline" href="/lookbook">View Lookbook</Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CuratedCategories() {
+  const categories = [
+    { title: "Electronics", subtitle: "Precision gear for the digital nomad", href: "/categories/electronics", image: "/images/cat-electronics.jpg", span: "col-span-2 row-span-1" },
+    { title: "Home & Living", href: "/categories/home-living", image: "/images/cat-home.jpg", span: "row-span-2" },
+    { title: "Fashion", href: "/categories/fashion", image: "/images/cat-fashion.jpg", span: "" },
+    { title: "Outdoor", href: "/categories/outdoor", image: "/images/cat-outdoor.jpg", span: "" },
+  ];
+
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-16">
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Curated Categories</h2>
+          <p className="text-sm text-gray-500">Explore our specialized collections</p>
+        </div>
+        <Link href="/categories" className="text-sm font-medium text-primary-600 hover:underline">
+          Explore All
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:grid-rows-2">
+        {categories.map((cat) => (
+          <Link
+            key={cat.title}
+            href={cat.href}
+            className={`relative min-h-[200px] overflow-hidden rounded-md ${cat.span}`}
+          >
+            <Image src={cat.image} alt={cat.title} fill className="object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="absolute bottom-4 left-4 text-white">
+              <span className="text-lg font-semibold">{cat.title}</span>
+              {cat.subtitle && <p className="text-sm">{cat.subtitle}</p>}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function TopRatedEssentials() {
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-16">
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl font-bold text-gray-900">Top-Rated Essentials</h2>
+        <p className="text-sm text-gray-500">Voted by our community of enthusiasts</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {essentials.map((item) => (
+          <ProductCard
+            key={item.title}
+            href={`/products/${item.title.toLowerCase().replace(/\s+/g, "-")}`}
+            image={item.image}
+            title={item.title}
+            category={item.category}
+            price={item.price}
+            badge={item.badge}
+            onAddToCart={() => {}}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PromoBanner() {
+  return (
+    <section className="mx-auto max-w-7xl px-6 pb-16">
+      <div className="relative flex min-h-[220px] items-center overflow-hidden rounded-md bg-gray-900">
+        <Image src="/images/promo-abstract.jpg" alt="" fill className="object-cover opacity-60" />
+        <div className="relative flex w-full items-center justify-between px-10">
+          <div>
+            <span className="text-sm uppercase tracking-wide text-gray-300">
+              Limited Edition Collection
+            </span>
+            <h3 className="mt-1 text-3xl font-bold text-white">Up to 30% Off</h3>
+          </div>
+          <Button variant="primary" href="/collections/limited-edition">Claim Offer</Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TrustBadges() {
+  return (
+    <section className="mx-auto max-w-7xl px-6 pb-16">
+      <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+        <InfoCard icon={<Truck className="h-6 w-6" />} title="Fast Delivery" description="Same-day shipping in major SA metros." />
+        <InfoCard icon={<ShieldCheck className="h-6 w-6" />} title="Secure Payment" description="Encrypted transactions via PayFast." />
+        <InfoCard icon={<Award className="h-6 w-6" />} title="Quality Guarantee" description="Curated products with full warranties." />
+        <InfoCard icon={<Headset className="h-6 w-6" />} title="24/7 Support" description="Local experts ready to assist you." />
+      </div>
+    </section>
+  );
+}
+
+function Testimonials() {
+  return (
+    <section className="mx-auto max-w-7xl px-6 pb-16">
+      <h2 className="mb-8 text-center text-2xl font-bold text-gray-900">Trusted by Experts</h2>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {testimonials.map((t) => (
+          <div key={t.name} className="flex flex-col gap-4 rounded-md border border-gray-200 p-6">
+            <div className="flex items-center gap-3">
+              <Avatar src={t.avatar} alt={t.name} size="md" />
+              <div>
+                <p className="text-sm font-semibold text-gray-900">{t.name}</p>
+                <p className="text-xs text-gray-500">{t.role}</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-500">&ldquo;{t.quote}&rdquo;</p>
+            <RatingStars rating={t.rating} showValue={false} showCount={false} />
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
