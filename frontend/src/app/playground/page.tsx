@@ -1,3 +1,4 @@
+import FormField from "@/src/app/components/ui/FormField";
 import Button from "@/src/app/components/ui/Button";
 import Badge from "@/src/app/components/ui/Badge";
 import RatingStars from "@/src/app/components/ui/RatingStars";
@@ -85,6 +86,34 @@ export default function PlaygroundPage() {
                 ]}
             />
             <Select disabled options={[{ label: "Disabled", value: "disabled" }]} />
+        </div>
+
+        <div className="flex flex-col gap-4 max-w-sm">
+            <FormField label="Full Name" htmlFor="fullName" required>
+                <Input id="fullName" placeholder="John Doe" />
+            </FormField>
+
+            <FormField label="Email Address" htmlFor="email" required>
+                <Input id="email" type="email" placeholder="john@example.com" icon={<Mail className="h-4 w-4" />} />
+            </FormField>
+
+            <FormField label="Subject" htmlFor="subject">
+                <Select
+                id="subject"
+                options={[
+                    { label: "General Inquiry", value: "general" },
+                    { label: "Order Support", value: "order" },
+                ]}
+                />
+            </FormField>
+
+            <FormField label="Message" htmlFor="message" required>
+                <Textarea id="message" placeholder="How can we help you?" />
+            </FormField>
+
+            <FormField label="Email Address" htmlFor="emailError">
+                <Input id="emailError" error="Please enter a valid email address" />
+            </FormField>
         </div>
     </div>
   );
