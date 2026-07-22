@@ -5,6 +5,7 @@ import RatingStars from "@/src/app/components/ui/RatingStars";
 import Input from "@/src/app/components/ui/Input";
 import Textarea from "@/src/app/components/ui/Textarea";
 import Select from "@/src/app/components/ui/Select";
+import Checkbox from "@/src/app/components/ui/Checkbox";
 import { Home, ArrowLeft, RefreshCw, AlertCircle, Search, Mail } from "lucide-react";
 
 export default function PlaygroundPage() {
@@ -114,6 +115,12 @@ export default function PlaygroundPage() {
             <FormField label="Email Address" htmlFor="emailError">
                 <Input id="emailError" error="Please enter a valid email address" />
             </FormField>
+        </div>
+
+        <div className="flex flex-col gap-3">
+            <Checkbox id="remember" label="Remember Me" />
+            <Checkbox id="laptops" label="Laptops & PC" defaultChecked />
+            <Checkbox id="disabled" label="Disabled option" disabled />
         </div>
     </div>
   );
