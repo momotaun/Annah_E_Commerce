@@ -16,6 +16,9 @@ import Spinner from "@/src/app/components/ui/Spinner";
 import ProductCard from "@/src/app/components/shared/ProductCard";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 
+// Layout
+import Header from "@/src/app/components/layout/Header";
+
 import { Home, ArrowLeft, RefreshCw, AlertCircle, Search, Mail } from "lucide-react";
 
 export default function PlaygroundPage() {
@@ -180,6 +183,12 @@ export default function PlaygroundPage() {
         <div className="flex flex-col gap-4 max-w-md">
             <SearchBar placeholder="Search products..." onSearch={(q) => console.log("searching:", q)} />
             <SearchBar placeholder="Search premium hardware..." size="sm" />
+        </div>
+
+        <div className="flex flex-col gap-8 -m-10 mb-0">
+            <Header showSearch cartCount={3} announcementText="FREE SHIPPING ON ORDERS OVER R1000!" />
+            <Header showSearch cartCount={0} />
+            <Header variant="minimal" minimalRightLink={{ label: "Help Center", href: "/help" }} />
         </div>
     </div>
   );
