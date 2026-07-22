@@ -1,3 +1,5 @@
+"use client"
+
 import FormField from "@/src/app/components/ui/FormField";
 import Button from "@/src/app/components/ui/Button";
 import Badge from "@/src/app/components/ui/Badge";
@@ -9,6 +11,7 @@ import Checkbox from "@/src/app/components/ui/Checkbox";
 import Avatar from "@/src/app/components/ui/Avatar";
 import Spinner from "@/src/app/components/ui/Spinner";
 import { Home, ArrowLeft, RefreshCw, AlertCircle, Search, Mail } from "lucide-react";
+import ProductCard from "../components/shared/ProductCard";
 
 export default function PlaygroundPage() {
   return (
@@ -135,6 +138,38 @@ export default function PlaygroundPage() {
             <Spinner size="sm" />
             <Spinner size="md" label="Loading more premium products..." />
             <Spinner size="lg" />
+        </div>
+
+        <div className="grid grid-cols-3 gap-4 max-w-4xl">
+            <ProductCard
+                href="/products/apex-probook-m3-max"
+                image="/images/probook.jpg"
+                title="Apex ProBook M3 Max"
+                category="Laptops"
+                price="R2,499.00"
+                rating={4.9}
+                reviewCount={124}
+                showWishlist
+                showQuickView
+            />
+            <ProductCard
+                href="/products/aero-pulse"
+                image="/images/headphones.jpg"
+                title="Aero-Pulse ANC Headphones"
+                category="Electronics"
+                price="R4,299"
+                badge={{ label: "Bestseller", variant: "primary" }}
+                onAddToCart={() => console.log("add to cart")}
+            />
+            <ProductCard
+                href="/products/zenith-phone-x"
+                image="/images/phone.jpg"
+                title="Zenith Phone X"
+                description="5G Enabled, 200MP Triple Camera, 120Hz Display."
+                price="R999.00"
+                badge={{ label: "New Entry", variant: "warning" }}
+                onAddToCart={() => console.log("add to cart")}
+            />
         </div>
     </div>
   );
