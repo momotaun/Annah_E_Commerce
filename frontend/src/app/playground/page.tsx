@@ -2,6 +2,7 @@ import Button from "@/src/app/components/ui/Button";
 import Badge from "@/src/app/components/ui/Badge";
 import RatingStars from "@/src/app/components/ui/RatingStars";
 import Input from "@/src/app/components/ui/Input";
+import Textarea from "@/src/app/components/ui/Textarea";
 import { Home, ArrowLeft, RefreshCw, AlertCircle, Search, Mail } from "lucide-react";
 
 export default function PlaygroundPage() {
@@ -59,6 +60,12 @@ export default function PlaygroundPage() {
             <Input placeholder="Search products..." icon={<Search className="h-4 w-4" />} />
             <Input placeholder="Disabled field" disabled />
             <Input placeholder="Email Address" error="Please enter a valid email address" />
+        </div>
+
+        <div className="flex flex-col gap-4 max-w-sm">
+            <Textarea placeholder="How can we help you?" />
+            <Textarea placeholder="Disabled message field" disabled />
+            <Textarea placeholder="Message" error="Message cannot be empty" />
         </div>
     </div>
   );
