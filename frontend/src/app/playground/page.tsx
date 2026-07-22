@@ -1,5 +1,6 @@
-"use client"
+"use client";
 
+// Atoms
 import FormField from "@/src/app/components/ui/FormField";
 import Button from "@/src/app/components/ui/Button";
 import Badge from "@/src/app/components/ui/Badge";
@@ -10,8 +11,12 @@ import Select from "@/src/app/components/ui/Select";
 import Checkbox from "@/src/app/components/ui/Checkbox";
 import Avatar from "@/src/app/components/ui/Avatar";
 import Spinner from "@/src/app/components/ui/Spinner";
+
+// Molecules
+import ProductCard from "@/src/app/components/shared/ProductCard";
+import SearchBar from "@/src/app/components/shared/SearchBar";
+
 import { Home, ArrowLeft, RefreshCw, AlertCircle, Search, Mail } from "lucide-react";
-import ProductCard from "../components/shared/ProductCard";
 
 export default function PlaygroundPage() {
   return (
@@ -170,6 +175,11 @@ export default function PlaygroundPage() {
                 badge={{ label: "New Entry", variant: "warning" }}
                 onAddToCart={() => console.log("add to cart")}
             />
+        </div>
+
+        <div className="flex flex-col gap-4 max-w-md">
+            <SearchBar placeholder="Search products..." onSearch={(q) => console.log("searching:", q)} />
+            <SearchBar placeholder="Search premium hardware..." size="sm" />
         </div>
     </div>
   );
