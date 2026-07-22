@@ -4,6 +4,7 @@ import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";
 import GoBackButton from "./components/shared/GoBackButton";
+import InfoCard from "@/src/app/components/shared/InfoCard";
 
 export default function NotFound() {
   return (
@@ -62,24 +63,6 @@ export default function NotFound() {
       </main>
 
       <Footer variant="minimal" />
-    </div>
-  );
-}
-
-function InfoCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-2 rounded-md border border-gray-200 bg-gray-50 p-6 text-center">
-      <span className="text-primary-600">{icon}</span>
-      <span className="text-sm font-semibold text-gray-900">{title}</span>
-      <span className="text-sm text-gray-500">{description}</span>
     </div>
   );
 }
