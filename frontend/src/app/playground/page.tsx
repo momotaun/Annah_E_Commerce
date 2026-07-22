@@ -7,6 +7,7 @@ import Textarea from "@/src/app/components/ui/Textarea";
 import Select from "@/src/app/components/ui/Select";
 import Checkbox from "@/src/app/components/ui/Checkbox";
 import Avatar from "@/src/app/components/ui/Avatar";
+import Spinner from "@/src/app/components/ui/Spinner";
 import { Home, ArrowLeft, RefreshCw, AlertCircle, Search, Mail } from "lucide-react";
 
 export default function PlaygroundPage() {
@@ -129,6 +130,11 @@ export default function PlaygroundPage() {
             <Avatar src="/images/johan.jpg" alt="Johan de Beer" size="md" />
             <Avatar src="/broken-url.jpg" alt="Lwazi Nkosi" size="lg" />
             <Avatar alt="No Image User" size="md" />
+        </div>
+        <div className="flex flex-col gap-4">
+            <Spinner size="sm" />
+            <Spinner size="md" label="Loading more premium products..." />
+            <Spinner size="lg" />
         </div>
     </div>
   );
