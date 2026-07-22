@@ -1,5 +1,6 @@
 import Button from "@/src/app/components/ui/Button";
 import Badge from "@/src/app/components/ui/Badge";
+import RatingStars from "@/src/app/components/ui/RatingStars";
 import { Home, ArrowLeft, RefreshCw, AlertCircle } from "lucide-react";
 
 export default function PlaygroundPage() {
