@@ -1,5 +1,6 @@
 import Button from "@/src/app/components/ui/Button";
-import { Home, ArrowLeft, RefreshCw } from "lucide-react";
+import Badge from "@/src/app/components/ui/Badge";
+import { Home, ArrowLeft, RefreshCw, AlertCircle } from "lucide-react";
 
 export default function PlaygroundPage() {
   return (
@@ -31,6 +32,17 @@ export default function PlaygroundPage() {
       <div className="w-64">
         <Button fullWidth>Login</Button>
       </div>
+
+      <div className="flex gap-3 items-center">
+        <Badge variant="primary">Best Seller</Badge>
+        <Badge variant="warning">New Entry</Badge>
+        <Badge variant="danger" icon={<AlertCircle className="h-3 w-3" />}>
+            ERROR 500
+        </Badge>
+        <Badge variant="primary">Premium Hardware</Badge>
+        <Badge variant="default">Default</Badge>
+        <Badge variant="outline">Outline</Badge>
+        </div>
     </div>
   );
 }
