@@ -3,6 +3,7 @@ import Badge from "@/src/app/components/ui/Badge";
 import RatingStars from "@/src/app/components/ui/RatingStars";
 import Input from "@/src/app/components/ui/Input";
 import Textarea from "@/src/app/components/ui/Textarea";
+import Select from "@/src/app/components/ui/Select";
 import { Home, ArrowLeft, RefreshCw, AlertCircle, Search, Mail } from "lucide-react";
 
 export default function PlaygroundPage() {
@@ -66,6 +67,24 @@ export default function PlaygroundPage() {
             <Textarea placeholder="How can we help you?" />
             <Textarea placeholder="Disabled message field" disabled />
             <Textarea placeholder="Message" error="Message cannot be empty" />
+        </div>
+
+        <div className="flex flex-col gap-4 max-w-sm">
+            <Select
+                options={[
+                { label: "General Inquiry", value: "general" },
+                { label: "Order Support", value: "order" },
+                { label: "Wholesale", value: "wholesale" },
+                ]}
+            />
+            <Select
+                placeholder="Select a subject"
+                options={[
+                { label: "General Inquiry", value: "general" },
+                { label: "Order Support", value: "order" },
+                ]}
+            />
+            <Select disabled options={[{ label: "Disabled", value: "disabled" }]} />
         </div>
     </div>
   );
