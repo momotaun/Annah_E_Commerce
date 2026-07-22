@@ -1,7 +1,8 @@
 import Button from "@/src/app/components/ui/Button";
 import Badge from "@/src/app/components/ui/Badge";
 import RatingStars from "@/src/app/components/ui/RatingStars";
-import { Home, ArrowLeft, RefreshCw, AlertCircle } from "lucide-react";
+import Input from "@/src/app/components/ui/Input";
+import { Home, ArrowLeft, RefreshCw, AlertCircle, Search, Mail } from "lucide-react";
 
 export default function PlaygroundPage() {
   return (
@@ -43,6 +44,21 @@ export default function PlaygroundPage() {
         <Badge variant="primary">Premium Hardware</Badge>
         <Badge variant="default">Default</Badge>
         <Badge variant="outline">Outline</Badge>
+        </div>
+
+        <div className="flex flex-col gap-3">
+            <RatingStars rating={4.9} size="sm" showCount={false} />
+            <RatingStars rating={4.9} reviewCount={124} size="md" />
+            <RatingStars rating={4.6} reviewCount={67} size="lg" />
+            <RatingStars rating={4.9} showValue={false} showCount={false} />
+        </div>
+
+        <div className="flex flex-col gap-4 max-w-sm">
+            <Input placeholder="Email Address" type="email" icon={<Mail className="h-4 w-4" />} />
+            <Input placeholder="Password" type="password" />
+            <Input placeholder="Search products..." icon={<Search className="h-4 w-4" />} />
+            <Input placeholder="Disabled field" disabled />
+            <Input placeholder="Email Address" error="Please enter a valid email address" />
         </div>
     </div>
   );
