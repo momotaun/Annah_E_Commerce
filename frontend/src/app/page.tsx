@@ -66,7 +66,7 @@ function HeroSection() {
       <Image src="/images/home/Home_Banner.png" alt="Hero Image" fill priority className="object-cover" />
       <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-transparent" />
       <div className="relative mx-auto max-w-7xl px-6">
-        <Badge variant="primary" className="mb-6">SPRING COLLECTION 2024</Badge>
+        <Badge variant="primary" className="mb-6 py-1">SPRING COLLECTION 2024</Badge>
         <h1 className="max-w-lg text-5xl font-bold leading-tight text-gray-900">
           Elevate Your <span className="text-primary-600">Everyday</span>
         </h1>
