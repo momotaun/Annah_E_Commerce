@@ -11,9 +11,9 @@ import Input from "@/src/app/components/ui/Input";
 import Button from "@/src/app/components/ui/Button";
 
 const initialItems = [
-  { id: "1", title: "Apex Pro Precision Keyboard", variant: "Carbon Grey / Brown Switches", price: 189.0, image: "/images/keyboard5.jpg", quantity: 1 },
-  { id: "2", title: "SonicWave Studio Headphones", variant: "Color: Lunar Silver", price: 349.5, image: "/images/headphones4.jpg", quantity: 1 },
-  { id: "3", title: "Apex Connect Pro Hub", variant: "Edition: 7-in-1 Aluminum", price: 79.0, image: "/images/hub.jpg", quantity: 1 },
+  { id: "1", title: "Apex Pro Precision Keyboard", variant: "Carbon Grey / Brown Switches", price: 189.0, image: "/images/cart/keyboard.png", quantity: 1 },
+  { id: "2", title: "SonicWave Studio Headphones", variant: "Color: Lunar Silver", price: 349.5, image: "/images/cart/headphones.png", quantity: 1 },
+  { id: "3", title: "Apex Connect Pro Hub", variant: "Edition: 7-in-1 Aluminum", price: 79.0, image: "/images/cart/connector.png", quantity: 1 },
 ];
 
 export default function ShoppingCartPage() {

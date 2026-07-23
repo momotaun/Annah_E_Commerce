@@ -14,20 +14,20 @@ import ProductCard from "@/src/app/components/shared/ProductCard";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
 
 const essentials = [
-  { title: "Aero-Pulse ANC Headphones", category: "Electronics", price: "R4,299", image: "/images/headphones.jpg", badge: { label: "Bestseller" } },
-  { title: "Apex Barista Pro", category: "Home & Living", price: "R12,499", image: "/images/barista.jpg" },
-  { title: "Horologer Series IV", category: "Fashion", price: "R8,950", image: "/images/watch.jpg" },
-  { title: "Terra-Guard 4P Tent", category: "Outdoor", price: "R3,199", image: "/images/tent.jpg" },
-  { title: "Omni-Key Wireless", category: "Electronics", price: "R2,450", image: "/images/keyboard.jpg" },
-  { title: "Slate Dinnerware Set", category: "Home", price: "R1,299", image: "/images/dinnerware.jpg" },
-  { title: "Vantage 4K Cam", category: "Electronics", price: "R5,800", image: "/images/camera.jpg" },
-  { title: "Hydro-Core Flask", category: "Outdoor", price: "R550", image: "/images/flask.jpg" },
+  { title: "Aero-Pulse ANC Headphones", category: "Electronics", price: "R4,299", image: "/images/home/essentials/headphones.png", badge: { label: "Bestseller" } },
+  { title: "Apex Barista Pro", category: "Home & Living", price: "R12,499", image: "/images/home/essentials/coffe_maker.png" },
+  { title: "Horologer Series IV", category: "Fashion", price: "R8,950", image: "/images/home/essentials/watch.png" },
+  { title: "Terra-Guard 4P Tent", category: "Outdoor", price: "R3,199", image: "/images/home/essentials/tent.png" },
+  { title: "Omni-Key Wireless", category: "Electronics", price: "R2,450", image: "/images/home/essentials/keyboard.png" },
+  { title: "Slate Dinnerware Set", category: "Home", price: "R1,299", image: "/images/home/essentials/dishes.png" },
+  { title: "Vantage 4K Cam", category: "Electronics", price: "R5,800", image: "/images/home/essentials/go_pro.png" },
+  { title: "Hydro-Core Flask", category: "Outdoor", price: "R550", image: "/images/home/essentials/flask.png" },
 ];
 
 const testimonials = [
-  { name: "Thandi Mthembu", role: "Interior Designer, Joburg", quote: "The curated selection at Apex is unmatched. I recently refurbished my studio and every piece exceeded expectations. Delivery was prompt even in Sandton traffic.", rating: 4, avatar: "/images/thandi.jpg" },
-  { name: "Johan de Beer", role: "Tech Lead", quote: "Apex is my go-to for tech gear. Their service is elite and the products are always authentic. The Aero-Pulse headphones changed my work-from-home life.", rating: 5, avatar: "/images/johan.jpg" },
-  { name: "Lwazi Nkosi", role: "Outdoor Enthusiast", quote: "The camping gear is top-tier. Finally a marketplace that understands the quality needed for South African trails. Exceptional stock.", rating: 5, avatar: "/images/lwazi.jpg" },
+  { name: "Thandi Mthembu", role: "Interior Designer, Joburg", quote: "The curated selection at Apex is unmatched. I recently refurbished my studio and every piece exceeded expectations. Delivery was prompt even in Sandton traffic.", rating: 4, avatar: "/images/home/testimonials/testimonial_1.png" },
+  { name: "Johan de Beer", role: "Tech Lead", quote: "Apex is my go-to for tech gear. Their service is elite and the products are always authentic. The Aero-Pulse headphones changed my work-from-home life.", rating: 5, avatar: "/images/home/testimonials/testimonial_2.png" },
+  { name: "Lwazi Nkosi", role: "Outdoor Enthusiast", quote: "The camping gear is top-tier. Finally a marketplace that understands the quality needed for South African trails. Exceptional stock.", rating: 5, avatar: "/images/home/testimonials/testimonial_3.png" },
 ];
 
 export default function LandingPage() {
@@ -62,8 +62,8 @@ export default function LandingPage() {
 
 function HeroSection() {
   return (
-    <section className="relative flex min-h-[420px] items-center overflow-hidden bg-gray-100">
-      <Image src="/images/hero-desk.jpg" alt="" fill priority className="object-cover" />
+    <section className="relative min-h-[420px] items-center overflow-hidden bg-gray-100 py-16 ">
+      <Image src="/images/home/Home_Banner.png" alt="Hero Image" fill priority className="object-cover" />
       <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-transparent" />
       <div className="relative mx-auto max-w-7xl px-6">
         <Badge variant="primary" className="mb-4">SPRING COLLECTION 2024</Badge>
@@ -85,10 +85,10 @@ function HeroSection() {
 
 function CuratedCategories() {
   const categories = [
-    { title: "Electronics", subtitle: "Precision gear for the digital nomad", href: "/categories/electronics", image: "/images/cat-electronics.jpg", span: "col-span-2 row-span-1" },
-    { title: "Home & Living", href: "/categories/home-living", image: "/images/cat-home.jpg", span: "row-span-2" },
-    { title: "Fashion", href: "/categories/fashion", image: "/images/cat-fashion.jpg", span: "" },
-    { title: "Outdoor", href: "/categories/outdoor", image: "/images/cat-outdoor.jpg", span: "" },
+    { title: "Electronics", subtitle: "Precision gear for the digital nomad", href: "/categories/electronics", image: "/images/home/categories_1.png", span: "col-span-2 row-span-1" },
+    { title: "Home & Living", href: "/categories/home-living", image: "/images/home/categories_2.png", span: "row-span-2" },
+    { title: "Fashion", href: "/categories/fashion", image: "/images/home/categories_3.png", span: "" },
+    { title: "Outdoor", href: "/categories/outdoor", image: "/images/home/categories_4.png", span: "" },
   ];
 
   return (
@@ -153,7 +153,7 @@ function PromoBanner() {
   return (
     <section className="mx-auto max-w-7xl px-6 pb-16">
       <div className="relative flex min-h-[220px] items-center overflow-hidden rounded-md bg-gray-900">
-        <Image src="/images/promo-abstract.jpg" alt="" fill className="object-cover opacity-60" />
+        <Image src="/images/home/galaxy.png" alt="" fill className="object-cover opacity-60" />
         <div className="relative flex w-full items-center justify-between px-10">
           <div>
             <span className="text-sm uppercase tracking-wide text-gray-300">
