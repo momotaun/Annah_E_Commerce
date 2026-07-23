@@ -62,7 +62,7 @@ export default function LandingPage() {
 
 function HeroSection() {
   return (
-    <section className="relative flex min-h-[420px] items-center overflow-hidden bg-gray-100">
+    <section className="relative min-h-[420px] items-center overflow-hidden bg-gray-100 py-16 ">
       <Image src="/images/home/Home_Banner.png" alt="Hero Image" fill priority className="object-cover" />
       <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-transparent" />
       <div className="relative mx-auto max-w-7xl px-6">
