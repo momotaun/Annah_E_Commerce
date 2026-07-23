@@ -27,14 +27,14 @@ const brands = [
 const swatchColors = ["#111827", "#9CA3AF", "#2563EB", "#F3F4F6", "#EF4444"];
 
 const products = [
-  { title: "Apex ProBook M3 Max", category: "Laptops", price: "R2,499.00", rating: 4.9, reviewCount: 124, image: "/images/probook.jpg" },
-  { title: "SonicMaster Elite G2", category: "Audio", price: "R349.00", rating: 4.8, reviewCount: 89, image: "/images/headphones2.jpg" },
-  { title: "Pulse Watch Series 9", category: "Wearables", price: "R499.00", rating: 4.7, reviewCount: 210, image: "/images/watch2.jpg" },
-  { title: "Tactile Cloud RGB", category: "Peripherals", price: "R189.00", rating: 5.0, reviewCount: 45, image: "/images/keyboard2.jpg" },
-  { title: "Horizon 34\" Ultrawide", category: "Displays", price: "R899.00", rating: 4.6, reviewCount: 67, image: "/images/monitor.jpg" },
-  { title: "Vision X100 Mirrorless", category: "Cameras", price: "R3,199.00", rating: 4.9, reviewCount: 0, image: "/images/camera2.jpg" },
-  { title: "Canvas Pro 13", category: "Tablets", price: "R1,149.00", rating: 4.8, reviewCount: 0, image: "/images/tablet.jpg" },
-  { title: "RuggedBox Mini", category: "Audio", price: "R129.00", rating: 4.5, reviewCount: 0, image: "/images/speaker.jpg" },
+  { title: "Apex ProBook M3 Max", category: "Laptops", price: "R2,499.00", rating: 4.9, reviewCount: 124, image: "/images/catalogue/catalogue_1.png" },
+  { title: "SonicMaster Elite G2", category: "Audio", price: "R349.00", rating: 4.8, reviewCount: 89, image: "/images/catalogue/catalogue_2.png" },
+  { title: "Pulse Watch Series 9", category: "Wearables", price: "R499.00", rating: 4.7, reviewCount: 210, image: "/images/catalogue/catalogue_3.png" },
+  { title: "Tactile Cloud RGB", category: "Peripherals", price: "R189.00", rating: 5.0, reviewCount: 45, image: "/images/catalogue/catalogue_4.png" },
+  { title: "Horizon 34\" Ultrawide", category: "Displays", price: "R899.00", rating: 4.6, reviewCount: 67, image: "/images/catalogue/catalogue_5.png" },
+  { title: "Vision X100 Mirrorless", category: "Cameras", price: "R3,199.00", rating: 4.9, reviewCount: 0, image: "/images/catalogue/catalogue_6.png" },
+  { title: "Canvas Pro 13", category: "Tablets", price: "R1,149.00", rating: 4.8, reviewCount: 0, image: "/images/catalogue/catalogue_7.png" },
+  { title: "RuggedBox Mini", category: "Audio", price: "R129.00", rating: 4.5, reviewCount: 0, image: "/images/catalogue/catalogue_8.png" },
 ];
 
 export default function CataloguePage() {
@@ -71,8 +71,8 @@ export default function CataloguePage() {
         <div className="flex-1">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <SearchBar placeholder="Search products..." className="sm:max-w-sm" />
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Sort by:</span>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-500 w-full">Sort by:</span>
               <Select
                 options={[
                   { label: "Newest Arrivals", value: "newest" },

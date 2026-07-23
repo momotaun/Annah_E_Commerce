@@ -28,7 +28,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             type={resolvedType}
             disabled={disabled}
             className={cn(
-              "w-full h-10 rounded-md border bg-white px-3 text-base text-gray-900 placeholder:text-gray-500",
+              "w-full h-10 rounded-xl border bg-white px-3 text-base text-gray-900 placeholder:text-gray-500",
               "focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600",
               "disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed",
               icon && "pl-10",
