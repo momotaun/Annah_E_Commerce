@@ -14,7 +14,7 @@ export default function NotFound() {
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
         <div className="relative mb-8">
           <div className="relative h-64 w-64 overflow-hidden rounded-full bg-gray-100">
-            <Image src="/images/404-drone.jpg" alt="" fill className="object-cover" />
+            <Image src="/images/not-found/image.png" alt="Not Found" fill className="object-cover" />
           </div>
 
           <span className="absolute -right-2 -top-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white text-primary-600 shadow-sm">
