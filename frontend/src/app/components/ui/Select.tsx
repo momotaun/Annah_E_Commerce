@@ -22,7 +22,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             disabled={disabled}
             className={cn(
-              "w-full h-10 appearance-none rounded-md border bg-white px-3 pr-10 text-base text-gray-900",
+              "w-full h-10 appearance-none rounded-xl border bg-white px-3 pr-10 text-base text-gray-900",
               "focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600",
               "disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed",
               error ? "border-danger-500" : "border-gray-200",
