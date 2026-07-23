@@ -62,15 +62,15 @@ export default function LandingPage() {
 
 function HeroSection() {
   return (
-    <section className="relative min-h-[420px] items-center overflow-hidden bg-gray-100 py-16 ">
+    <section className="relative min-h-[420px] items-center overflow-hidden bg-gray-100 py-[154px] ">
       <Image src="/images/home/Home_Banner.png" alt="Hero Image" fill priority className="object-cover" />
       <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-transparent" />
       <div className="relative mx-auto max-w-7xl px-6">
-        <Badge variant="primary" className="mb-4">SPRING COLLECTION 2024</Badge>
-        <h1 className="max-w-lg text-5xl font-extrabold leading-tight text-gray-900">
+        <Badge variant="primary" className="mb-6">SPRING COLLECTION 2024</Badge>
+        <h1 className="max-w-lg text-5xl font-bold leading-tight text-gray-900">
           Elevate Your <span className="text-primary-600">Everyday</span>
         </h1>
-        <p className="mt-4 max-w-md text-gray-500">
+        <p className="py-6 max-w-md text-gray-500">
           Discover curated premium essentials for a modern lifestyle. From
           technical excellence to aesthetic perfection.
         </p>
