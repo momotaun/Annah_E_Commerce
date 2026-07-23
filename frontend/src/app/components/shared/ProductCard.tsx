@@ -43,7 +43,7 @@ function ProductCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-md border border-gray-200 bg-white",
+        "group relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white",
         className
       )}
     >
@@ -53,7 +53,7 @@ function ProductCard({
         </Link>
 
         {badge && (
-          <Badge variant={badge.variant ?? "primary"} className="absolute left-3 top-3 z-10">
+          <Badge variant={badge.variant ?? "primary"} className="absolute left-4 top-4 z-10">
             {badge.label}
           </Badge>
         )}
