@@ -17,13 +17,13 @@ export default function LoginPage() {
       />
 
       <main className="flex flex-1 items-center justify-center bg-gray-50 px-6 py-16">
-        <div className="w-full max-w-md rounded-md border border-gray-200 bg-white p-8 shadow-sm">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome back</h1>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white p-[80px] shadow-sm">
+          <h1 className="text-4xl font-bold text-gray-900 text-center">Welcome back</h1>
+          <p className="mt-1 text-base text-gray-500 text-center">
             Enter your details to access your account.
           </p>
 
-          <form className="mt-6 flex flex-col gap-4">
+          <form className="mt-12 flex flex-col gap-6">
             <Input id="email" type="email" placeholder="Email Address" />
             <Input id="password" type="password" placeholder="Password" />
 
@@ -39,7 +39,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="my-6 flex items-center gap-3">
+          <div className="my-12 flex items-center gap-4">
             <span className="h-px flex-1 bg-gray-200" />
             <span className="text-xs font-medium uppercase text-gray-500">
               Or continue with
@@ -56,7 +56,7 @@ export default function LoginPage() {
             </Button>
           </div>
 
-          <p className="mt-6 text-center text-sm text-gray-500">
+          <p className="mt-12 text-center text-sm text-gray-500">
             New here?{" "}
             <Link href="/register" className="font-medium text-primary-600 hover:underline">
               Create an account
