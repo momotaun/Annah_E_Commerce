@@ -25,12 +25,12 @@ const brands = [
 ];
 
 const products = [
-  { title: "Apex Air Pro 14", description: "M2 Chip, 16GB RAM, 512GB SSD. Midnight Black.", price: "R1,299.00", image: "/images/laptop.jpg", badge: { label: "Best Seller", variant: "primary" as const } },
-  { title: "SonicPure H1", description: "Active Noise Cancellation, 40h Battery Life.", price: "R349.00", image: "/images/headphones3.jpg" },
-  { title: "Zenith Phone X", description: "5G Enabled, 200MP Triple Camera, 120Hz Display.", price: "R999.00", image: "/images/phone2.jpg", badge: { label: "New Entry", variant: "warning" as const } },
-  { title: "Tactile Pro K9", description: "Mechanical Brown Switches, Wireless/Wired.", price: "R189.00", image: "/images/keyboard3.jpg" },
-  { title: "Orbit Watch 5", description: "Advanced Health Monitoring, LTE, 5-Day Battery.", price: "R429.00", image: "/images/watch3.jpg" },
-  { title: "Lumina Mirrorless R7", description: "Full Frame, 45MP, 4K/120fps Video Recording.", price: "R2,499.00", image: "/images/camera3.jpg" },
+  { title: "Apex Air Pro 14", description: "M2 Chip, 16GB RAM, 512GB SSD. Midnight Black.", price: "R1,299.00", image: "/images/categories/categories_1.png", badge: { label: "Best Seller", variant: "primary" as const } },
+  { title: "SonicPure H1", description: "Active Noise Cancellation, 40h Battery Life.", price: "R349.00", image: "/images/categories/categories_2.png" },
+  { title: "Zenith Phone X", description: "5G Enabled, 200MP Triple Camera, 120Hz Display.", price: "R999.00", image: "/images/categories/categories_3.png", badge: { label: "New Entry", variant: "warning" as const } },
+  { title: "Tactile Pro K9", description: "Mechanical Brown Switches, Wireless/Wired.", price: "R189.00", image: "/images/categories/categories_4.png" },
+  { title: "Orbit Watch 5", description: "Advanced Health Monitoring, LTE, 5-Day Battery.", price: "R429.00", image: "/images/categories/categories_5.png" },
+  { title: "Lumina Mirrorless R7", description: "Full Frame, 45MP, 4K/120fps Video Recording.", price: "R2,499.00", image: "/images/categories/categories_6.png" },
 ];
 
 export default function CategoryPage() {
@@ -62,10 +62,10 @@ export default function CategoryPage() {
           ]}
         />
 
-        <section className="relative mt-4 flex min-h-[260px] items-center overflow-hidden rounded-md bg-gray-900">
-          <Image src="/images/electronics-banner.jpg" alt="" fill className="object-cover opacity-70" />
+        <section className="relative mt-4 py-[98px] flex min-h-[260px] items-center overflow-hidden rounded-md bg-gray-900">
+          <Image src="/images/categories/banner.png" alt="" fill className="object-cover opacity-70" />
           <div className="relative max-w-lg px-8 text-white">
-            <h1 className="text-4xl font-extrabold">Electronics</h1>
+            <h1 className="text-4xl font-semibold">Electronics</h1>
             <p className="mt-3 text-sm text-gray-200">
               Experience the future with our curated collection of
               high-performance laptops, premium audio, and cutting-edge
@@ -75,7 +75,7 @@ export default function CategoryPage() {
           </div>
         </section>
 
-        <div className="mt-8 flex flex-col gap-8 md:flex-row">
+        <div className="mt-12 flex flex-col gap-8 md:flex-row">
           <FilterSidebar
             categories={categories}
             brands={brands}
@@ -88,8 +88,8 @@ export default function CategoryPage() {
           <div className="flex-1">
             <div className="mb-6 flex items-center justify-between">
               <span className="text-sm text-gray-500">Showing 24 of 148 products</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Sort by:</span>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-500 w-full">Sort by:</span>
                 <Select
                   options={[
                     { label: "Newest", value: "newest" },
@@ -101,7 +101,7 @@ export default function CategoryPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 rounded-xl">
               {products.map((product) => (
                 <ProductCard
                   key={product.title}
