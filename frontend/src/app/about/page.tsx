@@ -42,8 +42,8 @@ export default function AboutPage() {
       <Header showSearch cartCount={0} />
 
       <main className="flex-1">
-        <section className="bg-gray-50 px-6 py-16 text-center">
-          <h1 className="text-4xl font-extrabold text-gray-900">
+        <section className="bg-gray-50 px-6 py-[80px] text-center">
+          <h1 className="text-4xl font-bold text-gray-900">
             Defining the <span className="text-primary-600">Apex</span> of Commerce.
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-gray-500">
@@ -54,7 +54,7 @@ export default function AboutPage() {
         </section>
 
         <section className="mx-auto max-w-7xl px-6 py-16">
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
+          <div className="grid grid-cols-1 gap-[80px] lg:grid-cols-2 lg:items-center">
             <div>
               <Badge variant="default">Our Story</Badge>
               <h2 className="mt-4 text-3xl font-bold text-gray-900">
@@ -92,10 +92,10 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="bg-gray-50 px-6 py-16">
+        <section className="bg-gray-50 px-6 py-[80px]">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-2xl font-bold text-gray-900">The Pillars of Apex</h2>
-            <p className="mt-2 text-sm text-gray-500">
+            <h2 className="text-4xl font-bold text-gray-900">The Pillars of Apex</h2>
+            <p className="mt-2 text-base text-gray-500">
               Our guiding principles dictate every decision we make, from
               partner selection to final delivery.
             </p>
@@ -113,7 +113,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-6 py-16">
+        <section className="mx-auto max-w-7xl px-6 py-[80px]">
           <div className="flex items-end justify-between">
             <div>
               <span className="text-xs font-semibold uppercase text-primary-600">
@@ -135,10 +135,10 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="px-6 pb-16">
-          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 rounded-md bg-primary-600 p-10 text-white md:flex-row">
+        <section className="px-6 py-[80px]">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 rounded-md bg-primary-600 p-[80px] text-white md:flex-row">
             <div>
-              <h2 className="text-3xl font-extrabold leading-tight">
+              <h2 className="text-3xl font-bold leading-tight">
                 Ready to elevate your standards?
               </h2>
               <p className="mt-3 max-w-md text-sm text-white/80">
@@ -146,7 +146,7 @@ export default function AboutPage() {
                 products with unparalleled security and service.
               </p>
             </div>
-            <div className="flex flex-col items-center gap-2 text-center">
+            <div className="flex flex-col items-center gap-4 text-center">
               <Button variant="secondary" href="/register">
                 Join our community
               </Button>
