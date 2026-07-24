@@ -28,15 +28,15 @@ export default function RegisterPage() {
           Apex Marketplace
         </Link>
 
-        <div className="mt-8 w-full max-w-md rounded-md border border-gray-200 bg-white p-8 shadow-sm">
-          <h1 className="text-center text-3xl font-bold text-gray-900">
+        <div className="mt-6 w-full max-w-md rounded-md border border-gray-200 bg-white p-6 shadow-sm">
+          <h1 className="text-center text-4xl font-bold text-gray-900">
             Create your account
           </h1>
-          <p className="mt-2 text-center text-sm text-gray-500">
+          <p className="mt-2 text-center text-base text-gray-500">
             Join Apex Marketplace for a personalized shopping experience.
           </p>
 
-          <form className="mt-6 flex flex-col gap-4">
+          <form className="mt-6 flex flex-col gap-6">
             <div>
               <label htmlFor="fullName" className="text-sm font-semibold text-gray-900">
                 Full Name
