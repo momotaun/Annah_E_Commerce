@@ -22,7 +22,7 @@ export default function ProfilePage() {
           { label: "Categories", href: "/categories" },
         ]}
         cartCount={0}
-        user={{ name: "Alex Rivera", avatarSrc: "/images/alex-avatar.jpg" }}
+        user={{ name: "Alex Rivera", avatarSrc: "/images/profile/user.png" }}
       />
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-10 md:flex-row">
@@ -96,7 +96,7 @@ export default function ProfilePage() {
               <div className="relative overflow-hidden rounded-md">
                 <div className="relative aspect-[4/3] bg-gray-100">
                   <img
-                    src="/images/premium-tier-promo.jpg"
+                    src="/images/profile/image.png"
                     alt=""
                     className="h-full w-full object-cover"
                   />
