@@ -46,11 +46,6 @@ function Footer({
               "grid grid-cols-1 gap-10",
               showNewsletter ? "md:grid-cols-4" : "md:grid-cols-3"
             )}
-            style={{
-              gridTemplateColumns: `1.5fr repeat(${columns.length}, 1fr)${
-                showNewsletter ? "" : ""
-              }`,
-            }}
           >
             <div className="flex flex-col gap-3">
               <span className="text-xl font-bold text-primary-600">
