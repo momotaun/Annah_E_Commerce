@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import Button from "@/src/app/components/ui/Button";
 import Badge from "@/src/app/components/ui/Badge";
+import Avatar from "@/src/app/components/ui/Avatar";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 import { cn } from "@/src/lib/utils";
 
@@ -21,6 +22,7 @@ export interface HeaderProps {
   announcementText?: string;
   variant?: "full" | "minimal";
   minimalRightLink?: NavLink;
+  user?: { name: string; avatarSrc?: string; href?: string };
 }
 
 const defaultNavLinks: NavLink[] = [
@@ -39,6 +41,7 @@ function Header({
   announcementText,
   variant = "full",
   minimalRightLink,
+  user,
 }: HeaderProps) {
   const pathname = usePathname();
 
@@ -51,31 +54,29 @@ function Header({
       )}
 
       <header className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4">
-        <div className="flex items-center gap-12">
-          <Link href="/" className="shrink-0 text-xl font-extrabold text-primary-600">
-            Apex Marketplace
-          </Link>
+        <Link href="/" className="shrink-0 text-xl font-bold text-primary-600">
+          Apex Marketplace
+        </Link>
 
-          {variant === "full" && (
-            <nav className="hidden items-center gap-8 md:flex">
-              {navLinks.map((link) => {
-                const isActive = pathname === link.href;
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={cn(
-                      "text-sm font-semibold transition-colors hover:text-primary-600",
-                      isActive ? "text-primary-600 underline underline-offset-4" : "text-gray-900"
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </nav>
-          )}
-        </div>
+        {variant === "full" && (
+          <nav className="hidden items-center gap-6 md:flex">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary-600",
+                    isActive ? "text-primary-600 underline underline-offset-4" : "text-gray-900"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
 
         <div className="flex items-center gap-4">
           {variant === "full" && showSearch && (
@@ -98,7 +99,13 @@ function Header({
             </Link>
           )}
 
-          {variant === "full" && showAuthButton && (
+          {variant === "full" && user && (
+            <Link href={user.href ?? "/profile"}>
+              <Avatar src={user.avatarSrc} alt={user.name} size="sm" />
+            </Link>
+          )}
+
+          {variant === "full" && !user && showAuthButton && (
             <Button variant="outline" size="sm" href="/login">
               Login/Register
             </Button>
