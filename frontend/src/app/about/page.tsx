@@ -30,10 +30,10 @@ const pillars = [
 ];
 
 const team = [
-  { name: "Elena Vance", role: "Chief Executive Officer", image: "/images/team-elena.jpg" },
-  { name: "Marcus Thorne", role: "Head of Product", image: "/images/team-marcus.jpg" },
-  { name: "Sarah Jenkins", role: "Operations Director", image: "/images/team-sarah.jpg" },
-  { name: "David Chen", role: "CTO & Founder", image: "/images/team-david.jpg" },
+  { name: "Elena Vance", role: "Chief Executive Officer", image: "/images/about/team_1.png" },
+  { name: "Marcus Thorne", role: "Head of Product", image: "/images/about/team_2.png" },
+  { name: "Sarah Jenkins", role: "Operations Director", image: "/images/about/team_3.png" },
+  { name: "David Chen", role: "CTO & Founder", image: "/images/about/team_4.png" },
 ];
 
 export default function AboutPage() {
@@ -82,7 +82,7 @@ export default function AboutPage() {
 
             <div className="relative">
               <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-gray-100">
-                <Image src="/images/about-office.jpg" alt="Apex Marketplace office" fill className="object-cover" />
+                <Image src="/images/about/banner.png" alt="Apex Marketplace office" fill className="object-cover" />
               </div>
               <div className="absolute -bottom-6 left-6 flex items-center gap-3 rounded-md bg-primary-600 p-4 text-white shadow-lg">
                 <Award className="h-6 w-6" />
