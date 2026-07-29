@@ -1,0 +1,58 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { QueryProductsDto } from './dto/query-products.dto';
+import {
+  PaginatedProductsResponseDto,
+  ProductResponseDto,
+} from './dto/product-response.dto';
+
+@Injectable()
+export class ProductsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  private toResponseDto(product: any): ProductResponseDto {
+    return {
+      ...product,
+      price: product.price.toString(),
+    };
+  }
+
+  async findAll(
+    query: QueryProductsDto,
+  ): Promise<PaginatedProductsResponseDto> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const where = query.category ? { category: { slug: query.category } } : {};
+
+    const [products, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return {
+      data: products.map((p) => this.toResponseDto(p)),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findOne(id: string): Promise<ProductResponseDto> {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+
+    if (!product) {
+      throw new NotFoundException(`Product with id "${id}" not found`);
+    }
+
+    return this.toResponseDto(product);
+  }
+}
