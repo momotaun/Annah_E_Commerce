@@ -8,9 +8,18 @@ import { ProductsModule } from './products/products.module';
 import { SearchModule } from './search/search.module';
 import { CartModule } from './cart/cart.module';
 import { OrderRequestsModule } from './order-requests/order-requests.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [PrismaModule, CategoriesModule, ProductsModule, SearchModule, CartModule, OrderRequestsModule],
+  imports: [
+    PrismaModule,
+    CategoriesModule,
+    ProductsModule,
+    SearchModule,
+    CartModule,
+    OrderRequestsModule,
+    AuthModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
