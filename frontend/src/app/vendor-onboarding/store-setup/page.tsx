@@ -85,7 +85,7 @@ export default function VendorStoreSetupPage() {
             </div>
             <div className="relative overflow-hidden rounded-md">
               <div className="relative aspect-video bg-gray-200">
-                <Image src="/images/vendor-store-preview.jpg" alt="" fill className="object-cover" />
+                <Image src="/images/vendor-onboarding/store-setup/Image.png" alt="" fill className="object-cover" />
               </div>
               <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-md bg-white px-3 py-2 shadow-sm">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white">

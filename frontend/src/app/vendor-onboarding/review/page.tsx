@@ -86,7 +86,7 @@ export default function VendorReviewPage() {
               </div>
               <p className="mt-4 text-xs font-medium uppercase text-gray-500">Banner Preview</p>
               <div className="relative mt-2 aspect-video overflow-hidden rounded-md bg-gray-100">
-                <Image src="/images/vendor-banner-preview.jpg" alt="" fill className="object-cover" />
+                <Image src="/images/vendor-onboarding/review/Image.png" alt="" fill className="object-cover" />
               </div>
             </div>
 
