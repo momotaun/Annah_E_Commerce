@@ -1,13 +1,228 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// PHASE 1 — Marketplace MVP
+// ─────────────────────────────────────────────
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  parentId  String?
+  parent    Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryToSubcategory")
+  products  Product[]
+  createdAt DateTime   @default(now())
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  sku         String   @unique
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  imageUrl    String?
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  // Reserved in Phase 1, populated from Phase 3 onward
+  vendorId String?
+  vendor   Vendor? @relation(fields: [vendorId], references: [id])
+
+  cartItems         CartItem[]
+  orderRequestItems OrderRequestItem[]
+  vendorOrderItems  VendorOrderItem[]
+
+  createdAt DateTime @default(now())
+
+  @@index([categoryId])
+  @@index([vendorId])
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+
+  // Reserved in Phase 1, populated from Phase 2 onward
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  items        CartItem[]
+  orderRequests OrderRequest[]
+  createdAt    DateTime       @default(now())
+}
+
+model CartItem {
+  id        String  @id @default(cuid())
+  cartId    String
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int     @default(1)
+
+  @@unique([cartId, productId])
+}
+
+enum OrderRequestStatus {
+  PENDING
+  REVIEWED
+  FULFILLED
+}
+
+model OrderRequest {
+  id              String              @id @default(cuid())
+  cartId          String
+  cart            Cart                @relation(fields: [cartId], references: [id])
+  customerName    String
+  customerContact String
+  status          OrderRequestStatus  @default(PENDING)
+  items           OrderRequestItem[]
+  createdAt       DateTime            @default(now())
+}
+
+model OrderRequestItem {
+  id             String       @id @default(cuid())
+  orderRequestId String
+  orderRequest   OrderRequest @relation(fields: [orderRequestId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product      @relation(fields: [productId], references: [id])
+  quantity       Int
+  priceAtOrder   Decimal      @db.Decimal(10, 2)
+}
+
+// ─────────────────────────────────────────────
+// PHASE 2 — Customer Accounts & Online Commerce
+// ─────────────────────────────────────────────
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+
+  carts     Cart[]
+  addresses Address[]
+  orders    Order[]
+  createdAt DateTime  @default(now())
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  line1      String
+  city       String
+  province   String
+  postalCode String
+  isDefault  Boolean @default(false)
+
+  orders Order[]
+}
+
+enum OrderStatus {
+  PLACED
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  addressId   String
+  address     Address     @relation(fields: [addressId], references: [id])
+  status      OrderStatus @default(PLACED)
+  totalAmount Decimal     @db.Decimal(10, 2)
+
+  payments         Payment[]
+  invoice          Invoice?
+  vendorOrderItems VendorOrderItem[]
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum PaymentStatus {
+  INITIATED
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  orderId        String
+  order          Order         @relation(fields: [orderId], references: [id])
+  provider       String
+  transactionRef String        @unique
+  status         PaymentStatus @default(INITIATED)
+  amount         Decimal       @db.Decimal(10, 2)
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  orderId       String   @unique
+  order         Order    @relation(fields: [orderId], references: [id])
+  invoiceNumber String   @unique
+  issuedAt      DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+// PHASE 3 — Multi-Vendor Marketplace
+// ─────────────────────────────────────────────
+
+enum VendorStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+model Vendor {
+  id           String       @id @default(cuid())
+  businessName String
+  contactEmail String       @unique
+  status       VendorStatus @default(PENDING)
+  approvedAt   DateTime?
+
+  products         Product[]
+  vendorOrderItems VendorOrderItem[]
+  commissions      Commission[]
+}
+
+model VendorOrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  vendorId  String
+  vendor    Vendor  @relation(fields: [vendorId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  lineTotal Decimal @db.Decimal(10, 2)
+
+  commission Commission?
+
+  @@index([vendorId])
+  @@index([orderId])
+}
+
+model Commission {
+  id          String          @id @default(cuid())
+  vendorId    String
+  vendor      Vendor          @relation(fields: [vendorId], references: [id])
+  orderItemId String          @unique
+  orderItem   VendorOrderItem @relation(fields: [orderItemId], references: [id])
+  rate        Decimal         @db.Decimal(5, 2)
+  amount      Decimal         @db.Decimal(10, 2)
 }
