@@ -9,6 +9,7 @@ import { SearchModule } from './search/search.module';
 import { CartModule } from './cart/cart.module';
 import { OrderRequestsModule } from './order-requests/order-requests.module';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AuthModule } from './auth/auth.module';
     CartModule,
     OrderRequestsModule,
     AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
