@@ -28,6 +28,34 @@ async function main() {
   });
 
   console.log({ electronics, computing });
+
+  const laptop = await prisma.product.upsert({
+    where: { sku: 'APEX-PROBOOK-M3MAX' },
+    update: {},
+    create: {
+      name: 'Apex ProBook M3 Max',
+      sku: 'APEX-PROBOOK-M3MAX',
+      description: 'M3 Max Silicon with 16-core CPU, 40-core GPU, up to 22 hours of battery life.',
+      price: 45999.0,
+      imageUrl: '/images/probook.jpg',
+      categoryId: computing.id,
+    },
+  });
+
+  await prisma.product.upsert({
+    where: { sku: 'SONICMASTER-ELITE-G2' },
+    update: {},
+    create: {
+      name: 'SonicMaster Elite G2',
+      sku: 'SONICMASTER-ELITE-G2',
+      description: 'Active Noise Cancellation, 40h battery life.',
+      price: 349.0,
+      imageUrl: '/images/headphones2.jpg',
+      categoryId: computing.id,
+    },
+  });
+
+  console.log({ electronics, computing, laptop });
 }
 
 main()
