@@ -1,6 +1,11 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { VendorOrderItemResponseDto } from './dto/vendor-order-item-response.dto';
+import { SalesReportResponseDto } from './dto/sales-report-response.dto';
 
 @Injectable()
 export class VendorOrdersService {
@@ -17,7 +22,9 @@ export class VendorOrdersService {
     return vendor;
   }
 
-  async findAllForVendor(userId: string): Promise<VendorOrderItemResponseDto[]> {
+  async findAllForVendor(
+    userId: string,
+  ): Promise<VendorOrderItemResponseDto[]> {
     const vendor = await this.requireVendor(userId);
 
     const items = await this.prisma.vendorOrderItem.findMany({
@@ -41,5 +48,33 @@ export class VendorOrdersService {
       orderStatus: item.order.status,
       orderCreatedAt: item.order.createdAt,
     }));
+  }
+
+  async getSalesReport(userId: string): Promise<SalesReportResponseDto> {
+    const vendor = await this.requireVendor(userId);
+
+    const items = await this.prisma.vendorOrderItem.findMany({
+      where: { vendorId: vendor.id },
+      include: { commission: true },
+    });
+
+    const totalRevenue = items.reduce(
+      (sum, item) => sum + item.lineTotal.toNumber(),
+      0,
+    );
+    const totalCommission = items.reduce(
+      (sum, item) => sum + (item.commission?.amount.toNumber() ?? 0),
+      0,
+    );
+    const totalItemsSold = items.reduce((sum, item) => sum + item.quantity, 0);
+    const totalOrders = new Set(items.map((item) => item.orderId)).size;
+
+    return {
+      totalOrders,
+      totalItemsSold,
+      totalRevenue: totalRevenue.toFixed(2),
+      totalCommission: totalCommission.toFixed(2),
+      netEarnings: (totalRevenue - totalCommission).toFixed(2),
+    };
   }
 }
