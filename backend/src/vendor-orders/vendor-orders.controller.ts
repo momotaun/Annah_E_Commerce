@@ -6,14 +6,19 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../auth/decorators/current-user.decorator';
 import { VendorOrdersService } from './vendor-orders.service';
 
-@Controller('vendors/me/orders')
+@Controller('vendors/me')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('VENDOR')
 export class VendorOrdersController {
   constructor(private readonly vendorOrdersService: VendorOrdersService) {}
 
-  @Get()
+  @Get('orders')
   findAll(@CurrentUser() user: CurrentUserPayload) {
     return this.vendorOrdersService.findAllForVendor(user.userId);
+  }
+
+  @Get('sales-report')
+  getSalesReport(@CurrentUser() user: CurrentUserPayload) {
+    return this.vendorOrdersService.getSalesReport(user.userId);
   }
 }
