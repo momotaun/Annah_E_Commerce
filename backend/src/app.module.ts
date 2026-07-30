@@ -15,6 +15,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { OrdersModule } from './orders/orders.module';
 import { VendorsModule } from './vendors/vendors.module';
 import { VendorProductsModule } from './vendor-products/vendor-products.module';
+import { VendorOrdersModule } from './vendor-orders/vendor-orders.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { VendorProductsModule } from './vendor-products/vendor-products.module';
     OrdersModule,
     VendorsModule,
     VendorProductsModule,
+    VendorOrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -23,6 +23,7 @@ const payments_module_1 = require("./payments/payments.module");
 const orders_module_1 = require("./orders/orders.module");
 const vendors_module_1 = require("./vendors/vendors.module");
 const vendor_products_module_1 = require("./vendor-products/vendor-products.module");
+const vendor_orders_module_1 = require("./vendor-orders/vendor-orders.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -42,6 +43,7 @@ exports.AppModule = AppModule = __decorate([
             orders_module_1.OrdersModule,
             vendors_module_1.VendorsModule,
             vendor_products_module_1.VendorProductsModule,
+            vendor_orders_module_1.VendorOrdersModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
