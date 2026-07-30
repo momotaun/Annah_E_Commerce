@@ -13,6 +13,7 @@ import { UsersModule } from './users/users.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { PaymentsModule } from './payments/payments.module';
 import { OrdersModule } from './orders/orders.module';
+import { VendorsModule } from './vendors/vendors.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { OrdersModule } from './orders/orders.module';
     CheckoutModule,
     PaymentsModule,
     OrdersModule,
+    VendorsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

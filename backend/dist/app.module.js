@@ -21,6 +21,7 @@ const users_module_1 = require("./users/users.module");
 const checkout_module_1 = require("./checkout/checkout.module");
 const payments_module_1 = require("./payments/payments.module");
 const orders_module_1 = require("./orders/orders.module");
+const vendors_module_1 = require("./vendors/vendors.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -38,6 +39,7 @@ exports.AppModule = AppModule = __decorate([
             checkout_module_1.CheckoutModule,
             payments_module_1.PaymentsModule,
             orders_module_1.OrdersModule,
+            vendors_module_1.VendorsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
