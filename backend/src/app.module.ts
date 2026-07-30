@@ -11,6 +11,7 @@ import { OrderRequestsModule } from './order-requests/order-requests.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { CheckoutModule } from './checkout/checkout.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CheckoutModule } from './checkout/checkout.module';
     AuthModule,
     UsersModule,
     CheckoutModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

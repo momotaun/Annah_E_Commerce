@@ -6,7 +6,7 @@ const common_1 = require("@nestjs/common");
 const app_module_1 = require("./app.module");
 const all_exceptions_filter_1 = require("./common/filters/all-exceptions.filter");
 async function bootstrap() {
-    const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const app = await core_1.NestFactory.create(app_module_1.AppModule, { rawBody: true });
     app.useGlobalFilters(new all_exceptions_filter_1.AllExceptionsFilter());
     app.setGlobalPrefix('api');
     app.useGlobalPipes(new common_1.ValidationPipe({
