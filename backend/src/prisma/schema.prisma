@@ -116,6 +116,10 @@ model User {
   createdAt DateTime  @default(now())
 
   refreshTokens RefreshToken[]
+
+  role Role @default(CUSTOMER)
+
+  vendor Vendor?
 }
 
 model Address {
@@ -206,6 +210,8 @@ enum VendorStatus {
 
 model Vendor {
   id           String       @id @default(cuid())
+  userId       String       @unique
+  user         User         @relation(fields: [userId], references: [id])
   businessName String
   contactEmail String       @unique
   status       VendorStatus @default(PENDING)
@@ -253,4 +259,10 @@ model RefreshToken {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+enum Role {
+  CUSTOMER
+  VENDOR
+  ADMIN
 }
