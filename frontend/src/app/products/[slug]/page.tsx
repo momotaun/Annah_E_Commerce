@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, CheckCircle2 } from "lucide-react";
+import { Heart, CheckCircle2, Lock } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Breadcrumb from "@/src/app/components/shared/Breadcrumb";
@@ -14,6 +14,7 @@ import PillOption from "@/src/app/components/ui/PillOption";
 import Stepper from "@/src/app/components/ui/Stepper";
 import Button from "@/src/app/components/ui/Button";
 import Tabs from "@/src/app/components/ui/Tabs";
+import { useCart } from "@/src/context/CartContext";
 
 const galleryImages = [
   "/images/probook-1.jpg",
@@ -32,14 +33,38 @@ const relatedProducts = [
   { title: "Apex FastDrive 4TB", price: "R7,200", image: "/images/drive.jpg" },
 ];
 
-export default function ProductDetailsPage() {
+export default function ProductDetailsPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const { addItem } = useCart();
+
   const [selectedColor, setSelectedColor] = useState(colors[0]);
   const [selectedStorage, setSelectedStorage] = useState(storageOptions[0]);
   const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
+
+  // TODO (next pass): fetch real product data via getProduct(params.slug)
+  // instead of the hardcoded values below. Left as-is for this step since
+  // the focus here is wiring Add to Cart, not the data-fetching pass.
+  const productId = "REPLACE_WITH_REAL_PRODUCT_ID"; // placeholder until real fetch is wired
+
+  async function handleAddToCart() {
+    setIsAdding(true);
+    try {
+      await addItem(productId, quantity);
+    } catch (err) {
+      console.error("Failed to add to cart", err);
+      // TODO: surface a toast/error state to the user
+    } finally {
+      setIsAdding(false);
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header showSearch cartCount={2} />
+      <Header showSearch />
 
       <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-6">
         <Breadcrumb
@@ -103,7 +128,9 @@ export default function ProductDetailsPage() {
 
             <div className="mt-6 flex gap-4">
               <Stepper value={quantity} onChange={setQuantity} />
-              <Button fullWidth>Add to Cart</Button>
+              <Button fullWidth isLoading={isAdding} onClick={handleAddToCart}>
+                Add to Cart
+              </Button>
             </div>
 
             <Button variant="ghost" fullWidth className="mt-3" icon={<Heart className="h-4 w-4" />}>
@@ -245,7 +272,6 @@ function ReviewsSection() {
         </div>
       </div>
 
-      {/* Locked/teaser overlay matching the "Reviews Coming Soon" state */}
       <div className="relative mt-8 grid grid-cols-1 gap-4 blur-sm sm:grid-cols-2">
         <div className="rounded-md border border-gray-200 p-4">
           <p className="text-sm font-semibold text-gray-900">Sarah J.</p>
@@ -265,7 +291,8 @@ function ReviewsSection() {
 
       <div className="absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center">
         <span className="flex items-center gap-2 rounded-full bg-gray-900/90 px-4 py-2 text-sm font-medium text-white">
-          🔒 Reviews Coming Soon
+          <Lock className="h-4 w-4" />
+          Reviews Coming Soon
         </span>
       </div>
     </section>

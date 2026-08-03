@@ -7,6 +7,7 @@ import Button from "@/src/app/components/ui/Button";
 import Badge from "@/src/app/components/ui/Badge";
 import Avatar from "@/src/app/components/ui/Avatar";
 import SearchBar from "@/src/app/components/shared/SearchBar";
+import { useCart } from "@/src/context/CartContext";
 import { cn } from "@/src/lib/utils";
 
 export interface NavLink {
@@ -18,7 +19,7 @@ export interface HeaderProps {
   navLinks?: NavLink[];
   showSearch?: boolean;
   showAuthButton?: boolean;
-  cartCount?: number;
+  showCart?: boolean;
   announcementText?: string;
   variant?: "full" | "minimal";
   minimalRightLink?: NavLink;
@@ -37,13 +38,14 @@ function Header({
   navLinks = defaultNavLinks,
   showSearch = false,
   showAuthButton = true,
-  cartCount,
+  showCart = true,
   announcementText,
   variant = "full",
   minimalRightLink,
   user,
 }: HeaderProps) {
   const pathname = usePathname();
+  const { itemCount } = useCart();
 
   return (
     <div className="w-full border-b border-gray-200 bg-white">
@@ -85,15 +87,15 @@ function Header({
             </div>
           )}
 
-          {variant === "full" && cartCount !== undefined && (
+          {variant === "full" && showCart && (
             <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-gray-900">
               <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 && (
+              {itemCount > 0 && (
                 <Badge
                   variant="primary"
                   className="absolute -right-1 -top-1 h-5 min-w-5 justify-center px-1"
                 >
-                  {cartCount}
+                  {itemCount}
                 </Badge>
               )}
             </Link>
