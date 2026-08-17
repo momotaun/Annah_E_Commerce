@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { Truck, ShieldCheck, Award, Headset } from "lucide-react";
@@ -7,42 +5,29 @@ import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";
 import Badge from "@/src/app/components/ui/Badge";
-import RatingStars from "@/src/app/components/ui/RatingStars";
 import Avatar from "@/src/app/components/ui/Avatar";
 import InfoCard from "@/src/app/components/shared/InfoCard";
-import ProductCard from "@/src/app/components/shared/ProductCard";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
-
-const essentials = [
-  { title: "Aero-Pulse ANC Headphones", category: "Electronics", price: "R4,299", image: "/images/home/essentials/headphones.png", badge: { label: "Bestseller" } },
-  { title: "Apex Barista Pro", category: "Home & Living", price: "R12,499", image: "/images/home/essentials/coffe_maker.png" },
-  { title: "Horologer Series IV", category: "Fashion", price: "R8,950", image: "/images/home/essentials/watch.png" },
-  { title: "Terra-Guard 4P Tent", category: "Outdoor", price: "R3,199", image: "/images/home/essentials/tent.png" },
-  { title: "Omni-Key Wireless", category: "Electronics", price: "R2,450", image: "/images/home/essentials/keyboard.png" },
-  { title: "Slate Dinnerware Set", category: "Home", price: "R1,299", image: "/images/home/essentials/dishes.png" },
-  { title: "Vantage 4K Cam", category: "Electronics", price: "R5,800", image: "/images/home/essentials/go_pro.png" },
-  { title: "Hydro-Core Flask", category: "Outdoor", price: "R550", image: "/images/home/essentials/flask.png" },
-];
+import { getProducts } from "@/src/lib/api/products";
+import TopRatedEssentials from "@/src/app/TopRatedEssentials";
 
 const testimonials = [
-  { name: "Thandi Mthembu", role: "Interior Designer, Joburg", quote: "The curated selection at Apex is unmatched. I recently refurbished my studio and every piece exceeded expectations. Delivery was prompt even in Sandton traffic.", rating: 4, avatar: "/images/home/testimonials/testimonial_1.png" },
-  { name: "Johan de Beer", role: "Tech Lead", quote: "Apex is my go-to for tech gear. Their service is elite and the products are always authentic. The Aero-Pulse headphones changed my work-from-home life.", rating: 5, avatar: "/images/home/testimonials/testimonial_2.png" },
-  { name: "Lwazi Nkosi", role: "Outdoor Enthusiast", quote: "The camping gear is top-tier. Finally a marketplace that understands the quality needed for South African trails. Exceptional stock.", rating: 5, avatar: "/images/home/testimonials/testimonial_3.png" },
+  { name: "Thandi Mthembu", role: "Interior Designer, Joburg", quote: "The curated selection at Apex is unmatched. I recently refurbished my studio and every piece exceeded expectations. Delivery was prompt even in Sandton traffic.", rating: 4, avatar: "/images/thandi.jpg" },
+  { name: "Johan de Beer", role: "Tech Lead", quote: "Apex is my go-to for tech gear. Their service is elite and the products are always authentic. The Aero-Pulse headphones changed my work-from-home life.", rating: 5, avatar: "/images/johan.jpg" },
+  { name: "Lwazi Nkosi", role: "Outdoor Enthusiast", quote: "The camping gear is top-tier. Finally a marketplace that understands the quality needed for South African trails. Exceptional stock.", rating: 5, avatar: "/images/lwazi.jpg" },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const essentials = await getProducts({ limit: 8 });
+
   return (
     <div className="flex min-h-screen flex-col">
-      <Header
-        announcementText="FREE SHIPPING ON ORDERS OVER R1000!"
-        showSearch
-        cartCount={0}
-      />
+      <Header announcementText="FREE SHIPPING ON ORDERS OVER R1000!" showSearch />
 
       <main className="flex-1">
         <HeroSection />
         <CuratedCategories />
-        <TopRatedEssentials />
+        <TopRatedEssentials products={essentials.data} />
         <PromoBanner />
         <TrustBadges />
         <Testimonials />
@@ -62,15 +47,15 @@ export default function LandingPage() {
 
 function HeroSection() {
   return (
-    <section className="relative min-h-[420px] items-center overflow-hidden bg-gray-100 py-[154px] ">
-      <Image src="/images/home/Home_Banner.png" alt="Hero Image" fill priority className="object-cover" />
+    <section className="relative flex min-h-[420px] items-center overflow-hidden bg-gray-100 py-[154px]">
+      <Image src="/images/hero-desk.jpg" alt="" fill priority className="object-cover" />
       <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-transparent" />
       <div className="relative mx-auto max-w-7xl px-6">
-        <Badge variant="primary" className="mb-6 py-1">SPRING COLLECTION 2024</Badge>
-        <h1 className="max-w-lg text-5xl font-bold leading-tight text-gray-900">
+        <Badge variant="primary" className="mb-4">SPRING COLLECTION 2024</Badge>
+        <h1 className="max-w-lg text-5xl font-extrabold leading-tight text-gray-900">
           Elevate Your <span className="text-primary-600">Everyday</span>
         </h1>
-        <p className="py-6 max-w-md text-gray-500">
+        <p className="mt-4 max-w-md text-gray-500">
           Discover curated premium essentials for a modern lifestyle. From
           technical excellence to aesthetic perfection.
         </p>
@@ -85,10 +70,10 @@ function HeroSection() {
 
 function CuratedCategories() {
   const categories = [
-    { title: "Electronics", subtitle: "Precision gear for the digital nomad", href: "/categories/electronics", image: "/images/home/categories_1.png", span: "col-span-2 row-span-1" },
-    { title: "Home & Living", href: "/categories/home-living", image: "/images/home/categories_2.png", span: "row-span-2" },
-    { title: "Fashion", href: "/categories/fashion", image: "/images/home/categories_3.png", span: "" },
-    { title: "Outdoor", href: "/categories/outdoor", image: "/images/home/categories_4.png", span: "" },
+    { title: "Electronics", subtitle: "Precision gear for the digital nomad", href: "/categories/electronics", image: "/images/cat-electronics.jpg", span: "col-span-2 row-span-1" },
+    { title: "Home & Living", href: "/categories/home-living", image: "/images/cat-home.jpg", span: "row-span-2" },
+    { title: "Fashion", href: "/categories/fashion", image: "/images/cat-fashion.jpg", span: "" },
+    { title: "Outdoor", href: "/categories/outdoor", image: "/images/cat-outdoor.jpg", span: "" },
   ];
 
   return (
@@ -123,37 +108,11 @@ function CuratedCategories() {
   );
 }
 
-function TopRatedEssentials() {
-  return (
-    <section className="mx-auto max-w-7xl px-6 py-16">
-      <div className="mb-8 text-center">
-        <h2 className="text-2xl font-bold text-gray-900">Top-Rated Essentials</h2>
-        <p className="text-sm text-gray-500">Voted by our community of enthusiasts</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {essentials.map((item) => (
-          <ProductCard
-            key={item.title}
-            href={`/products/${item.title.toLowerCase().replace(/\s+/g, "-")}`}
-            image={item.image}
-            title={item.title}
-            category={item.category}
-            price={item.price}
-            badge={item.badge}
-            onAddToCart={() => {}}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function PromoBanner() {
   return (
     <section className="mx-auto max-w-7xl px-6 pb-16">
       <div className="relative flex min-h-[220px] items-center overflow-hidden rounded-md bg-gray-900">
-        <Image src="/images/home/galaxy.png" alt="" fill className="object-cover opacity-60" />
+        <Image src="/images/promo-abstract.jpg" alt="" fill className="object-cover opacity-60" />
         <div className="relative flex w-full items-center justify-between px-10">
           <div>
             <span className="text-sm uppercase tracking-wide text-gray-300">
@@ -196,7 +155,6 @@ function Testimonials() {
               </div>
             </div>
             <p className="text-sm text-gray-500">&ldquo;{t.quote}&rdquo;</p>
-            <RatingStars rating={t.rating} showValue={false} showCount={false} />
           </div>
         ))}
       </div>
