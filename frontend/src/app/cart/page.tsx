@@ -92,7 +92,7 @@ export default function ShoppingCartPage() {
                   </span>
                 </div>
 
-                <Button fullWidth disabled className="mt-4" icon={<Lock className="h-4 w-4" />}>
+                <Button fullWidth className="mt-4" href="/checkout">
                   Proceed to Checkout
                 </Button>
 
