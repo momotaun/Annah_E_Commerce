@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Briefcase, BadgeCheck, History, MapPin, Heart } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
@@ -8,10 +8,58 @@ import AccountSidebar from "@/src/app/components/shared/AccountSidebar";
 import ActivityCard from "@/src/app/components/shared/ActivityCard";
 import Input from "@/src/app/components/ui/Input";
 import Button from "@/src/app/components/ui/Button";
+import Spinner from "@/src/app/components/ui/Spinner";
+import { useAuth } from "@/src/context/AuthContext";
+import { useRequireAuth } from "@/src/hooks/useRequireAuth";
+import { getMyProfile, updateMyProfile } from "@/src/lib/api/users";
 
 export default function ProfilePage() {
-  const [fullName, setFullName] = useState("Alex Rivera");
-  const [phone, setPhone] = useState("+27 74 123 4567");
+  const { isLoading: authLoading } = useRequireAuth(); // redirects to /login if unauthenticated
+  const { user, logout } = useAuth();
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [memberSince, setMemberSince] = useState<string | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    getMyProfile()
+      .then((profile) => {
+        setFirstName(profile.firstName);
+        setLastName(profile.lastName);
+        setMemberSince(
+          new Date(profile.createdAt).toLocaleDateString("en-ZA", {
+            month: "long",
+            year: "numeric",
+          }),
+        );
+      })
+      .finally(() => setIsLoadingProfile(false));
+  }, [authLoading, user]);
+
+  async function handleSave() {
+    setIsSaving(true);
+    setSaveMessage(null);
+    try {
+      await updateMyProfile({ firstName, lastName });
+      setSaveMessage("Changes saved.");
+    } catch {
+      setSaveMessage("Couldn't save changes. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  if (authLoading || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner label="Loading..." />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -21,15 +69,15 @@ export default function ProfilePage() {
           { label: "Catalogue", href: "/catalogue" },
           { label: "Categories", href: "/categories" },
         ]}
-        cartCount={0}
-        user={{ name: "Alex Rivera", avatarSrc: "/images/profile/user.png" }}
       />
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-10 md:flex-row">
-        <AccountSidebar onLogout={() => {}} />
+        <AccountSidebar onLogout={logout} />
 
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome back, Alex</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Welcome back, {user.firstName}
+          </h1>
           <p className="mt-1 text-sm text-gray-500">
             Manage your preferences and track your shopping activity.
           </p>
@@ -41,47 +89,56 @@ export default function ProfilePage() {
                 <h2 className="text-lg font-bold text-gray-900">Personal Info</h2>
               </div>
 
-              <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="fullName" className="text-sm font-medium text-gray-900">
-                    Full Name
-                  </label>
-                  <Input
-                    id="fullName"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="mt-1.5"
-                  />
+              {isLoadingProfile ? (
+                <div className="flex justify-center py-10">
+                  <Spinner label="Loading profile..." />
                 </div>
+              ) : (
+                <>
+                  <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="firstName" className="text-sm font-medium text-gray-900">
+                        First Name
+                      </label>
+                      <Input
+                        id="firstName"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="mt-1.5"
+                      />
+                    </div>
 
-                <div>
-                  <label htmlFor="email" className="text-sm font-medium text-gray-500">
-                    Email (Read-only)
-                  </label>
-                  <Input
-                    id="email"
-                    value="alex.rivera@apex.com"
-                    disabled
-                    className="mt-1.5"
-                  />
-                </div>
+                    <div>
+                      <label htmlFor="lastName" className="text-sm font-medium text-gray-900">
+                        Last Name
+                      </label>
+                      <Input
+                        id="lastName"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="mt-1.5"
+                      />
+                    </div>
 
-                <div className="sm:col-span-2">
-                  <label htmlFor="phone" className="text-sm font-medium text-gray-900">
-                    Phone Number
-                  </label>
-                  <Input
-                    id="phone"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="mt-1.5"
-                  />
-                </div>
-              </div>
+                    <div className="sm:col-span-2">
+                      <label htmlFor="email" className="text-sm font-medium text-gray-500">
+                        Email (Read-only)
+                      </label>
+                      <Input id="email" value={user.email} disabled className="mt-1.5" />
+                    </div>
+                  </div>
 
-              <div className="mt-6 flex justify-end">
-                <Button>Save Changes</Button>
-              </div>
+                  {saveMessage && (
+                    <p className="mt-4 text-sm text-gray-500">{saveMessage}</p>
+                  )}
+
+                  <div className="mt-6 flex justify-end">
+                    <Button isLoading={isSaving} onClick={handleSave}>
+                      Save Changes
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="flex flex-col gap-6">
@@ -90,26 +147,9 @@ export default function ProfilePage() {
                   <BadgeCheck className="h-5 w-5" />
                   <span className="text-sm font-semibold">Member Since</span>
                 </div>
-                <p className="mt-2 text-2xl font-bold text-gray-900">March 2024</p>
-              </div>
-
-              <div className="relative overflow-hidden rounded-md">
-                <div className="relative aspect-[4/3] bg-gray-100">
-                  <img
-                    src="/images/profile/image.png"
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                </div>
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                  <span className="text-xs font-semibold uppercase tracking-wide">
-                    Premium Tier
-                  </span>
-                  <p className="mt-1 text-sm font-semibold">
-                    Unlock exclusive early access to catalogues.
-                  </p>
-                </div>
+                <p className="mt-2 text-2xl font-bold text-gray-900">
+                  {memberSince ?? "—"}
+                </p>
               </div>
             </div>
           </div>
@@ -121,7 +161,6 @@ export default function ProfilePage() {
                 icon={<History className="h-5 w-5" />}
                 title="Order History"
                 description="View and track all your past and current marketplace orders."
-                comingSoon
               />
               <ActivityCard
                 icon={<MapPin className="h-5 w-5" />}
