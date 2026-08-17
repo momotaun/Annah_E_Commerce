@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getProducts } from "@/src/lib/api/products";
 import { getCategories } from "@/src/lib/api/categories";
-import CategoryClient from "@/src/app/categories/CategoryClient";
+import CategoryClient from "./CategoryClient";
 
 function findCategoryBySlug(categories: Awaited<ReturnType<typeof getCategories>>, slug: string) {
   for (const cat of categories) {
@@ -16,24 +16,23 @@ export default async function CategoryPage({
   params,
   searchParams,
 }: {
-  params: { slug: string };
-  searchParams: { page?: string };
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
+  const { slug } = await params;
+  const { page: pageParam } = await searchParams;
+
   const categories = await getCategories();
-  const category = findCategoryBySlug(categories, params.slug);
+  const category = findCategoryBySlug(categories, slug);
 
   if (!category) {
     notFound();
   }
 
-  const page = searchParams.page ? Number(searchParams.page) : 1;
-  const productsResult = await getProducts({ category: params.slug, page, limit: 12 });
+  const page = pageParam ? Number(pageParam) : 1;
+  const productsResult = await getProducts({ category: slug, page, limit: 12 });
 
   return (
-    <CategoryClient
-      category={category}
-      categories={categories}
-      products={productsResult}
-    />
+    <CategoryClient category={category} categories={categories} products={productsResult} />
   );
 }

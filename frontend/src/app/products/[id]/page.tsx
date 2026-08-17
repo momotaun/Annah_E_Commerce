@@ -1,22 +1,24 @@
 import { notFound } from "next/navigation";
 import { getProduct, getProducts } from "@/src/lib/api/products";
 import { getCategories } from "@/src/lib/api/categories";
-import ProductDetailsClient from "@/src/components/ProductDetailsClient";
+import ProductDetailsClient from "./ProductDetailsClient";
 
 export default async function ProductDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
+
   let product;
   try {
-    product = await getProduct(params.id);
+    product = await getProduct(id);
   } catch {
     notFound();
   }
 
   const [relatedResult, categories] = await Promise.all([
-    getProducts({ category: undefined, limit: 4 }), // TODO: filter by same category once we know product.categoryId's slug
+    getProducts({ limit: 4 }),
     getCategories(),
   ]);
 
@@ -31,7 +33,7 @@ export default async function ProductDetailsPage({
   );
 }
 
-function findCategoryById(categories: Awaited<ReturnType<typeof getCategories>>, id: string): { name: string } | undefined {
+function findCategoryById(categories: Awaited<ReturnType<typeof getCategories>>, id: string) {
   for (const cat of categories) {
     if (cat.id === id) return cat;
     const child = cat.children.find((c) => c.id === id);
