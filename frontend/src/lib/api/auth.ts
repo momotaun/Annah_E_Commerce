@@ -5,6 +5,7 @@ export interface AuthUser {
   email: string;
   firstName: string;
   lastName: string;
+  role: 'CUSTOMER' | 'VENDOR' | 'ADMIN';
 }
 
 export interface AuthResponse {
