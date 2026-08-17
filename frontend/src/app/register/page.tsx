@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import Footer from "@/src/app/components/layout/Footer";
@@ -8,17 +9,59 @@ import Input from "@/src/app/components/ui/Input";
 import Button from "@/src/app/components/ui/Button";
 import GoogleIcon from "@/src/app/components/ui/icons/GoogleIcon";
 import AppleIcon from "@/src/app/components/ui/icons/AppleIcon";
+import { useAuth } from "@/src/context/AuthContext";
+import { ApiError } from "@/src/lib/api-client";
 
 export default function RegisterPage() {
+  const { register } = useAuth();
+  const router = useRouter();
+
   const [form, setForm] = useState({
     fullName: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function handleChange<K extends keyof typeof form>(key: K, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+
+    if (form.password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    const [firstName, ...rest] = form.fullName.trim().split(" ");
+    const lastName = rest.join(" ");
+    if (!firstName || !lastName) {
+      setError("Please enter your full name (first and last).");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await register({ email: form.email, password: form.password, firstName, lastName });
+      router.push("/profile");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        setError("An account with this email already exists.");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -28,15 +71,15 @@ export default function RegisterPage() {
           Apex Marketplace
         </Link>
 
-        <div className="mt-6 w-full max-w-md rounded-md border border-gray-200 bg-white p-6 shadow-sm">
-          <h1 className="text-center text-4xl font-bold text-gray-900">
+        <div className="mt-8 w-full max-w-md rounded-md border border-gray-200 bg-white p-8 shadow-sm">
+          <h1 className="text-center text-3xl font-bold text-gray-900">
             Create your account
           </h1>
-          <p className="mt-2 text-center text-base text-gray-500">
+          <p className="mt-2 text-center text-sm text-gray-500">
             Join Apex Marketplace for a personalized shopping experience.
           </p>
 
-          <form className="mt-6 flex flex-col gap-6">
+          <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
             <div>
               <label htmlFor="fullName" className="text-sm font-semibold text-gray-900">
                 Full Name
@@ -47,6 +90,7 @@ export default function RegisterPage() {
                 value={form.fullName}
                 onChange={(e) => handleChange("fullName", e.target.value)}
                 className="mt-1.5"
+                required
               />
             </div>
 
@@ -61,6 +105,7 @@ export default function RegisterPage() {
                 value={form.email}
                 onChange={(e) => handleChange("email", e.target.value)}
                 className="mt-1.5"
+                required
               />
             </div>
 
@@ -74,6 +119,7 @@ export default function RegisterPage() {
                 value={form.password}
                 onChange={(e) => handleChange("password", e.target.value)}
                 className="mt-1.5"
+                required
               />
               <p className="mt-1.5 text-xs text-gray-500">
                 Password must be at least 8 characters
@@ -90,10 +136,21 @@ export default function RegisterPage() {
                 value={form.confirmPassword}
                 onChange={(e) => handleChange("confirmPassword", e.target.value)}
                 className="mt-1.5"
+                required
               />
             </div>
 
-            <Button type="submit" fullWidth icon={<ArrowRight className="h-4 w-4" />} iconPosition="right">
+            {error && (
+              <p className="text-sm text-danger-500">{error}</p>
+            )}
+
+            <Button
+              type="submit"
+              fullWidth
+              isLoading={isSubmitting}
+              icon={<ArrowRight className="h-4 w-4" />}
+              iconPosition="right"
+            >
               Create Account
             </Button>
           </form>
@@ -117,10 +174,10 @@ export default function RegisterPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Button variant="secondary" icon={<GoogleIcon className="h-4 w-4" />}>
+            <Button variant="secondary" icon={<GoogleIcon className="h-4 w-4" />} disabled>
               Google
             </Button>
-            <Button variant="secondary" icon={<AppleIcon className="h-4 w-4" />}>
+            <Button variant="secondary" icon={<AppleIcon className="h-4 w-4" />} disabled>
               Apple
             </Button>
           </div>
