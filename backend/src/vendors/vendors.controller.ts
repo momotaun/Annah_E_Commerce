@@ -5,6 +5,8 @@ import {
   Patch,
   Post,
   UseGuards,
+  Query,
+  Get,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -33,5 +35,12 @@ export class VendorsController {
   @Roles('ADMIN')
   approve(@Param('id') id: string, @Body() dto: ApproveVendorDto) {
     return this.vendorsService.approve(id, dto);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  findAll(@Query('status') status?: 'PENDING' | 'APPROVED' | 'SUSPENDED') {
+    return this.vendorsService.findAll(status);
   }
 }

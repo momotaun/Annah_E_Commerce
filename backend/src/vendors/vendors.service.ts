@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RegisterVendorDto } from './dto/register-vendor.dto';
 import { ApproveVendorDto } from './dto/approve-vendor.dto';
 import { VendorResponseDto } from './dto/vendor-response.dto';
+import { VendorListItemDto } from './dto/vendor-list-item.dto';
 
 @Injectable()
 export class VendorsService {
@@ -67,6 +68,15 @@ export class VendorsService {
       });
 
       return updated;
+    });
+  }
+
+  async findAll(
+    status?: 'PENDING' | 'APPROVED' | 'SUSPENDED',
+  ): Promise<VendorListItemDto[]> {
+    return this.prisma.vendor.findMany({
+      where: status ? { status } : undefined,
+      orderBy: { businessName: 'asc' },
     });
   }
 }
