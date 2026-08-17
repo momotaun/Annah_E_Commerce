@@ -8,6 +8,7 @@ import Badge from "@/src/app/components/ui/Badge";
 import Avatar from "@/src/app/components/ui/Avatar";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 import { useCart } from "@/src/context/CartContext";
+import { useAuth } from "@/src/context/AuthContext";
 import { cn } from "@/src/lib/utils";
 
 export interface NavLink {
@@ -18,12 +19,10 @@ export interface NavLink {
 export interface HeaderProps {
   navLinks?: NavLink[];
   showSearch?: boolean;
-  showAuthButton?: boolean;
   showCart?: boolean;
   announcementText?: string;
   variant?: "full" | "minimal";
   minimalRightLink?: NavLink;
-  user?: { name: string; avatarSrc?: string; href?: string };
 }
 
 const defaultNavLinks: NavLink[] = [
@@ -37,15 +36,14 @@ const defaultNavLinks: NavLink[] = [
 function Header({
   navLinks = defaultNavLinks,
   showSearch = false,
-  showAuthButton = true,
   showCart = true,
   announcementText,
   variant = "full",
   minimalRightLink,
-  user,
 }: HeaderProps) {
   const pathname = usePathname();
   const { itemCount } = useCart();
+  const { user, isLoading } = useAuth();
 
   return (
     <div className="w-full border-b border-gray-200 bg-white">
@@ -101,13 +99,13 @@ function Header({
             </Link>
           )}
 
-          {variant === "full" && user && (
-            <Link href={user.href ?? "/profile"}>
-              <Avatar src={user.avatarSrc} alt={user.name} size="sm" />
+          {variant === "full" && !isLoading && user && (
+            <Link href="/profile">
+              <Avatar alt={`${user.firstName} ${user.lastName}`} size="sm" />
             </Link>
           )}
 
-          {variant === "full" && !user && showAuthButton && (
+          {variant === "full" && !isLoading && !user && (
             <Button variant="outline" size="sm" href="/login">
               Login/Register
             </Button>
