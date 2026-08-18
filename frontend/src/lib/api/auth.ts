@@ -29,3 +29,11 @@ export function refreshTokens(refreshToken: string) {
 export function getMe(accessToken: string) {
   return apiClient.get<AuthUser>('/users/me', { accessToken });
 }
+
+export function initiatePasswordReset(email: string) {
+  return apiClient.post<{ message: string }>('/auth/password-reset', { email });
+}
+
+export function confirmPasswordReset(token: string, newPassword: string) {
+  return apiClient.post<{ message: string }>('/auth/password-reset/confirm', { token, newPassword });
+}
