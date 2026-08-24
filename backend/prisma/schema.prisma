@@ -25,6 +25,7 @@ model Category {
 model Product {
   id          String   @id @default(cuid())
   name        String
+  slug        String   @unique
   sku         String   @unique
   description String?
   price       Decimal  @db.Decimal(10, 2)
@@ -32,20 +33,18 @@ model Product {
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
 
-  // Reserved in Phase 1, populated from Phase 3 onward
   vendorId String?
   vendor   Vendor? @relation(fields: [vendorId], references: [id])
 
   cartItems         CartItem[]
   orderRequestItems OrderRequestItem[]
   vendorOrderItems  VendorOrderItem[]
+  orderItems        OrderItem[]
 
   createdAt DateTime @default(now())
 
   @@index([categoryId])
   @@index([vendorId])
-
-  orderItems OrderItem[]
 }
 
 model Cart {

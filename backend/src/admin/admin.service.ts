@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { MarketplaceAnalyticsResponseDto } from './dto/marketplace-analytics-response.dto';
 
 @Injectable()
