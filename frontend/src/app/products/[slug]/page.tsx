@@ -6,13 +6,13 @@ import ProductDetailsClient from "./ProductDetailsClient";
 export default async function ProductDetailsPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
+  const { slug } = await params;
 
   let product;
   try {
-    product = await getProduct(id);
+    product = await getProduct(slug);
   } catch {
     notFound();
   }

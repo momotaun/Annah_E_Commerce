@@ -95,7 +95,7 @@ export default function CategoryClient({ category, categories, products }: Categ
                 {products.data.map((product) => (
                   <ProductCard
                     key={product.id}
-                    href={`/products/${product.id}`}
+                    href={`/products/${product.slug}`}
                     image={product.imageUrl ?? "/images/placeholder-product.jpg"}
                     title={product.name}
                     description={product.description ?? undefined}
