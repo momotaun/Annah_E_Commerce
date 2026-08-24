@@ -26,7 +26,7 @@ export default function TopRatedEssentials({ products }: TopRatedEssentialsProps
         {products.map((product) => (
           <ProductCard
             key={product.id}
-            href={`/products/${product.id}`}
+            href={`/products/${product.slug}`}
             image={product.imageUrl ?? "/images/placeholder-product.jpg"}
             title={product.name}
             price={`R${Number(product.price).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`}

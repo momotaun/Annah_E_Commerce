@@ -46,11 +46,13 @@ export class ProductsService {
     };
   }
 
-  async findOne(id: string): Promise<ProductResponseDto> {
-    const product = await this.prisma.product.findUnique({ where: { id } });
+  async findOne(idOrSlug: string): Promise<ProductResponseDto> {
+    const product = await this.prisma.product.findFirst({
+      where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
+    });
 
     if (!product) {
-      throw new NotFoundException(`Product with id "${id}" not found`);
+      throw new NotFoundException(`Product "${idOrSlug}" not found`);
     }
 
     return this.toResponseDto(product);

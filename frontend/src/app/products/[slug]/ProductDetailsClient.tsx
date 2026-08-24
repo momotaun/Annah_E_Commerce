@@ -183,7 +183,7 @@ export default function ProductDetailsClient({
               {relatedProducts.map((p) => (
                 <ProductCard
                   key={p.id}
-                  href={`/products/${p.id}`}
+                  href={`/products/${p.slug}`}
                   image={p.imageUrl ?? "/images/placeholder-product.jpg"}
                   title={p.name}
                   price={`R${Number(p.price).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`}
