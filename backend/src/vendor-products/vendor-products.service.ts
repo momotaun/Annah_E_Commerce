@@ -4,16 +4,21 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVendorProductDto } from './dto/create-vendor-product.dto';
 import { UpdateVendorProductDto } from './dto/update-vendor-product.dto';
 import { VendorProductResponseDto } from './dto/vendor-product-response.dto';
+import { ProductResponseDto } from 'src/products/dto/product-response.dto';
 
 @Injectable()
 export class VendorProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private toResponseDto(product: any): VendorProductResponseDto {
+    return { ...product, price: product.price.toString() };
+  }
+
+  private toProductResponseDto(product: any): ProductResponseDto {
     return { ...product, price: product.price.toString() };
   }
 
@@ -37,6 +42,20 @@ export class VendorProductsService {
     return products.map((p) => this.toResponseDto(p));
   }
 
+  async findOne(idOrSlug: string): Promise<ProductResponseDto> {
+    const product = await this.prisma.product.findFirst({
+      where: {
+        OR: [{ id: idOrSlug }, { slug: idOrSlug }],
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product "${idOrSlug}" not found`);
+    }
+
+    return this.toProductResponseDto(product);
+  }
+
   async create(
     userId: string,
     dto: CreateVendorProductDto,
@@ -57,8 +76,10 @@ export class VendorProductsService {
       throw new NotFoundException(`Category "${dto.categoryId}" not found`);
     }
 
+    const slug = await this.generateUniqueSlug(dto.name);
+
     const product = await this.prisma.product.create({
-      data: { ...dto, vendorId: vendor.id },
+      data: { ...dto, slug, vendorId: vendor.id },
     });
 
     return this.toResponseDto(product);
@@ -89,5 +110,26 @@ export class VendorProductsService {
     });
 
     return this.toResponseDto(updated);
+  }
+
+  private slugify(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  }
+
+  private async generateUniqueSlug(name: string): Promise<string> {
+    const baseSlug = this.slugify(name);
+    let slug = baseSlug;
+    let attempt = 0;
+
+    while (await this.prisma.product.findFirst({ where: { slug } })) {
+      attempt += 1;
+      slug = `${baseSlug}-${attempt}`;
+    }
+
+    return slug;
   }
 }

@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PaymentsService, PAYMENT_GATEWAY } from './payments.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentGateway } from './gateways/payment-gateway.interface';
 
 describe('PaymentsService', () => {
