@@ -193,26 +193,7 @@ export default function PlaygroundPage() {
         </div>
 
         <div className="flex flex-col gap-8 -mx-10">
-            <Footer
-                brandBlurb="Elevating everyday life through curated premium essentials."
-                columns={[
-                {
-                    title: "Shop",
-                    links: [
-                    { label: "Catalogue", href: "/catalogue" },
-                    { label: "Categories", href: "/categories" },
-                    ],
-                },
-                {
-                    title: "Support",
-                    links: [
-                    { label: "Contact", href: "/contact" },
-                    { label: "FAQ", href: "/faq" },
-                    ],
-                },
-                ]}
-                showNewsletter
-            />
+            <Footer />
             <Footer variant="minimal" />
         </div>
     </div>

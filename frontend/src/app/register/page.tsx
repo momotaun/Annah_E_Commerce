@@ -191,15 +191,7 @@ export default function RegisterPage() {
         </div>
       </main>
 
-      <Footer
-        brandBlurb="Experience premium e-commerce with a curated selection of global high-end technology and fashion."
-        columns={[
-          { title: "Shop", links: [{ label: "Catalog", href: "/catalogue" }, { label: "Deals", href: "/deals" }, { label: "New Arrivals", href: "/new" }] },
-          { title: "Company", links: [{ label: "About Us", href: "/about" }, { label: "Contact Support", href: "/contact" }] },
-          { title: "Legal", links: [{ label: "Privacy Policy", href: "/privacy" }, { label: "Terms of Service", href: "/terms" }] },
-          { title: "Shipping", links: [{ label: "Shipping Info", href: "/shipping" }, { label: "Returns", href: "/returns" }] },
-        ]}
-      />
+      <Footer />
     </div>
   );
 }

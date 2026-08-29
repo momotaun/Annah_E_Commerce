@@ -109,13 +109,7 @@ export default function CategoryClient({ category, categories, products }: Categ
         </div>
       </main>
 
-      <Footer
-        brandBlurb="Your premier destination for the world's most advanced electronics and lifestyle technology."
-        columns={[
-          { title: "Shop Categories", links: flattenCategories(categories).slice(0, 4).map((c) => ({ label: c.label, href: `/categories/${c.value}` })) },
-          { title: "Company", links: [{ label: "About Us", href: "/about" }, { label: "Contact", href: "/contact" }] },
-        ]}
-      />
+      <Footer />
     </div>
   );
 }

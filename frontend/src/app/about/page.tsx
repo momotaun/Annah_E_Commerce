@@ -158,14 +158,7 @@ export default function AboutPage() {
         </section>
       </main>
 
-      <Footer
-        brandBlurb="The gold standard in premium digital commerce. Curating excellence for a global audience since 2018."
-        columns={[
-          { title: "Explore", links: [{ label: "Home", href: "/" }, { label: "Catalogue", href: "/catalogue" }, { label: "About", href: "/about" }, { label: "Contact", href: "/contact" }] },
-          { title: "Support", links: [{ label: "FAQ", href: "/faq" }, { label: "Shipping", href: "/shipping" }, { label: "Returns", href: "/returns" }] },
-          { title: "Legal", links: [{ label: "Privacy Policy", href: "/privacy" }, { label: "Terms of Service", href: "/terms" }] },
-        ]}
-      />
+      <Footer />
     </div>
   );
 }

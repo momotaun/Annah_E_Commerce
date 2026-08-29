@@ -110,13 +110,7 @@ export default function ShoppingCartPage() {
         )}
       </main>
 
-      <Footer
-        brandBlurb="Premium electronics and design-forward hardware for the modern workspace."
-        columns={[
-          { title: "Shop", links: [{ label: "Home", href: "/" }, { label: "Catalogue", href: "/catalogue" }, { label: "Categories", href: "/categories" }] },
-          { title: "Support", links: [{ label: "Contact", href: "/contact" }, { label: "Shipping", href: "/shipping" }, { label: "Returns", href: "/returns" }] },
-        ]}
-      />
+      <Footer />
     </div>
   );
 }

@@ -21,7 +21,7 @@ export default function Error({
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-        <span className="text-xl font-bold text-primary-300">Apex Marketplace</span>
+        <span className="text-xl font-bold text-primary-600">Apex Marketplace</span>
         <span className="text-sm text-gray-500">
           © {new Date().getFullYear()} Apex Marketplace. All rights reserved.
         </span>

@@ -43,7 +43,7 @@ function ProductCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white",
+        "group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white",
         className
       )}
     >

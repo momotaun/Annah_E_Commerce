@@ -178,14 +178,7 @@ export default function ContactPage() {
         </section>
       </main>
 
-      <Footer
-        brandBlurb="Premium curation of high-end technology and luxury goods for the modern professional."
-        columns={[
-          { title: "Marketplace", links: [{ label: "Home", href: "/" }, { label: "Catalogue", href: "/catalogue" }, { label: "About", href: "/about" }, { label: "Contact", href: "/contact" }] },
-          { title: "Support", links: [{ label: "FAQ", href: "/faq" }, { label: "Shipping", href: "/shipping" }, { label: "Returns", href: "/returns" }] },
-          { title: "Legal", links: [{ label: "Privacy Policy", href: "/privacy" }, { label: "Terms of Service", href: "/terms" }] },
-        ]}
-      />
+      <Footer />
     </div>
   );
 }

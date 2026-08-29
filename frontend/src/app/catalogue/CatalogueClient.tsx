@@ -140,14 +140,7 @@ export default function CatalogueClient({
         </div>
       </main>
 
-      <Footer
-        brandBlurb="Elevating your digital lifestyle with hand-picked premium technology and lifestyle products."
-        columns={[
-          { title: "Marketplace", links: [{ label: "Catalogue", href: "/catalogue" }, { label: "Latest Deals", href: "/deals" }, { label: "Gift Cards", href: "/gift-cards" }, { label: "Membership", href: "/membership" }] },
-          { title: "Support", links: [{ label: "Shipping Policy", href: "/shipping" }, { label: "Returns & Refunds", href: "/returns" }, { label: "Privacy Policy", href: "/privacy" }, { label: "Terms of Service", href: "/terms" }] },
-        ]}
-        showNewsletter
-      />
+      <Footer />
     </div>
   );
 }

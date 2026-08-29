@@ -179,14 +179,7 @@ export default function ProfilePage() {
         </div>
       </main>
 
-      <Footer
-        brandBlurb="The world's most premium digital marketplace for curated high-end goods."
-        columns={[
-          { title: "Explore", links: [{ label: "Home", href: "/" }, { label: "Catalogue", href: "/catalogue" }, { label: "Categories", href: "/categories" }] },
-          { title: "Support", links: [{ label: "FAQ", href: "/faq" }, { label: "Shipping", href: "/shipping" }, { label: "Returns", href: "/returns" }] },
-          { title: "Legal", links: [{ label: "Privacy Policy", href: "/privacy" }, { label: "Terms of Service", href: "/terms" }] },
-        ]}
-      />
+      <Footer />
     </div>
   );
 }

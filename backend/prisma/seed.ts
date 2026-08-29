@@ -52,7 +52,7 @@ async function main() {
       sku: 'SONICMASTER-ELITE-G2',
       description: 'Active Noise Cancellation, 40h battery life.',
       price: 349.0,
-      imageUrl: '/images/headphones2.jpg',
+      imageUrl: '/images/headphones.jpg',
       categoryId: computing.id,
     },
   });

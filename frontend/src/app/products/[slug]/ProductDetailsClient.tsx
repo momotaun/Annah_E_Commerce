@@ -194,14 +194,7 @@ export default function ProductDetailsClient({
         )}
       </main>
 
-      <Footer
-        brandBlurb="The definitive destination for premium computing and professional hardware. Engineered for the future."
-        columns={[
-          { title: "Shop", links: [{ label: "Catalogue", href: "/catalogue" }, { label: "Categories", href: "/categories" }, { label: "Shipping", href: "/shipping" }, { label: "Returns", href: "/returns" }] },
-          { title: "Company", links: [{ label: "About", href: "/about" }, { label: "Contact", href: "/contact" }, { label: "FAQ", href: "/faq" }, { label: "Privacy Policy", href: "/privacy" }] },
-        ]}
-        showNewsletter
-      />
+      <Footer />
     </div>
   );
 }
