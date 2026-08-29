@@ -47,8 +47,14 @@ export default async function LandingPage() {
 
 function HeroSection() {
   return (
-    <section className="relative flex min-h-[420px] items-center overflow-hidden bg-gray-100 py-[154px]">
-      <Image src="/images/hero-desk.jpg" alt="" fill priority className="object-cover" />
+    <section className="group relative flex min-h-[420px] items-center overflow-hidden bg-gray-100 py-[154px]">
+      <Image
+        src="/images/hero-desk.jpg"
+        alt=""
+        fill
+        priority
+        className="object-cover transition-transform duration-[3000ms] ease-out group-hover:scale-110"
+      />
       <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-transparent" />
       <div className="relative mx-auto max-w-7xl px-6">
         <Badge variant="primary" className="mb-4">SPRING COLLECTION 2024</Badge>
@@ -93,9 +99,14 @@ function CuratedCategories() {
           <Link
             key={cat.title}
             href={cat.href}
-            className={`relative min-h-[200px] overflow-hidden rounded-md ${cat.span}`}
+            className={`group relative min-h-[200px] overflow-hidden rounded-md ${cat.span}`}
           >
-            <Image src={cat.image} alt={cat.title} fill className="object-cover" />
+            <Image
+              src={cat.image}
+              alt={cat.title}
+              fill
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-4 left-4 text-white">
               <span className="text-lg font-semibold">{cat.title}</span>
@@ -111,8 +122,13 @@ function CuratedCategories() {
 function PromoBanner() {
   return (
     <section className="mx-auto max-w-7xl px-6 pb-16">
-      <div className="relative flex min-h-[220px] items-center overflow-hidden rounded-md bg-gray-900">
-        <Image src="/images/promo-abstract.jpg" alt="" fill className="object-cover opacity-60" />
+      <div className="group relative flex min-h-[220px] items-center overflow-hidden rounded-md bg-gray-900">
+        <Image
+          src="/images/promo-abstract.jpg"
+          alt=""
+          fill
+          className="object-cover opacity-60 transition-transform duration-700 ease-out group-hover:scale-110"
+        />
         <div className="relative flex w-full items-center justify-between px-10">
           <div>
             <span className="text-sm uppercase tracking-wide text-gray-300">
