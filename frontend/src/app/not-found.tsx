@@ -12,7 +12,7 @@ export default function NotFound() {
       <Header variant="minimal" />
 
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
-        <div className="relative mb-8">
+        <div className="float-animation relative mb-8">
           <div className="relative h-64 w-64 overflow-hidden rounded-full bg-gray-100">
             <Image src="/images/not-found/image.png" alt="Not Found" fill className="object-cover" />
           </div>

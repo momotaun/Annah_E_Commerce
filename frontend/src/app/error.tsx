@@ -28,7 +28,7 @@ export default function Error({
       </div>
 
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
-        <div className="relative mb-8">
+        <div className="float-animation-slow relative mb-8">
           <div className="flex h-40 w-40 items-center justify-center rounded-3xl bg-white shadow-sm">
             <CloudOff className="h-16 w-16 text-primary-600" />
           </div>
