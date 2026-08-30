@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Trash2 } from "lucide-react";
 import Stepper from "@/src/app/components/ui/Stepper";
 
 export interface CartLineItemProps {
@@ -10,6 +11,7 @@ export interface CartLineItemProps {
   price: string;
   quantity: number;
   onQuantityChange: (quantity: number) => void;
+  onRemove?: () => void;
 }
 
 function CartLineItem({
@@ -19,6 +21,7 @@ function CartLineItem({
   price,
   quantity,
   onQuantityChange,
+  onRemove,
 }: CartLineItemProps) {
   return (
     <div className="flex gap-4 border-b border-gray-200 py-5 last:border-b-0">
@@ -34,7 +37,19 @@ function CartLineItem({
         <Stepper value={quantity} onChange={onQuantityChange} min={1} />
       </div>
 
-      <span className="shrink-0 text-lg font-bold text-primary-600">{price}</span>
+      <div className="flex shrink-0 flex-col items-end justify-between">
+        <span className="text-lg font-bold text-primary-600">{price}</span>
+        {onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            aria-label={`Remove ${title} from cart`}
+            className="text-gray-400 hover:text-danger-500"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
