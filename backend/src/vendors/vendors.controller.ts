@@ -43,4 +43,9 @@ export class VendorsController {
   findAll(@Query('status') status?: 'PENDING' | 'APPROVED' | 'SUSPENDED') {
     return this.vendorsService.findAll(status);
   }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.vendorsService.findPublic(id);
+  }
 }

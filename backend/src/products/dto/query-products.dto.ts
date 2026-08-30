@@ -7,6 +7,10 @@ export class QueryProductsDto {
   category?: string; // category slug
 
   @IsOptional()
+  @IsString()
+  vendorId?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @IsPositive()

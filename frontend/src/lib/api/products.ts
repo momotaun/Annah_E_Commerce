@@ -1,9 +1,10 @@
 import { apiClient } from '../api-client';
 import { PaginatedProducts, Product } from '../api-types';
 
-export function getProducts(params?: { category?: string; page?: number; limit?: number }) {
+export function getProducts(params?: { category?: string; vendorId?: string; page?: number; limit?: number }) {
   const query = new URLSearchParams();
   if (params?.category) query.set('category', params.category);
+  if (params?.vendorId) query.set('vendorId', params.vendorId);
   if (params?.page) query.set('page', String(params.page));
   if (params?.limit) query.set('limit', String(params.limit));
   const qs = query.toString();
