@@ -118,6 +118,7 @@ async function main() {
       description:
         'Double-breasted overcoat in 100% merino wool, tailored for a modern silhouette.',
       price: 3499.0,
+      imageUrl: '/images/merino-overcoat.jpg',
     },
     {
       name: 'Meridian Tailored Blazer',
@@ -126,6 +127,7 @@ async function main() {
       description:
         'Slim-fit blazer in Italian wool blend, fully lined with horn buttons.',
       price: 2299.0,
+      imageUrl: '/images/tailored-blazer.jpg',
     },
     {
       name: 'TerraFlex Performance Chinos',
@@ -134,6 +136,7 @@ async function main() {
       description:
         'Four-way stretch chinos with a water-resistant finish, built for all-day movement.',
       price: 899.0,
+      imageUrl: '/images/performance-chinos.jpg',
     },
     {
       name: 'Apex Signature Oxford Shirt',
@@ -142,6 +145,7 @@ async function main() {
       description:
         'Brushed cotton oxford shirt with mother-of-pearl buttons and a tailored fit.',
       price: 749.0,
+      imageUrl: '/images/oxford-shirt.jpg',
     },
     {
       name: 'Solstice Cashmere Sweater',
@@ -149,19 +153,21 @@ async function main() {
       slug: 'solstice-cashmere-sweater',
       description: 'Crew-neck sweater in pure cashmere, ribbed cuffs and hem.',
       price: 1899.0,
+      imageUrl: '/images/cashmere-sweater.jpg',
     },
   ];
 
   for (const item of clothingProducts) {
     await prisma.product.upsert({
       where: { sku: item.sku },
-      update: {},
+      update: { imageUrl: item.imageUrl },
       create: {
         name: item.name,
         slug: item.slug,
         sku: item.sku,
         description: item.description,
         price: item.price,
+        imageUrl: item.imageUrl,
         categoryId: fashion.id,
         vendorId: meridian.id,
       },
