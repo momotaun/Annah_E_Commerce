@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRequireRole } from "@/src/hooks/useRequireRole";
 import Spinner from "@/src/app/components/ui/Spinner";
 
@@ -24,12 +25,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <div className="mx-auto flex w-full max-w-6xl flex-1 gap-8 px-6 py-8">
         <nav className="flex w-48 shrink-0 flex-col gap-1">
-          <a href="/admin/vendors" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
+          <Link href="/admin/vendors" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
             Vendors
-          </a>
-          <a href="/admin/analytics" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
+          </Link>
+          <Link href="/admin/analytics" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
             Analytics
-          </a>
+          </Link>
+          <Link href="/admin/legal-pages" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
+            Legal Pages
+          </Link>
         </nav>
         <div className="flex-1">{children}</div>
       </div>

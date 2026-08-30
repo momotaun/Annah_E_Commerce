@@ -266,3 +266,11 @@ enum Role {
   VENDOR
   ADMIN
 }
+
+model LegalPage {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  sections  Json
+  updatedAt DateTime @updatedAt
+}

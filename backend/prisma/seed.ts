@@ -809,6 +809,72 @@ async function main() {
   });
 
   console.log({ meridian, productCount: clothingProducts.length });
+
+  await prisma.legalPage.upsert({
+    where: { slug: 'privacy' },
+    update: {},
+    create: {
+      slug: 'privacy',
+      title: 'Privacy Policy',
+      sections: [
+        {
+          title: 'Information We Collect',
+          body: 'We collect the information you provide directly to us, such as your name, email address, shipping address, and payment details when you create an account, place an order, or contact our support team. We also collect limited technical information — like device type and browser — to keep the marketplace secure and reliable.',
+        },
+        {
+          title: 'How We Use Your Information',
+          body: 'Your information is used to process orders, communicate with you about purchases, personalize your shopping experience, and improve our platform. We do not sell your personal information to third parties.',
+        },
+        {
+          title: 'Sharing Your Information',
+          body: 'We share order details with the vendors fulfilling your purchase and with payment and delivery partners strictly as needed to complete a transaction. We require every partner to handle your data responsibly.',
+        },
+        {
+          title: 'Your Choices',
+          body: 'You can review and update your account details at any time from your profile, and you may request deletion of your account by contacting our support team.',
+        },
+        {
+          title: 'Contact Us',
+          body: 'If you have questions about this policy, reach out via our Contact page and our team will respond as soon as possible.',
+        },
+      ],
+    },
+  });
+
+  await prisma.legalPage.upsert({
+    where: { slug: 'terms' },
+    update: {},
+    create: {
+      slug: 'terms',
+      title: 'Terms of Service',
+      sections: [
+        {
+          title: 'Acceptance of Terms',
+          body: 'By creating an account or placing an order on Apex Marketplace, you agree to be bound by these Terms of Service and our Privacy Policy.',
+        },
+        {
+          title: 'Accounts',
+          body: 'You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. Please notify us immediately of any unauthorized use.',
+        },
+        {
+          title: 'Orders & Payment',
+          body: 'All prices are listed in South African Rand and are subject to change without notice. Orders are confirmed once payment has been successfully processed. We reserve the right to refuse or cancel any order at our discretion.',
+        },
+        {
+          title: 'Vendors',
+          body: 'Products sold through Apex Marketplace may be listed by independent vendors. While we vet every vendor onboarded to the platform, each vendor is responsible for the accuracy of their own listings.',
+        },
+        {
+          title: 'Limitation of Liability',
+          body: 'Apex Marketplace is provided on an "as is" basis. We are not liable for indirect or consequential damages arising from your use of the platform, to the fullest extent permitted by law.',
+        },
+        {
+          title: 'Changes to These Terms',
+          body: 'We may update these terms from time to time. Continued use of Apex Marketplace after changes take effect constitutes acceptance of the revised terms.',
+        },
+      ],
+    },
+  });
 }
 
 main()
