@@ -20,6 +20,7 @@ import { VendorsModule } from './vendors/vendors.module';
 import { VendorProductsModule } from './vendor-products/vendor-products.module';
 import { VendorOrdersModule } from './vendor-orders/vendor-orders.module';
 import { AdminModule } from './admin/admin.module';
+import { LegalPagesModule } from './legal-pages/legal-pages.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { AdminModule } from './admin/admin.module';
     VendorProductsModule,
     VendorOrdersModule,
     AdminModule,
+    LegalPagesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
