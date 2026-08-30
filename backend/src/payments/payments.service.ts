@@ -48,7 +48,7 @@ export class PaymentsService {
     const payment = await this.prisma.payment.create({
       data: {
         orderId: order.id,
-        provider: 'stub', // becomes the real provider identifier once selected
+        provider: 'ozow',
         transactionRef: gatewayResult.transactionRef,
         status: 'INITIATED',
         amount: order.totalAmount,
@@ -66,23 +66,37 @@ export class PaymentsService {
     };
   }
 
-  async handleWebhook(
-    rawBody: Buffer,
-    signature: string | undefined,
-    dto: PaymentWebhookDto,
-  ) {
-    const isValid = this.gateway.verifyWebhookSignature(rawBody, signature);
+  // Ozow's own statuses (not our internal PaymentStatus enum). Complete is
+  // the only success state; Cancelled/Error/Abandoned are all terminal
+  // failures from the shopper's point of view. PendingInvestigation is
+  // deliberately left unmapped — Ozow will send a follow-up notify once
+  // it's resolved, so we no-op rather than guess.
+  private mapOzowStatus(status: string): 'SUCCEEDED' | 'FAILED' | null {
+    if (status === 'Complete') return 'SUCCEEDED';
+    if (['Cancelled', 'Error', 'Abandoned'].includes(status)) return 'FAILED';
+    return null;
+  }
+
+  async handleWebhook(dto: PaymentWebhookDto) {
+    const payload: Record<string, string> = { ...dto };
+    const isValid = this.gateway.verifyWebhookSignature(payload);
     if (!isValid) {
       throw new ForbiddenException('Invalid webhook signature');
     }
 
     const payment = await this.prisma.payment.findUnique({
-      where: { transactionRef: dto.transactionRef },
+      where: { transactionRef: dto.TransactionReference },
     });
     if (!payment) {
       throw new NotFoundException(
-        `No payment found for transactionRef "${dto.transactionRef}"`,
+        `No payment found for transactionRef "${dto.TransactionReference}"`,
       );
+    }
+
+    const mappedStatus = this.mapOzowStatus(dto.Status);
+    if (!mappedStatus) {
+      // e.g. PendingInvestigation — nothing to apply yet.
+      return { received: true, alreadyProcessed: false };
     }
 
     // Idempotency: gateways commonly retry webhook delivery. If we've
@@ -95,10 +109,10 @@ export class PaymentsService {
     await this.prisma.$transaction(async (tx) => {
       await tx.payment.update({
         where: { id: payment.id },
-        data: { status: dto.status },
+        data: { status: mappedStatus },
       });
 
-      if (dto.status === 'SUCCEEDED') {
+      if (mappedStatus === 'SUCCEEDED') {
         await tx.order.update({
           where: { id: payment.orderId },
           data: { status: 'PAID' },

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, Settings, LogOut } from "lucide-react";
+import { User, Package, Settings, LogOut } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 
 const navItems = [
   { label: "Profile", href: "/profile", icon: User },
+  { label: "My Orders", href: "/orders", icon: Package },
   { label: "Settings", href: "/profile/settings", icon: Settings },
 ];
 
