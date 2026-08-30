@@ -79,4 +79,21 @@ export class VendorsService {
       orderBy: { businessName: 'asc' },
     });
   }
+
+  async findPublic(
+    id: string,
+  ): Promise<VendorResponseDto & { productCount: number }> {
+    const vendor = await this.prisma.vendor.findUnique({ where: { id } });
+    // Only approved vendors have a public storefront — pending/suspended
+    // vendors aren't ready for customer-facing visibility.
+    if (!vendor || vendor.status !== 'APPROVED') {
+      throw new NotFoundException(`Vendor "${id}" not found`);
+    }
+
+    const productCount = await this.prisma.product.count({
+      where: { vendorId: vendor.id },
+    });
+
+    return { ...vendor, productCount };
+  }
 }

@@ -213,6 +213,7 @@ model Vendor {
   user         User         @relation(fields: [userId], references: [id])
   businessName String
   contactEmail String       @unique
+  bio          String?
   status       VendorStatus @default(PENDING)
   approvedAt   DateTime?
 

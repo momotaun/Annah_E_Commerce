@@ -23,7 +23,10 @@ export class ProductsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
 
-    const where = query.category ? { category: { slug: query.category } } : {};
+    const where = {
+      ...(query.category && { category: { slug: query.category } }),
+      ...(query.vendorId && { vendorId: query.vendorId }),
+    };
 
     const [products, total] = await Promise.all([
       this.prisma.product.findMany({
