@@ -55,6 +55,7 @@ export default function ShoppingCartPage() {
                     price={`R${Number(item.lineTotal).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`}
                     quantity={item.quantity}
                     onQuantityChange={(qty) => updateItem(item.id, qty)}
+                    onRemove={() => removeItem(item.id)}
                   />
                 ))}
               </div>
