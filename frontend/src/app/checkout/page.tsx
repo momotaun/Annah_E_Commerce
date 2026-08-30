@@ -12,6 +12,7 @@ import { useRequireAuth } from "@/src/hooks/useRequireAuth";
 import { useCart } from "@/src/context/CartContext";
 import { getMyAddresses, addMyAddress, Address } from "@/src/lib/api/addresses";
 import { checkout } from "@/src/lib/api/checkout";
+import { initiatePayment } from "@/src/lib/api/payments";
 import { ApiError } from "@/src/lib/api-client";
 
 export default function CheckoutPage() {
@@ -62,14 +63,18 @@ export default function CheckoutPage() {
     setError(null);
     try {
       const order = await checkout({ sessionId: cart.sessionId, addressId: selectedAddressId });
-      router.push(`/orders/${order.id}/confirmation`);
+      const payment = await initiatePayment(order.id);
+      if (payment.redirectUrl) {
+        window.location.href = payment.redirectUrl;
+        return;
+      }
+      router.push(`/checkout/payment-result?orderId=${order.id}`);
     } catch (err) {
       if (err instanceof ApiError && err.status === 400) {
         setError("Your cart is empty or invalid. Please review your cart and try again.");
       } else {
         setError("Something went wrong placing your order. Please try again.");
       }
-    } finally {
       setIsPlacingOrder(false);
     }
   }

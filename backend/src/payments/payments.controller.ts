@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Headers,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-import { Request } from 'express';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../auth/decorators/current-user.decorator';
@@ -28,12 +20,7 @@ export class PaymentsController {
   }
 
   @Post('webhook')
-  handleWebhook(
-    @Req() req: Request & { rawBody?: Buffer },
-    @Headers('x-signature') signature: string | undefined,
-    @Body() dto: PaymentWebhookDto,
-  ) {
-    const rawBody = req.rawBody ?? Buffer.from(JSON.stringify(dto));
-    return this.paymentsService.handleWebhook(rawBody, signature, dto);
+  handleWebhook(@Body() dto: PaymentWebhookDto) {
+    return this.paymentsService.handleWebhook(dto);
   }
 }

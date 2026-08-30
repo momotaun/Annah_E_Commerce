@@ -161,6 +161,7 @@ export default function ProfilePage() {
                 icon={<History className="h-5 w-5" />}
                 title="Order History"
                 description="View and track all your past and current marketplace orders."
+                href="/orders"
               />
               <ActivityCard
                 icon={<MapPin className="h-5 w-5" />}

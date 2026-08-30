@@ -7,6 +7,21 @@ import {
 import { PaymentsService, PAYMENT_GATEWAY } from './payments.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentGateway } from './gateways/payment-gateway.interface';
+import { PaymentWebhookDto } from './dto/payment-webhook.dto';
+
+function webhookDto(overrides: Partial<PaymentWebhookDto> = {}): PaymentWebhookDto {
+  return Object.assign(new PaymentWebhookDto(), {
+    SiteCode: 'SITE1',
+    TransactionId: 'txn-1',
+    TransactionReference: 'ozow_abc123',
+    Amount: '500.00',
+    Status: 'Complete',
+    CurrencyCode: 'ZAR',
+    IsTest: 'true',
+    Hash: 'deadbeef',
+    ...overrides,
+  });
+}
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
@@ -85,14 +100,14 @@ describe('PaymentsService', () => {
         totalAmount: { toString: () => '500.00' },
       });
       gateway.initiate.mockResolvedValue({
-        transactionRef: 'stub_abc123',
-        redirectUrl: 'https://stub-gateway.example.com/pay/stub_abc123',
+        transactionRef: 'ozow_abc123',
+        redirectUrl: 'https://pay.ozow.com/abc123',
       });
       prisma.payment.create.mockResolvedValue({
         id: 'payment-1',
         orderId: 'order-1',
-        provider: 'stub',
-        transactionRef: 'stub_abc123',
+        provider: 'ozow',
+        transactionRef: 'ozow_abc123',
         status: 'INITIATED',
         amount: { toString: () => '500.00' },
       });
@@ -104,9 +119,10 @@ describe('PaymentsService', () => {
         amount: '500.00',
         currency: 'ZAR',
       });
-      expect(result.redirectUrl).toBe(
-        'https://stub-gateway.example.com/pay/stub_abc123',
-      );
+      expect(prisma.payment.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ provider: 'ozow' }),
+      });
+      expect(result.redirectUrl).toBe('https://pay.ozow.com/abc123');
     });
   });
 
@@ -115,10 +131,7 @@ describe('PaymentsService', () => {
       gateway.verifyWebhookSignature.mockReturnValue(false);
 
       await expect(
-        service.handleWebhook(Buffer.from('{}'), 'bad-signature', {
-          transactionRef: 'stub_abc123',
-          status: 'SUCCEEDED',
-        }),
+        service.handleWebhook(webhookDto()),
       ).rejects.toThrow(ForbiddenException);
 
       expect(prisma.payment.findUnique).not.toHaveBeenCalled();
@@ -129,10 +142,9 @@ describe('PaymentsService', () => {
       prisma.payment.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.handleWebhook(Buffer.from('{}'), 'valid-signature', {
-          transactionRef: 'unknown-ref',
-          status: 'SUCCEEDED',
-        }),
+        service.handleWebhook(
+          webhookDto({ TransactionReference: 'unknown-ref' }),
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -144,19 +156,13 @@ describe('PaymentsService', () => {
         status: 'SUCCEEDED', // already processed
       });
 
-      const result = await service.handleWebhook(
-        Buffer.from('{}'),
-        'valid-signature',
-        {
-        transactionRef: 'stub_abc123',
-        status: 'SUCCEEDED',
-      });
+      const result = await service.handleWebhook(webhookDto());
 
       expect(result).toEqual({ received: true, alreadyProcessed: true });
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });
 
-    it('updates payment status and flips order to PAID on a genuine SUCCEEDED webhook', async () => {
+    it('updates payment status and flips order to PAID on a Complete webhook', async () => {
       gateway.verifyWebhookSignature.mockReturnValue(true);
       prisma.payment.findUnique.mockResolvedValue({
         id: 'payment-1',
@@ -165,12 +171,8 @@ describe('PaymentsService', () => {
       });
 
       const result = await service.handleWebhook(
-        Buffer.from('{}'),
-        'valid-signature',
-        {
-        transactionRef: 'stub_abc123',
-        status: 'SUCCEEDED',
-      });
+        webhookDto({ Status: 'Complete' }),
+      );
 
       expect(tx.payment.update).toHaveBeenCalledWith({
         where: { id: 'payment-1' },
@@ -183,7 +185,27 @@ describe('PaymentsService', () => {
       expect(result).toEqual({ received: true, alreadyProcessed: false });
     });
 
-    it('does not flip the order to PAID on a FAILED webhook', async () => {
+    it.each(['Cancelled', 'Error', 'Abandoned'])(
+      'does not flip the order to PAID on a %s webhook',
+      async (status) => {
+        gateway.verifyWebhookSignature.mockReturnValue(true);
+        prisma.payment.findUnique.mockResolvedValue({
+          id: 'payment-1',
+          orderId: 'order-1',
+          status: 'INITIATED',
+        });
+
+        await service.handleWebhook(webhookDto({ Status: status }));
+
+        expect(tx.payment.update).toHaveBeenCalledWith({
+          where: { id: 'payment-1' },
+          data: { status: 'FAILED' },
+        });
+        expect(tx.order.update).not.toHaveBeenCalled();
+      },
+    );
+
+    it('no-ops on an unrecognized status like PendingInvestigation without touching payment/order state', async () => {
       gateway.verifyWebhookSignature.mockReturnValue(true);
       prisma.payment.findUnique.mockResolvedValue({
         id: 'payment-1',
@@ -191,16 +213,12 @@ describe('PaymentsService', () => {
         status: 'INITIATED',
       });
 
-      await service.handleWebhook(Buffer.from('{}'), 'valid-signature', {
-        transactionRef: 'stub_abc123',
-        status: 'FAILED',
-      });
+      const result = await service.handleWebhook(
+        webhookDto({ Status: 'PendingInvestigation' }),
+      );
 
-      expect(tx.payment.update).toHaveBeenCalledWith({
-        where: { id: 'payment-1' },
-        data: { status: 'FAILED' },
-      });
-      expect(tx.order.update).not.toHaveBeenCalled();
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+      expect(result).toEqual({ received: true, alreadyProcessed: false });
     });
   });
 });
