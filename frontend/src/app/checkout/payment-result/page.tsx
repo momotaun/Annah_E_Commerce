@@ -108,7 +108,7 @@ function PaymentResultContent() {
           Thank you — your payment for order {order.invoice?.invoiceNumber ?? order.id} was successful.
         </p>
         <div className="mt-6 flex justify-center gap-3">
-          <Button href="/orders" variant="outline">View my orders</Button>
+          <Button href={`/orders/${order.id}`} variant="outline">View Order</Button>
           <Button href="/catalogue">Continue Shopping</Button>
         </div>
       </div>
