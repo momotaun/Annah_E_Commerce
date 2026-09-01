@@ -155,6 +155,7 @@ model Order {
   payments         Payment[]
   invoice          Invoice?
   vendorOrderItems VendorOrderItem[]
+  returnRequest    ReturnRequest?
 
   createdAt DateTime @default(now())
 
@@ -196,6 +197,21 @@ model Invoice {
   order         Order    @relation(fields: [orderId], references: [id])
   invoiceNumber String   @unique
   issuedAt      DateTime @default(now())
+}
+
+enum ReturnRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ReturnRequest {
+  id        String              @id @default(cuid())
+  orderId   String              @unique
+  order     Order               @relation(fields: [orderId], references: [id])
+  reason    String
+  status    ReturnRequestStatus @default(PENDING)
+  createdAt DateTime            @default(now())
 }
 
 // ─────────────────────────────────────────────
