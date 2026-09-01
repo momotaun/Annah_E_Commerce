@@ -39,7 +39,7 @@ const team = [
 export default function AboutPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <Header showSearch cartCount={0} />
+      <Header showSearch />
 
       <main className="flex-1">
         <section className="bg-gray-50 px-6 py-[80px] text-center">

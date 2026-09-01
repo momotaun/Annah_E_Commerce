@@ -79,6 +79,23 @@ npm run dev
 
 The site is now running at `http://localhost:3000`. It talks to the API at `http://localhost:3001/api` by default; override this with `NEXT_PUBLIC_API_URL` if your API runs elsewhere.
 
+## Running the full stack in Docker
+
+Both apps have production Dockerfiles (multi-stage, non-root, with a `HEALTHCHECK`). `docker-compose.yml` runs all three services — Postgres, the API, and the web app:
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+Migrations aren't run automatically — apply them from the host once Postgres is up (same command either way, containerized or not):
+
+```bash
+cd backend && npx prisma migrate deploy
+```
+
+The API is then healthy at `http://localhost:3001/api/health`, and the site at `http://localhost:3000`. See [`backend/README.md`](backend/README.md#docker) for why the frontend needs two different API URLs (one for the browser, one for server-side rendering inside its own container).
+
 ## Running tests
 
 ```bash

@@ -4,8 +4,7 @@ import Badge from "@/src/app/components/ui/Badge";
 import Button from "@/src/app/components/ui/Button";
 import Spinner from "@/src/app/components/ui/Spinner";
 import { getVendors, approveVendor, VendorListItem } from "@/src/lib/api/admin";
-import { getVendors, approveVendor, VendorListItem } from "@/src/lib/api/admin";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AdminVendorsPage() {
   const [vendors, setVendors] = useState<VendorListItem[]>([]);
@@ -20,7 +19,10 @@ export default function AdminVendorsPage() {
   }
 
   useEffect(() => {
-    loadVendors();
+    const timer = setTimeout(() => {
+      loadVendors();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   async function handleAction(vendorId: string, status: "APPROVED" | "SUSPENDED") {
