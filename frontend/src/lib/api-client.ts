@@ -1,4 +1,14 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+// NEXT_PUBLIC_API_URL is inlined at build time and shared with the browser
+// bundle, so it has to be a URL the browser can reach. Server-side code
+// (SSR, route handlers) runs in its own process/container and can't
+// necessarily reach that same URL — API_URL is a plain runtime env var
+// (read fresh, not inlined) for that case, e.g. an internal Docker Compose
+// service hostname. Falls back to NEXT_PUBLIC_API_URL, then a sane default,
+// so this still works unchanged outside Docker.
+const API_URL =
+  (typeof window === 'undefined' ? process.env.API_URL : undefined) ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  'http://localhost:3001/api';
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {

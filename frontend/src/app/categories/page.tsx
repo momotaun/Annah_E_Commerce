@@ -58,13 +58,7 @@ export default async function CategoriesPage() {
         )}
       </main>
 
-      <Footer
-        brandBlurb="Elevating everyday life through curated premium essentials. Your destination for high-end lifestyle and tech products."
-        columns={[
-          { title: "Shop", links: [{ label: "Catalogue", href: "/catalogue" }, { label: "Featured Items", href: "/featured" }, { label: "New Arrivals", href: "/new" }, { label: "Promotions", href: "/promotions" }] },
-          { title: "Company", links: [{ label: "About Us", href: "/about" }, { label: "Sustainability", href: "/sustainability" }, { label: "Contact", href: "/contact" }, { label: "Careers", href: "/careers" }] },
-        ]}
-      />
+      <Footer />
     </div>
   );
 }

@@ -44,7 +44,7 @@ export default function ContactPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header showSearch cartCount={0} />
+      <Header showSearch />
 
       <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-12">
         <h1 className="text-4xl font-extrabold text-gray-900">Get in Touch</h1>

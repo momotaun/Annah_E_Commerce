@@ -11,6 +11,45 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: apex-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      # Overrides whatever DATABASE_URL is in backend/.env — inside this
+      # network the API must reach Postgres by service name, not localhost.
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked into the browser bundle at build time — must be reachable
+        # from the browser (on the host), not the internal service name.
+        NEXT_PUBLIC_API_URL: http://localhost:3001/api
+    container_name: apex-frontend
+    restart: unless-stopped
+    environment:
+      # Runtime-only, used for server-side rendering inside this
+      # container — reaches the API over the compose network.
+      API_URL: http://backend:3001/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

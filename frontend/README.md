@@ -26,7 +26,8 @@ The site is available at `http://localhost:3000`.
 
 | Variable | Required | Description |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | No | Base URL of the API. Defaults to `http://localhost:3001/api`. Override by adding a `.env.local` file if your API runs elsewhere |
+| `NEXT_PUBLIC_API_URL` | No | Base URL the *browser* uses. Defaults to `http://localhost:3001/api`. Override by adding a `.env.local` file if your API runs elsewhere. Inlined into the browser bundle at build time |
+| `API_URL` | No | Base URL used for server-side rendering only (falls back to `NEXT_PUBLIC_API_URL`, then the same default). A normal runtime env var, not build-time — set this when the server-rendering process can't reach the same URL the browser uses, e.g. an internal hostname in Docker Compose. See [`backend/README.md#docker`](../backend/README.md#docker) |
 
 ## Available scripts
 
@@ -39,6 +40,17 @@ The site is available at `http://localhost:3000`.
 | `npm test` | Run component tests once (Vitest) |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:coverage` | Run tests with coverage report |
+
+## Docker
+
+`Dockerfile` is a multi-stage build producing a Next.js [standalone output](https://nextjs.org/docs/app/api-reference/config/next-config-js/output) (`output: "standalone"` in `next.config.ts`) — a self-contained `server.js` plus only the `node_modules` it actually needs, not the full dependency tree. Runs as a non-root user with a `HEALTHCHECK` against `/`.
+
+```bash
+docker build -t apex-frontend --build-arg NEXT_PUBLIC_API_URL=http://localhost:3001/api .
+docker run -p 3000:3000 apex-frontend
+```
+
+`NEXT_PUBLIC_API_URL` must be passed as a build arg, not a runtime `-e` flag — see the env var table above and [`backend/README.md#docker`](../backend/README.md#docker) for why.
 
 ## Project structure
 

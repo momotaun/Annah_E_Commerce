@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
@@ -8,5 +8,14 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Get('health')
+  async getHealth() {
+    const health = await this.appService.getHealth();
+    if (health.status === 'error') {
+      throw new ServiceUnavailableException('Database connection failed');
+    }
+    return health;
   }
 }

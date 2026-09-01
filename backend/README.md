@@ -25,6 +25,8 @@ npm run start:dev
 
 The API listens on `http://localhost:3001` with a global `/api` prefix (e.g. `GET http://localhost:3001/api/categories`).
 
+`GET /api/health` reports readiness for load balancers/orchestrators — `200 {"status":"ok","database":"up"}` when it can reach Postgres, `503` otherwise.
+
 ## Environment variables
 
 | Variable | Required | Description |
@@ -81,6 +83,31 @@ Because Ozow needs to reach `BACKEND_URL` directly, local end-to-end testing req
 There is no email provider wired up yet (no SMTP/SendGrid/Resend/etc.). `src/auth/` sends mail through a `Mailer` interface (`src/auth/mailer/mailer.interface.ts`); the only implementation right now is `ConsoleMailer`, which logs the reset link instead of emailing it — check the server log (`[ConsoleMailer] Password reset link for ...`) to get a working link during local development. Swap in a real implementation and change the provider in `src/auth/auth.module.ts` when one is chosen; nothing else needs to change.
 
 Reset tokens are single-use, expire after 1 hour, and resetting a password revokes every existing refresh token for that account.
+
+## Docker
+
+`Dockerfile` is a multi-stage build (deps → build → production) that runs as a non-root user and declares a `HEALTHCHECK` against `/api/health`. Notable detail: `nest build` compiles to `dist/src/main.js`, not `dist/main.js` — `prisma/` lives outside `src/`, so TypeScript's inferred rootDir spans both directories and the output preserves the `src/` prefix. `package.json`'s `start:prod` and the Dockerfile's `CMD` both account for this.
+
+Build and run standalone:
+
+```bash
+docker build -t apex-backend .
+docker run -p 3001:3001 --env-file .env \
+  -e DATABASE_URL=postgresql://apex_user:apex_password@host.docker.internal:5432/apex_marketplace \
+  apex-backend
+```
+
+(`host.docker.internal` lets the container reach a Postgres running on your host; use the `postgres` service name instead when running via the root [`docker-compose.yml`](../docker-compose.yml).)
+
+The image doesn't run migrations on startup — apply them explicitly (from the host, against whichever `DATABASE_URL` you're targeting):
+
+```bash
+npx prisma migrate deploy
+```
+
+### Frontend needs two API URLs when containerized
+
+`NEXT_PUBLIC_API_URL` is inlined into the frontend's browser bundle at build time, so it has to be a URL the *browser* can reach — but when the frontend server-renders a page inside its own container, that same request comes from the *frontend container*, which can't necessarily reach that URL (e.g. `localhost` inside a container isn't the host). The frontend's `api-client.ts` therefore also reads a plain runtime `API_URL` env var for server-side requests only, preferring it over `NEXT_PUBLIC_API_URL` when running on the server. `docker-compose.yml` sets `NEXT_PUBLIC_API_URL=http://localhost:3001/api` (a build arg, for the browser) and `API_URL=http://backend:3001/api` (a normal runtime env var, for SSR) on the frontend service — see [`frontend/Dockerfile`](../frontend/Dockerfile).
 
 ## Project structure
 
