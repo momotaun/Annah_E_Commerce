@@ -1,23 +1,29 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
+import type { Mailer } from './mailer/mailer.interface';
 
 const SALT_ROUNDS = 12;
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour — matches the frontend's copy
+
+export const MAILER = 'MAILER';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    @Inject(MAILER) private readonly mailer: Mailer,
   ) {}
 
   private hashToken(token: string): string {
@@ -174,14 +180,70 @@ export class AuthService {
     // Deliberately return the same response whether or not the account
     // exists — prevents leaking which emails are registered.
     if (user) {
-      // TODO: generate a reset token, persist it, and dispatch via the
-      // Phase 2 notification provider (Section 7.2) once that's wired up.
-      // Not yet implemented — see note below.
+      // Only one active reset link per user at a time — an old, unused
+      // token becomes useless the moment a new one is requested.
+      await this.prisma.passwordResetToken.deleteMany({
+        where: { userId: user.id, usedAt: null },
+      });
+
+      const rawToken = randomBytes(32).toString('hex');
+      await this.prisma.passwordResetToken.create({
+        data: {
+          userId: user.id,
+          tokenHash: this.hashToken(rawToken),
+          expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS),
+        },
+      });
+
+      const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+      await this.mailer.sendPasswordResetEmail({
+        to: user.email,
+        resetUrl: `${frontendUrl}/reset-password?token=${rawToken}`,
+      });
     }
 
     return {
       message:
         'If an account exists for this email, a reset link has been sent.',
     };
+  }
+
+  async confirmPasswordReset(
+    token: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const resetToken = await this.prisma.passwordResetToken.findUnique({
+      where: { tokenHash: this.hashToken(token) },
+    });
+
+    if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
+      throw new UnauthorizedException(
+        'This reset link is invalid or has expired',
+      );
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: resetToken.userId },
+        data: { passwordHash },
+      });
+
+      await tx.passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: { usedAt: new Date() },
+      });
+
+      // Resetting the password invalidates every existing session — a
+      // reset is often prompted by a compromised account, so any refresh
+      // token an attacker already holds should stop working immediately.
+      await tx.refreshToken.updateMany({
+        where: { userId: resetToken.userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+    });
+
+    return { message: 'Your password has been reset.' };
   }
 }
