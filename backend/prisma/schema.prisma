@@ -240,15 +240,17 @@ model Vendor {
 }
 
 model VendorOrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id])
-  vendorId  String
-  vendor    Vendor  @relation(fields: [vendorId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  quantity  Int
-  lineTotal Decimal @db.Decimal(10, 2)
+  id          String    @id @default(cuid())
+  orderId     String
+  order       Order     @relation(fields: [orderId], references: [id])
+  vendorId    String
+  vendor      Vendor    @relation(fields: [vendorId], references: [id])
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  quantity    Int
+  lineTotal   Decimal   @db.Decimal(10, 2)
+  shippedAt   DateTime?
+  deliveredAt DateTime?
 
   commission Commission?
 
