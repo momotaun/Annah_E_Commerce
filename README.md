@@ -1,5 +1,7 @@
 # Apex Marketplace
 
+[![CI](https://github.com/momotaun/Annah_E_Commerce/actions/workflows/ci.yml/badge.svg)](https://github.com/momotaun/Annah_E_Commerce/actions/workflows/ci.yml)
+
 A multi-vendor e-commerce marketplace: shoppers browse a shared catalogue, vendors apply to sell and manage their own storefronts and products, and admins approve vendors and maintain platform-wide content. Checkout is backed by [Ozow](https://ozow.com), a South African instant EFT payment gateway.
 
 This repository is a monorepo with two independently deployable apps:
@@ -102,6 +104,10 @@ The API is then healthy at `http://localhost:3001/api/health`, and the site at `
 cd backend && npm test      # Jest — unit tests
 cd frontend && npm test     # Vitest — component tests
 ```
+
+## Continuous integration
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and PR to `develop`: lint, production build, unit tests, and (backend) `test:e2e` against a real Postgres service container with migrations applied. Backend lint currently runs with `continue-on-error` — it surfaces a real, pre-existing body of lint debt (mostly `any`-typed Prisma mocks in older `*.service.spec.ts` files) that predates CI and is too large to fix as a side effect of adding it; everything else gates the build.
 
 ## Repository layout
 

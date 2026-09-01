@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, CheckCircle2, Lock } from "lucide-react";
+import { Heart, Lock } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Breadcrumb from "@/src/app/components/shared/Breadcrumb";

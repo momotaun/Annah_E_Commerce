@@ -22,15 +22,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // On first load, restore any existing cart session from localStorage
   useEffect(() => {
-    const sessionId = localStorage.getItem(SESSION_STORAGE_KEY);
-    if (!sessionId) {
-      setIsLoading(false);
-      return;
-    }
-    getCart(sessionId)
-      .then(setCart)
-      .catch(() => localStorage.removeItem(SESSION_STORAGE_KEY))
-      .finally(() => setIsLoading(false));
+    const timer = setTimeout(() => {
+      const sessionId = localStorage.getItem(SESSION_STORAGE_KEY);
+      if (!sessionId) {
+        setIsLoading(false);
+        return;
+      }
+      getCart(sessionId)
+        .then(setCart)
+        .catch(() => localStorage.removeItem(SESSION_STORAGE_KEY))
+        .finally(() => setIsLoading(false));
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   async function addItem(productId: string, quantity = 1) {

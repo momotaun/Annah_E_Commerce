@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Home, ArrowLeft, Search, Truck, Headphones, WifiOff, HelpCircle } from "lucide-react";
+import { Home, Search, Truck, Headphones, WifiOff, HelpCircle } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";

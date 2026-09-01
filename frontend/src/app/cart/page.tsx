@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Lock, Info } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import Link from "next/link";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
