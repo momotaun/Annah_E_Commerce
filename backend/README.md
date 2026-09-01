@@ -1,98 +1,105 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Apex Marketplace — API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS + Prisma + PostgreSQL backend for Apex Marketplace. See the [repo root README](../README.md) for how this fits together with the frontend.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech stack
 
-## Description
+- [NestJS 11](https://nestjs.com) on Express
+- [Prisma 6](https://www.prisma.io) against PostgreSQL 16
+- JWT auth (`@nestjs/jwt` + `passport-jwt`) with access + refresh tokens
+- `class-validator` / `class-transformer` for request validation (enforced globally — see `src/main.ts`)
+- [Ozow](https://ozow.com) as the payment gateway
+- Jest for unit and e2e tests
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Setup
 
-## Project setup
+Requires a running PostgreSQL instance — the root [`docker-compose.yml`](../docker-compose.yml) provides one for local development.
 
 ```bash
-$ npm install
+npm install
+cp .env.example .env   # then fill in the values below
+npx prisma migrate dev
+npx prisma db seed
+npm run start:dev
 ```
 
-## Compile and run the project
+The API listens on `http://localhost:3001` with a global `/api` prefix (e.g. `GET http://localhost:3001/api/categories`).
+
+## Environment variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `FRONTEND_URL` | Yes | Origin allowed by CORS; also used to build Ozow redirect URLs |
+| `BACKEND_URL` | Yes (for payments) | This API's own publicly reachable base URL — Ozow's webhook must be able to reach it. Use a tunnel (ngrok or similar) for local development |
+| `JWT_ACCESS_SECRET` | Yes | Signing secret for access tokens |
+| `JWT_REFRESH_SECRET` | Yes | Signing secret for refresh tokens (must differ from the access secret) |
+| `JWT_ACCESS_EXPIRES_IN` | No | Default `15m` |
+| `JWT_REFRESH_EXPIRES_IN` | No | Default `7d` |
+| `DEFAULT_COMMISSION_RATE` | No | Percentage commission applied to vendor order items at checkout; default `10.00` |
+| `OZOW_SITE_CODE` | For payments | From your Ozow merchant dashboard |
+| `OZOW_PRIVATE_KEY` | For payments | Used to sign requests and verify webhook signatures — never expose this |
+| `OZOW_API_KEY` | For payments | Sent as the `ApiKey` header on requests to Ozow |
+| `OZOW_IS_TEST` | For payments | `true` routes to Ozow's staging API and marks transactions as test; set `false` to take real payments |
+
+Everything except the `OZOW_*` and `BACKEND_URL` variables is required for the API to boot and serve most routes; payments-related endpoints will fail without the Ozow variables set.
+
+## Available scripts
+
+| Command | Description |
+|---|---|
+| `npm run start:dev` | Start the API in watch mode |
+| `npm run start:prod` | Run the compiled build (`npm run build` first) |
+| `npm run build` | Compile to `dist/` |
+| `npm run lint` | ESLint, auto-fixing |
+| `npm test` | Unit tests (Jest) |
+| `npm run test:e2e` | End-to-end tests against a running instance |
+| `npm run test:cov` | Unit tests with coverage report |
+
+## Database
+
+Schema and migrations live in `prisma/`. To change the schema:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# edit prisma/schema.prisma, then:
+npx prisma migrate dev --name <describe-the-change>
 ```
 
-## Run tests
+`prisma/seed.ts` (run via `npx prisma db seed`) is idempotent — every write is an `upsert`, so re-running it never overwrites data that's already been changed (e.g. admin edits to legal page content survive a reseed). It does, however, create the fixed local-dev accounts documented in the [root README](../README.md#2-backend-api) with known passwords — don't run it against a database anyone else can reach.
+
+## Payments (Ozow)
+
+`src/payments/` implements the payment flow behind a `PaymentGateway` interface (`src/payments/gateways/payment-gateway.interface.ts`), with `OzowPaymentGateway` as the concrete implementation:
+
+1. `POST /api/payments` (authenticated) — validates the order belongs to the caller and is still `PLACED`, calls Ozow's `PostPaymentRequest` API, and returns a redirect URL to Ozow's hosted payment page.
+2. Ozow redirects the shopper back to `${FRONTEND_URL}/checkout/payment-result` and, independently, POSTs a status notification to `POST /api/payments/webhook`. The webhook payload's `Hash` field is verified before anything is applied; on a genuine success the order is transactioned to `PAID`.
+
+Because Ozow needs to reach `BACKEND_URL` directly, local end-to-end testing requires exposing your local API through a tunnel and pointing Ozow's dashboard (or `BACKEND_URL`) at it.
+
+## Project structure
+
+Each top-level module under `src/` is a self-contained Nest module (controller + service + DTOs):
+
+| Module | Responsibility |
+|---|---|
+| `auth` | Registration, login, JWT refresh, password reset |
+| `users` | Profile and address management |
+| `products` / `categories` / `search` | Catalogue browsing |
+| `cart` | Session-based cart, mergeable into an account |
+| `checkout` | Converts a cart into an order; splits vendor line items and computes commissions |
+| `payments` | Ozow integration (see above) |
+| `orders` | Authenticated order history and detail |
+| `order-requests` | Pre-checkout guest quote/inquiry requests |
+| `vendors` / `vendor-products` / `vendor-orders` | Vendor onboarding, product management, and order views |
+| `admin` | Marketplace analytics and vendor approval |
+| `legal-pages` | Admin-editable Privacy Policy / Terms of Service content |
+| `common` | Shared infrastructure (global exception filter) |
+
+## Testing
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm test              # unit tests
+npm run test:e2e       # e2e tests
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Note: coverage is uneven across modules — some services have thorough unit tests, others (and most controllers) currently have none. Check a given module's directory for a `*.spec.ts` file before assuming it's covered.
