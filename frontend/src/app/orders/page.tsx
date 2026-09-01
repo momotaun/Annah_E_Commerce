@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Breadcrumb from "@/src/app/components/shared/Breadcrumb";
@@ -120,17 +122,25 @@ export default function OrdersPage() {
                   className="rounded-md border border-gray-200 bg-white p-4"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Order #{order.id.slice(-8)}</p>
-                      <p className="mt-0.5 text-xs text-gray-500">
-                        {new Date(order.createdAt).toLocaleDateString("en-ZA", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}{" "}
-                        · {order.itemCount} item{order.itemCount === 1 ? "" : "s"}
-                      </p>
-                    </div>
+                    <Link
+                      href={`/orders/${order.id}`}
+                      className="group flex items-center gap-1.5 hover:text-primary-600"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 group-hover:text-primary-600">
+                          Order #{order.id.slice(-8)}
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-500">
+                          {new Date(order.createdAt).toLocaleDateString("en-ZA", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}{" "}
+                          · {order.itemCount} item{order.itemCount === 1 ? "" : "s"}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-primary-600" />
+                    </Link>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-bold text-gray-900">
                         R{Number(order.totalAmount).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}
