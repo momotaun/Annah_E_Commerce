@@ -11,6 +11,7 @@ import GoogleIcon from "@/src/app/components/ui/icons/GoogleIcon";
 import AppleIcon from "@/src/app/components/ui/icons/AppleIcon";
 import { useAuth } from "@/src/context/AuthContext";
 import { ApiError } from "@/src/lib/api-client";
+import { getHomeRouteForRole } from "@/src/lib/api/auth";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -51,8 +52,8 @@ export default function RegisterPage() {
 
     setIsSubmitting(true);
     try {
-      await register({ email: form.email, password: form.password, firstName, lastName });
-      router.push("/profile");
+      const user = await register({ email: form.email, password: form.password, firstName, lastName });
+      router.push(getHomeRouteForRole(user.role));
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         setError("An account with this email already exists.");

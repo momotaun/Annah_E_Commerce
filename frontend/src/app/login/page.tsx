@@ -12,6 +12,7 @@ import GoogleIcon from "@/src/app/components/ui/icons/GoogleIcon";
 import AppleIcon from "@/src/app/components/ui/icons/AppleIcon";
 import { useAuth } from "@/src/context/AuthContext";
 import { ApiError } from "@/src/lib/api-client";
+import { getHomeRouteForRole } from "@/src/lib/api/auth";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -27,8 +28,8 @@ export default function LoginPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await login(email, password);
-      router.push("/profile");
+      const user = await login(email, password);
+      router.push(getHomeRouteForRole(user.role));
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setError("Incorrect email or password.");
