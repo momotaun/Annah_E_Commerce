@@ -8,4 +8,6 @@ export class VendorOrderItemResponseDto {
   commissionAmount: string;
   orderStatus: string;
   orderCreatedAt: Date;
+  shippedAt: Date | null;
+  deliveredAt: Date | null;
 }

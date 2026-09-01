@@ -10,6 +10,8 @@ export interface VendorOrderItem {
   commissionAmount: string;
   orderStatus: string;
   orderCreatedAt: string;
+  shippedAt: string | null;
+  deliveredAt: string | null;
 }
 
 export interface SalesReport {
@@ -26,4 +28,12 @@ export function getMyVendorOrders() {
 
 export function getMySalesReport() {
   return apiClient.get<SalesReport>('/vendors/me/sales-report');
+}
+
+export function markOrderShipped(orderId: string) {
+  return apiClient.patch<VendorOrderItem[]>(`/vendors/me/orders/${orderId}/ship`);
+}
+
+export function markOrderDelivered(orderId: string) {
+  return apiClient.patch<VendorOrderItem[]>(`/vendors/me/orders/${orderId}/deliver`);
 }
