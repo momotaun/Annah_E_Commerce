@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { login as apiLogin, register as apiRegister, getMe, AuthUser } from "@/src/lib/api/auth";
 import { tokenStore } from "@/src/lib/api-client";
-import { ApiError } from "@/src/lib/api-client";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -22,23 +21,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const accessToken = localStorage.getItem(ACCESS_KEY);
-    if (!accessToken) {
-      setIsLoading(false);
-      return;
-    }
-    tokenStore.setAccessToken(accessToken);
-    getMe(accessToken)
-      .then(setUser)
-      .catch(() => {
-        // Access token expired and refresh (handled inside apiClient) also
-        // failed — clear stale tokens rather than leaving the UI stuck
-        // thinking it's still logged in.
-        localStorage.removeItem(ACCESS_KEY);
-        localStorage.removeItem(REFRESH_KEY);
-        tokenStore.setAccessToken(null);
-      })
-      .finally(() => setIsLoading(false));
+    const timer = setTimeout(() => {
+      const accessToken = localStorage.getItem(ACCESS_KEY);
+      if (!accessToken) {
+        setIsLoading(false);
+        return;
+      }
+      tokenStore.setAccessToken(accessToken);
+      getMe(accessToken)
+        .then(setUser)
+        .catch(() => {
+          // Access token expired and refresh (handled inside apiClient) also
+          // failed — clear stale tokens rather than leaving the UI stuck
+          // thinking it's still logged in.
+          localStorage.removeItem(ACCESS_KEY);
+          localStorage.removeItem(REFRESH_KEY);
+          tokenStore.setAccessToken(null);
+        })
+        .finally(() => setIsLoading(false));
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   async function login(email: string, password: string) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { RefreshCw, HelpCircle, CloudOff } from "lucide-react";
 import Badge from "@/src/app/components/ui/Badge";
 import Button from "@/src/app/components/ui/Button";
@@ -62,9 +63,9 @@ export default function Error({
         </div>
 
         <div className="mt-12 flex w-full max-w-md items-center justify-center gap-6 border-t border-gray-200 pt-6 text-sm text-gray-500">
-          <a href="/status" className="hover:text-primary-600">System Status</a>
-          <a href="/" className="hover:text-primary-600">Return to Home</a>
-          <a href="/help" className="hover:text-primary-600">Help Center</a>
+          <Link href="/status" className="hover:text-primary-600">System Status</Link>
+          <Link href="/" className="hover:text-primary-600">Return to Home</Link>
+          <Link href="/help" className="hover:text-primary-600">Help Center</Link>
         </div>
       </main>
 
