@@ -14,6 +14,12 @@ export class OrderDetailPaymentDto {
   amount: string;
 }
 
+export class OrderDetailReturnRequestDto {
+  status: string;
+  reason: string;
+  createdAt: Date;
+}
+
 export class OrderDetailDto {
   id: string;
   status: string;
@@ -30,5 +36,6 @@ export class OrderDetailDto {
     invoiceNumber: string;
     issuedAt: Date;
   } | null;
+  returnRequest: OrderDetailReturnRequestDto | null;
   createdAt: Date;
 }
