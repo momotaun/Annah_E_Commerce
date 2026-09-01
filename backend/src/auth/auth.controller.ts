@@ -4,6 +4,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { PasswordResetDto } from './dto/password-reset.dto';
+import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
 
 import { Throttle } from '@nestjs/throttler';
 
@@ -36,5 +37,12 @@ export class AuthController {
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // tightest — prevents email-bombing
   initiatePasswordReset(@Body() dto: PasswordResetDto) {
     return this.authService.initiatePasswordReset(dto.email);
+  }
+
+  @Post('password-reset/confirm')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  confirmPasswordReset(@Body() dto: ConfirmPasswordResetDto) {
+    return this.authService.confirmPasswordReset(dto.token, dto.newPassword);
   }
 }

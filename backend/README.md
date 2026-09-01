@@ -76,6 +76,12 @@ npx prisma migrate dev --name <describe-the-change>
 
 Because Ozow needs to reach `BACKEND_URL` directly, local end-to-end testing requires exposing your local API through a tunnel and pointing Ozow's dashboard (or `BACKEND_URL`) at it.
 
+## Password reset & email
+
+There is no email provider wired up yet (no SMTP/SendGrid/Resend/etc.). `src/auth/` sends mail through a `Mailer` interface (`src/auth/mailer/mailer.interface.ts`); the only implementation right now is `ConsoleMailer`, which logs the reset link instead of emailing it — check the server log (`[ConsoleMailer] Password reset link for ...`) to get a working link during local development. Swap in a real implementation and change the provider in `src/auth/auth.module.ts` when one is chosen; nothing else needs to change.
+
+Reset tokens are single-use, expire after 1 hour, and resetting a password revokes every existing refresh token for that account.
+
 ## Project structure
 
 Each top-level module under `src/` is a self-contained Nest module (controller + service + DTOs):
