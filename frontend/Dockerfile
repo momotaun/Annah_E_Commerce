@@ -25,6 +25,13 @@ FROM node:20-slim AS production
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# .next/standalone's server.js binds to `process.env.HOSTNAME || '0.0.0.0'`
+# — and Docker always sets HOSTNAME to the container ID unless overridden,
+# so without this the server ends up bound only to the container's bridge
+# IP. External requests (and `docker run -p`) still reach it, but the
+# HEALTHCHECK below curls `localhost` from inside the same container and
+# gets ECONNREFUSED, so the container is permanently reported unhealthy.
+ENV HOSTNAME=0.0.0.0
 
 # .next/standalone is self-contained (its own minimal node_modules) but
 # does not include public/ or .next/static — those are copied separately,
