@@ -33,7 +33,13 @@ export default function AdminAnalyticsPage() {
     <div>
       <h1 className="text-2xl font-bold text-gray-900">Marketplace Analytics</h1>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {/* lg, not sm: toLocaleString('en-ZA') separates thousands with a
+          non-breaking space (confirmed: "R7 395,00" is R-7- -395,00,
+          not a plain space), so a wide Rand figure can't wrap and instead
+          overflowed into the next card at 4-up on a ~768px tablet width
+          (verified live, no overflow-hidden here to even clip it
+          cleanly — it visibly overlapped the neighboring card). */}
+      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.label} className="rounded-md border border-gray-200 bg-white p-5">
             <p className="text-xs font-medium uppercase text-gray-500">{stat.label}</p>
@@ -46,8 +52,12 @@ export default function AdminAnalyticsPage() {
       {analytics.vendorBreakdown.length === 0 ? (
         <p className="mt-3 text-sm text-gray-500">No approved vendors yet.</p>
       ) : (
-        <div className="mt-4 overflow-hidden rounded-md border border-gray-200 bg-white">
-          <table className="w-full text-sm">
+        // overflow-x-auto, not overflow-hidden: a 4-column table with
+        // Rand-formatted currency doesn't fit a mobile width, and
+        // overflow-hidden was silently clipping the Commission column
+        // out of view entirely instead of letting it scroll into reach.
+        <div className="mt-4 overflow-x-auto rounded-md border border-gray-200 bg-white">
+          <table className="w-full min-w-[480px] text-sm">
             <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
               <tr>
                 <th className="px-4 py-3">Vendor</th>

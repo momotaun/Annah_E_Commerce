@@ -19,8 +19,12 @@ export default function VendorDashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex min-h-screen flex-col">
       <VendorHeader />
-      <div className="mx-auto flex w-full max-w-7xl flex-1 gap-8 px-6 py-8">
-        <nav className="flex w-48 shrink-0 flex-col gap-1">
+      {/* Same stack-then-sidebar pattern as AccountSidebar (customer
+          profile): a fixed w-48 side nav had no mobile fallback at all
+          here, sitting beside the content at any width and forcing
+          horizontal overflow on a phone (verified live). */}
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-8 md:flex-row">
+        <nav className="flex w-full shrink-0 flex-col gap-1 md:w-48">
           <Link href="/vendor/products" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
             Products
           </Link>
