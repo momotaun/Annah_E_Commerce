@@ -205,7 +205,14 @@ export default function CategoryClient({
                 No products in this category yet.
               </p>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+              // sm:grid-cols-2 is safe below md since the sidebar still
+              // stacks above the grid there (md:flex-row below) — full
+              // page width, no contention. Once the sidebar sits beside
+              // the grid at md (768px) though, 3 columns leaves only
+              // ~50px for the price next to the cart button, clipping
+              // longer prices (verified live) — same issue as the
+              // Catalogue grid, same fix: wait for lg.
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {products.data.map((product) => (
                   <ProductCard
                     key={product.id}

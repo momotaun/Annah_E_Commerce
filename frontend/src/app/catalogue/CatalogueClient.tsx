@@ -248,7 +248,15 @@ export default function CatalogueClient({
               No products found.
             </p>
           ) : (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            // This grid shares the row with the filter sidebar (unlike the
+            // sidebar-less grids elsewhere, e.g. TopRatedEssentials), so it
+            // needs more width per breakpoint than a full-width grid does.
+            // Verified live: even 3 columns at md (768px) only leaves ~50px
+            // for the price text next to the cart button — not enough for
+            // "R45 999,00"-length prices, which got hard-clipped against
+            // the card's overflow-hidden. 3 columns doesn't have room
+            // until lg (1024px); 4 waits until xl.
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
               {products.data.map((product) => (
                 <ProductCard
                   key={product.id}

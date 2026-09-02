@@ -81,8 +81,14 @@ function Header({
           Apex Marketplace
         </Link>
 
+        {/* The full nav + cart + login cluster genuinely doesn't fit in a
+            768px-wide row (verified live — it overflows by ~30px), so this
+            switches from the hamburger to the full desktop header at lg
+            (1024px), not md. That means portrait tablets (iPad et al.,
+            ~768-834px) keep the hamburger — landscape and up get the full
+            nav. */}
         {variant === "full" && (
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav className="hidden items-center gap-6 lg:flex">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -102,12 +108,20 @@ function Header({
         )}
 
         {/* Desktop-only right cluster: search, cart, and account. Hidden
-            below md — the mobile cluster below covers the same ground
-            (cart + hamburger, which opens search/nav/account in a panel)
-            without overflowing a narrow header row. */}
-        <div className="hidden items-center gap-4 md:flex">
+            below lg — the mobile/tablet cluster below covers the same
+            ground (cart + hamburger, which opens search/nav/account in a
+            panel) without overflowing a narrower header row. */}
+        <div className="hidden items-center gap-4 lg:flex">
+          {/* w-44 rather than the more spacious w-56 it used to be: nav +
+              cart + login alone are already a tight fit right at lg
+              (1024px) — a 224px search box appearing at that same instant
+              overflowed the header by ~12px (verified live). Narrowing it
+              wins back enough room without punching a gap in search
+              availability the way delaying it to a later breakpoint
+              would've (this header is the only search entry point on
+              pages like Home). */}
           {variant === "full" && showSearch && (
-            <div className="hidden w-56 lg:block">
+            <div className="hidden w-44 lg:block">
               <SearchBar size="sm" />
             </div>
           )}
@@ -136,11 +150,11 @@ function Header({
           )}
         </div>
 
-        {/* Mobile-only right cluster: cart stays one tap away, everything
-            else (nav links, search, account) lives behind the hamburger
-            so the header row never has to squeeze more than two icons
-            into a ~375px width. */}
-        <div className="flex items-center gap-3 md:hidden">
+        {/* Mobile/tablet right cluster: cart stays one tap away, everything
+            else (nav links, search, account) lives behind the hamburger so
+            the header row never has to squeeze the full nav + login button
+            into a width that can't fit them (confirmed broken at 768px). */}
+        <div className="flex items-center gap-3 lg:hidden">
           {variant === "full" && showCart && cartLink}
 
           {variant === "full" && (
@@ -167,7 +181,7 @@ function Header({
       </header>
 
       {variant === "full" && mobileMenuOpen && (
-        <div className="border-t border-gray-200 px-4 pb-6 pt-4 md:hidden">
+        <div className="border-t border-gray-200 px-4 pb-6 pt-4 lg:hidden">
           {showSearch && (
             <div className="mb-4">
               <SearchBar size="sm" />

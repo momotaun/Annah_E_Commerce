@@ -98,15 +98,22 @@ function ProductCard({
           <RatingStars rating={rating} reviewCount={reviewCount} size="sm" />
         )}
 
-        <div className="mt-auto flex items-center justify-between pt-2">
-          <span className="text-lg font-bold text-primary-600">{price}</span>
+        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+          {/* min-w-0 overrides this flex item's default min-width:auto —
+              without it, a wide price (e.g. "R1 599,00") refuses to
+              shrink and gets hard-clipped by the card's overflow-hidden
+              at narrower grid widths (verified at the 4-up tablet grid).
+              truncate is a fallback ellipsis for anything still too tight. */}
+          <span className="min-w-0 flex-1 truncate text-lg font-bold text-primary-600">
+            {price}
+          </span>
 
           {onAddToCart && (
             <button
               type="button"
               onClick={onAddToCart}
               aria-label="Add to cart"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-600 text-white hover:bg-primary-700"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-600 text-white hover:bg-primary-700"
             >
               <ShoppingCart className="h-4 w-4" />
             </button>
