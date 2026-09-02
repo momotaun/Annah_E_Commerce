@@ -59,9 +59,9 @@ function HeroSection() {
           Discover curated premium essentials for a modern lifestyle. From
           technical excellence to aesthetic perfection.
         </p>
-        <div className="mt-6 flex gap-4">
-          <Button size="lg" href="/catalogue">Shop Now</Button>
-          <Button size="lg" variant="outline" href="/lookbook">View Lookbook</Button>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:gap-4">
+          <Button size="lg" href="/catalogue" className="w-full sm:w-auto">Shop Now</Button>
+          <Button size="lg" variant="outline" href="/lookbook" className="w-full sm:w-auto">View Lookbook</Button>
         </div>
       </div>
     </section>
