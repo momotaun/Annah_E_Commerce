@@ -1,8 +1,10 @@
+import './instrument';
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { assertRequiredEnvVars } from './bootstrap/assert-required-env';
@@ -18,7 +20,14 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     rawBody: true,
+    // Nest's own startup/framework logs (module init, route mapping, ...)
+    // fire before a custom logger can be attached. Buffering them here and
+    // flushing via useLogger() below is nestjs-pino's documented pattern
+    // for getting those into structured JSON too, instead of just request
+    // logs.
+    bufferLogs: true,
   });
+  app.useLogger(app.get(Logger));
 
   // Without this, SIGTERM (what `docker stop` and Kubernetes both send)
   // falls through to Node's default disposition and kills the process
