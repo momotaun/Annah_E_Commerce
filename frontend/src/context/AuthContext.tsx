@@ -7,8 +7,8 @@ import { tokenStore } from "@/src/lib/api-client";
 interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: { email: string; password: string; firstName: string; lastName: string }) => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthUser>;
+  register: (data: { email: string; password: string; firstName: string; lastName: string }) => Promise<AuthUser>;
   logout: () => void;
 }
 
@@ -49,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(REFRESH_KEY, result.refreshToken);
     tokenStore.setAccessToken(result.accessToken);
     setUser(result.user);
+    return result.user;
   }
 
   async function register(data: { email: string; password: string; firstName: string; lastName: string }) {
@@ -57,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(REFRESH_KEY, result.refreshToken);
     tokenStore.setAccessToken(result.accessToken);
     setUser(result.user);
+    return result.user;
   }
 
   function logout() {

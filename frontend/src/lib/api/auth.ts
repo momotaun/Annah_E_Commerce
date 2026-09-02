@@ -14,6 +14,15 @@ export interface AuthResponse {
   user: AuthUser;
 }
 
+// Where to land a user right after login/register — a vendor or admin
+// otherwise has no way to find their dashboard except by already knowing
+// the URL, since nothing in the nav surfaces it for them.
+export function getHomeRouteForRole(role: AuthUser['role']): string {
+  if (role === 'ADMIN') return '/admin/vendors';
+  if (role === 'VENDOR') return '/vendor/products';
+  return '/profile';
+}
+
 export function register(data: { email: string; password: string; firstName: string; lastName: string }) {
   return apiClient.post<AuthResponse>('/auth/register', data);
 }
