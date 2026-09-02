@@ -71,6 +71,19 @@ async function main() {
 
   console.log({ electronics, computing, laptop });
 
+  const customerPasswordHash = await bcrypt.hash('customerPassword123', 12);
+  await prisma.user.upsert({
+    where: { email: 'customer@apex.co.za' },
+    update: {},
+    create: {
+      email: 'customer@apex.co.za',
+      passwordHash: customerPasswordHash,
+      firstName: 'Thandiwe',
+      lastName: 'Nkosi',
+      role: 'CUSTOMER',
+    },
+  });
+
   const adminPasswordHash = await bcrypt.hash('adminPassword123', 12);
   await prisma.user.upsert({
     where: { email: 'admin@apex.co.za' },
