@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SearchQueryDto } from './dto/search-query.dto';
 import { PaginatedProductsResponseDto } from '../products/dto/product-response.dto';
+import { getProductOrderBy } from '../common/product-sort';
 
 @Injectable()
 export class SearchService {
@@ -23,7 +24,7 @@ export class SearchService {
         where,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: getProductOrderBy(query.sort),
       }),
       this.prisma.product.count({ where }),
     ]);

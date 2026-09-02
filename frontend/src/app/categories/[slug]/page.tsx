@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getProducts } from "@/src/lib/api/products";
+import { getProducts, ProductSort } from "@/src/lib/api/products";
 import { getCategories } from "@/src/lib/api/categories";
 import CategoryClient from "./CategoryClient";
 
@@ -17,11 +17,20 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ page?: string; minPrice?: string; maxPrice?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    sort?: string;
+  }>;
 }) {
   const { slug } = await params;
-  const { page: pageParam, minPrice: minPriceParam, maxPrice: maxPriceParam } =
-    await searchParams;
+  const {
+    page: pageParam,
+    minPrice: minPriceParam,
+    maxPrice: maxPriceParam,
+    sort: sortParam,
+  } = await searchParams;
 
   const categories = await getCategories();
   const category = findCategoryBySlug(categories, slug);
@@ -33,11 +42,16 @@ export default async function CategoryPage({
   const page = pageParam ? Number(pageParam) : 1;
   const minPrice = minPriceParam ? Number(minPriceParam) : undefined;
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : undefined;
+  const sort =
+    sortParam === "price-asc" || sortParam === "price-desc"
+      ? (sortParam as ProductSort)
+      : undefined;
   const productsResult = await getProducts({
     category: slug,
     page,
     minPrice,
     maxPrice,
+    sort,
     limit: 12,
   });
 
@@ -48,6 +62,7 @@ export default async function CategoryPage({
       products={productsResult}
       activeMinPrice={minPrice}
       activeMaxPrice={maxPrice}
+      activeSort={sort}
     />
   );
 }
