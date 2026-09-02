@@ -4,7 +4,11 @@ import path from "path";
 const nextConfig: NextConfig = {
   // Produces a self-contained .next/standalone build (server + only the
   // node_modules it actually needs) — required for a lean Docker image.
-  output: "standalone",
+  // Vercel's own build pipeline expects its own output shape and doesn't
+  // invoke .next/standalone's server.js; forcing standalone mode there
+  // makes every route 404 at runtime despite a successful build. Vercel
+  // sets VERCEL=1 during its builds, so skip standalone only there.
+  output: process.env.VERCEL ? undefined : "standalone",
   images: {
     // Vendor product images (backend/src/vendor-products/dto/create-vendor-product.dto.ts)
     // are restricted to these same host shapes, so this is the only
