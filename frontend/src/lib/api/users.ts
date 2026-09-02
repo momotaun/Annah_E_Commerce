@@ -8,3 +8,10 @@ export function getMyProfile() {
 export function updateMyProfile(data: { firstName?: string; lastName?: string }) {
   return apiClient.patch<AuthUser & { createdAt: string }>('/users/me', data);
 }
+
+export function changeMyPassword(currentPassword: string, newPassword: string) {
+  return apiClient.patch<{ message: string }>('/users/me/password', {
+    currentPassword,
+    newPassword,
+  });
+}
