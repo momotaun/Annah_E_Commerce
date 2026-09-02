@@ -53,3 +53,37 @@ body {
 .float-animation-slow {
   animation: floating 6s ease-in-out infinite;
 }
+
+/* Two of these are stacked absolutely (a min and a max thumb) to build a
+   dual-range price slider — the track itself is transparent and
+   pointer-events: none so only the thumb is grabbable, letting clicks
+   pass through to whichever input's thumb is actually under the cursor. */
+.range-slider-thumb {
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+.range-slider-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  height: 16px;
+  width: 16px;
+  border-radius: 9999px;
+  background: var(--color-primary-600);
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.range-slider-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  height: 16px;
+  width: 16px;
+  border-radius: 9999px;
+  background: var(--color-primary-600);
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
