@@ -20,6 +20,14 @@ async function bootstrap() {
     rawBody: true,
   });
 
+  // Without this, SIGTERM (what `docker stop` and Kubernetes both send)
+  // falls through to Node's default disposition and kills the process
+  // immediately — in-flight requests get cut off and PrismaService's
+  // onModuleDestroy never runs to close the database connection cleanly.
+  // This makes Nest catch the signal, stop accepting new connections,
+  // drain existing ones, then run shutdown lifecycle hooks before exiting.
+  app.enableShutdownHooks();
+
   app.use(helmet());
 
   // Trust the first proxy hop's X-Forwarded-* headers so the throttler
