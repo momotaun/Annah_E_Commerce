@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import FilterSidebar, {
@@ -14,7 +14,7 @@ import Select from "@/src/app/components/ui/Select";
 import Spinner from "@/src/app/components/ui/Spinner";
 import { useCart } from "@/src/context/CartContext";
 import { Category, PaginatedProducts } from "@/src/lib/api-types";
-import { ProductSort, searchProducts } from "@/src/lib/api/products";
+import { getProducts, ProductSort, searchProducts } from "@/src/lib/api/products";
 
 const SORT_OPTIONS = [
   { label: "Newest Arrivals", value: "newest" },
@@ -58,21 +58,84 @@ export default function CatalogueClient({
 
   const [products, setProducts] = useState(initialProducts);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   // Tracks the active search term so a sort change while searching
   // re-runs the search with the new sort instead of navigating the URL
   // (search itself is a client-side fetch, not URL-driven, so sort
   // stays consistent with that while a query is active).
   const [currentQuery, setCurrentQuery] = useState("");
+  // Guards loadMore against firing twice for the same page — a plain ref
+  // rather than isLoadingMore state, since the IntersectionObserver
+  // callback below closes over whatever this was when the observer was
+  // last (re)created, and re-creating it on every isLoadingMore change
+  // would be unnecessary churn. The ref is always read fresh.
+  const isLoadingMoreRef = useRef(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   // initialProducts is a fresh server-fetched prop on every category/
-  // price/page navigation (router.push re-renders the server component
-  // with the new searchParams) — but useState's initial value is only
-  // used on first mount, so without this the grid would keep showing
-  // whatever was first rendered no matter what filter changed the URL.
+  // price/sort/search-cleared navigation (router.push re-renders the
+  // server component with the new searchParams) — but useState's initial
+  // value is only used on first mount, so without this the grid would
+  // keep showing whatever was first rendered no matter what filter
+  // changed the URL. This also resets the accumulated infinite-scroll
+  // list back to just the new filter's first page, which is exactly
+  // what should happen when the filter itself changes.
   useEffect(() => {
     const timer = setTimeout(() => setProducts(initialProducts), 0);
     return () => clearTimeout(timer);
   }, [initialProducts]);
+
+  // Infinite scroll, matching the design (a "Loading more premium
+  // products..." indicator, not numbered pages or prev/next buttons):
+  // appends the next page to the existing list instead of replacing it.
+  // Recreated whenever the product list or active filters change, so the
+  // observer effect below always reconnects with a fresh closure instead
+  // of one still holding page/filter values from an earlier render.
+  const loadMore = useCallback(async () => {
+    if (isLoadingMoreRef.current) return;
+    if (products.data.length >= products.meta.total) return;
+
+    isLoadingMoreRef.current = true;
+    setIsLoadingMore(true);
+    const nextPage = products.meta.page + 1;
+    try {
+      const result = currentQuery
+        ? await searchProducts(currentQuery, nextPage, 20, activeSort)
+        : await getProducts({
+            category: activeCategory,
+            minPrice: activeMinPrice,
+            maxPrice: activeMaxPrice,
+            sort: activeSort,
+            page: nextPage,
+            limit: 12,
+          });
+      setProducts((prev) => ({
+        data: [...prev.data, ...result.data],
+        meta: result.meta,
+      }));
+    } catch (err) {
+      console.error("Failed to load more products", err);
+    } finally {
+      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
+    }
+  }, [products, currentQuery, activeCategory, activeMinPrice, activeMaxPrice, activeSort]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void loadMore();
+        }
+      },
+      { rootMargin: "400px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   const categoryOptions = flattenCategories(categories);
 
@@ -201,12 +264,12 @@ export default function CatalogueClient({
             </div>
           )}
 
-          {products.meta.totalPages > 1 && (
-            <p className="mt-8 text-center text-sm text-gray-500">
-              Page {products.meta.page} of {products.meta.totalPages}
-              {/* Real pagination controls (prev/next buttons) are a
-                  follow-up — meta is available, just not wired to UI yet. */}
-            </p>
+          {products.data.length < products.meta.total && (
+            <div ref={sentinelRef} className="mt-8 flex justify-center py-8">
+              {isLoadingMore && (
+                <Spinner size="sm" label="Loading more premium products..." />
+              )}
+            </div>
           )}
         </div>
       </main>

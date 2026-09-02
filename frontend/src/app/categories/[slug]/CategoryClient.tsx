@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Breadcrumb from "@/src/app/components/shared/Breadcrumb";
@@ -14,7 +14,7 @@ import Select from "@/src/app/components/ui/Select";
 import Spinner from "@/src/app/components/ui/Spinner";
 import { useCart } from "@/src/context/CartContext";
 import { Category, PaginatedProducts } from "@/src/lib/api-types";
-import { ProductSort } from "@/src/lib/api/products";
+import { getProducts, ProductSort } from "@/src/lib/api/products";
 
 const SORT_OPTIONS = [
   { label: "Newest", value: "newest" },
@@ -25,7 +25,7 @@ const SORT_OPTIONS = [
 interface CategoryClientProps {
   category: Category;
   categories: Category[];
-  products: PaginatedProducts;
+  initialProducts: PaginatedProducts;
   activeMinPrice?: number;
   activeMaxPrice?: number;
   activeSort?: ProductSort;
@@ -43,7 +43,7 @@ function flattenCategories(categories: Category[]) {
 export default function CategoryClient({
   category,
   categories,
-  products,
+  initialProducts,
   activeMinPrice,
   activeMaxPrice,
   activeSort,
@@ -51,6 +51,66 @@ export default function CategoryClient({
   const router = useRouter();
   const { addItem } = useCart();
   const [isPending, startTransition] = useTransition();
+
+  const [products, setProducts] = useState(initialProducts);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const isLoadingMoreRef = useRef(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // See CatalogueClient's identical effect for why this is needed: a
+  // fresh initialProducts prop on every category/price/sort navigation
+  // doesn't reset useState's already-mounted value on its own, and this
+  // also resets the accumulated infinite-scroll list back to the new
+  // filter's first page.
+  useEffect(() => {
+    const timer = setTimeout(() => setProducts(initialProducts), 0);
+    return () => clearTimeout(timer);
+  }, [initialProducts]);
+
+  // Infinite scroll, matching the design (a "Loading more premium
+  // products..." indicator, not numbered pages or prev/next buttons).
+  const loadMore = useCallback(async () => {
+    if (isLoadingMoreRef.current) return;
+    if (products.data.length >= products.meta.total) return;
+
+    isLoadingMoreRef.current = true;
+    setIsLoadingMore(true);
+    try {
+      const result = await getProducts({
+        category: category.slug,
+        minPrice: activeMinPrice,
+        maxPrice: activeMaxPrice,
+        sort: activeSort,
+        page: products.meta.page + 1,
+        limit: 12,
+      });
+      setProducts((prev) => ({
+        data: [...prev.data, ...result.data],
+        meta: result.meta,
+      }));
+    } catch (err) {
+      console.error("Failed to load more products", err);
+    } finally {
+      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
+    }
+  }, [products, category.slug, activeMinPrice, activeMaxPrice, activeSort]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void loadMore();
+        }
+      },
+      { rootMargin: "400px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   function handleCategoryChange(slug: string, checked: boolean) {
     startTransition(() => {
@@ -157,6 +217,14 @@ export default function CategoryClient({
                     onAddToCart={() => addItem(product.id)}
                   />
                 ))}
+              </div>
+            )}
+
+            {products.data.length < products.meta.total && (
+              <div ref={sentinelRef} className="mt-8 flex justify-center py-8">
+                {isLoadingMore && (
+                  <Spinner size="sm" label="Loading more premium products..." />
+                )}
               </div>
             )}
           </div>

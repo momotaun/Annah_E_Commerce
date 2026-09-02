@@ -7,7 +7,6 @@ export default async function CataloguePage({
 }: {
   searchParams: Promise<{
     category?: string;
-    page?: string;
     minPrice?: string;
     maxPrice?: string;
     sort?: string;
@@ -15,12 +14,10 @@ export default async function CataloguePage({
 }) {
   const {
     category,
-    page: pageParam,
     minPrice: minPriceParam,
     maxPrice: maxPriceParam,
     sort: sortParam,
   } = await searchParams;
-  const page = pageParam ? Number(pageParam) : 1;
   const minPrice = minPriceParam ? Number(minPriceParam) : undefined;
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : undefined;
   const sort =
@@ -28,8 +25,11 @@ export default async function CataloguePage({
       ? (sortParam as ProductSort)
       : undefined;
 
+  // Infinite scroll always starts from the first page on a real
+  // navigation — CatalogueClient's IntersectionObserver takes over from
+  // here, fetching subsequent pages itself as the user scrolls.
   const [productsResult, categories] = await Promise.all([
-    getProducts({ category, page, minPrice, maxPrice, sort, limit: 12 }),
+    getProducts({ category, page: 1, minPrice, maxPrice, sort, limit: 12 }),
     getCategories(),
   ]);
 

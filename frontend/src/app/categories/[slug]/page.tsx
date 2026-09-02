@@ -18,7 +18,6 @@ export default async function CategoryPage({
 }: {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{
-    page?: string;
     minPrice?: string;
     maxPrice?: string;
     sort?: string;
@@ -26,7 +25,6 @@ export default async function CategoryPage({
 }) {
   const { slug } = await params;
   const {
-    page: pageParam,
     minPrice: minPriceParam,
     maxPrice: maxPriceParam,
     sort: sortParam,
@@ -39,16 +37,18 @@ export default async function CategoryPage({
     notFound();
   }
 
-  const page = pageParam ? Number(pageParam) : 1;
   const minPrice = minPriceParam ? Number(minPriceParam) : undefined;
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : undefined;
   const sort =
     sortParam === "price-asc" || sortParam === "price-desc"
       ? (sortParam as ProductSort)
       : undefined;
+  // Infinite scroll always starts from the first page on a real
+  // navigation — CategoryClient's IntersectionObserver takes over from
+  // here, fetching subsequent pages itself as the user scrolls.
   const productsResult = await getProducts({
     category: slug,
-    page,
+    page: 1,
     minPrice,
     maxPrice,
     sort,
@@ -59,7 +59,7 @@ export default async function CategoryPage({
     <CategoryClient
       category={category}
       categories={categories}
-      products={productsResult}
+      initialProducts={productsResult}
       activeMinPrice={minPrice}
       activeMaxPrice={maxPrice}
       activeSort={sort}
