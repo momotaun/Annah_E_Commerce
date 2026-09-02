@@ -45,6 +45,14 @@ describe('CreateVendorProductDto imageUrl validation', () => {
     ).toBeUndefined();
   });
 
+  it('allows a Neon Object Storage URL', async () => {
+    expect(
+      await validateImageUrl(
+        'https://br-restless-pine-b2z7dew1.storage.c-6.eu-central-1.aws.neon.tech/product-images/pocket-square.jpg',
+      ),
+    ).toBeUndefined();
+  });
+
   it('rejects an arbitrary external host', async () => {
     expect(
       await validateImageUrl('https://evil.example.com/tracking-pixel.jpg'),
@@ -54,6 +62,14 @@ describe('CreateVendorProductDto imageUrl validation', () => {
   it('rejects a non-S3 AWS-lookalike host', async () => {
     expect(
       await validateImageUrl('https://s3.amazonaws.com.evil.com/x.jpg'),
+    ).toBeDefined();
+  });
+
+  it('rejects a non-Neon aws.neon.tech-lookalike host', async () => {
+    expect(
+      await validateImageUrl(
+        'https://x.storage.c-6.eu-central-1.aws.neon.tech.evil.com/y.jpg',
+      ),
     ).toBeDefined();
   });
 
