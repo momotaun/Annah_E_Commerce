@@ -28,6 +28,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin/vendors" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
             Vendors
           </Link>
+          <Link href="/admin/orders" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
+            Orders
+          </Link>
           <Link href="/admin/analytics" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
             Analytics
           </Link>
