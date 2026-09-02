@@ -67,7 +67,7 @@ Schema and migrations live in `prisma/`. To change the schema:
 npx prisma migrate dev --name <describe-the-change>
 ```
 
-`prisma/seed.ts` (run via `npx prisma db seed`) is idempotent — every write is an `upsert`, so re-running it never overwrites data that's already been changed (e.g. admin edits to legal page content survive a reseed). It does, however, create the fixed local-dev accounts documented in the [root README](../README.md#2-backend-api) with known passwords — don't run it against a database anyone else can reach.
+`prisma/seed.ts` (run via `npx prisma db seed`) is idempotent — every write is an `upsert`, so re-running it never overwrites data that's already been changed (e.g. admin edits to legal page content survive a reseed). It does, however, create the fixed local-dev accounts documented in the [root README](../README.md#2-backend-api) with known passwords, so it refuses to run at all when `NODE_ENV=production` (set `ALLOW_SEED_IN_PRODUCTION=true` for the rare case you genuinely mean to).
 
 ## Payments (Ozow)
 
