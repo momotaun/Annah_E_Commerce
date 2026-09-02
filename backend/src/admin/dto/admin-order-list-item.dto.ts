@@ -14,3 +14,13 @@ export class AdminOrderListItemDto {
   returnRequest: AdminOrderReturnRequestDto | null;
   createdAt: Date;
 }
+
+export class PaginatedAdminOrdersResponseDto {
+  data: AdminOrderListItemDto[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}

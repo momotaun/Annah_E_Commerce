@@ -5,40 +5,84 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MarketplaceAnalyticsResponseDto } from './dto/marketplace-analytics-response.dto';
-import { AdminOrderListItemDto } from './dto/admin-order-list-item.dto';
+import {
+  AdminOrderListItemDto,
+  PaginatedAdminOrdersResponseDto,
+} from './dto/admin-order-list-item.dto';
+import { QueryAdminOrdersDto } from './dto/query-admin-orders.dto';
 
 @Injectable()
 export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getMarketplaceAnalytics(): Promise<MarketplaceAnalyticsResponseDto> {
-    const vendors = await this.prisma.vendor.findMany({
-      where: { status: 'APPROVED' },
-      include: {
-        vendorOrderItems: { include: { commission: true } },
-      },
-    });
+    // Sums and per-vendor order counts used to be computed by loading every
+    // vendorOrderItem (plus its commission) for every approved vendor into
+    // memory and reducing over them in JS — fine with a handful of orders,
+    // but it means this endpoint's cost grows without bound as the
+    // marketplace does. All three aggregates below are instead computed by
+    // Postgres itself; only the small, vendor-count-sized results come back.
+    const [
+      approvedVendors,
+      revenueByVendor,
+      commissionByVendor,
+      vendorOrderPairs,
+      totalOrders,
+    ] = await Promise.all([
+      this.prisma.vendor.findMany({
+        where: { status: 'APPROVED' },
+        select: { id: true, businessName: true },
+      }),
+      this.prisma.vendorOrderItem.groupBy({
+        by: ['vendorId'],
+        where: { vendor: { status: 'APPROVED' } },
+        _sum: { lineTotal: true },
+      }),
+      this.prisma.commission.groupBy({
+        by: ['vendorId'],
+        where: { vendor: { status: 'APPROVED' } },
+        _sum: { amount: true },
+      }),
+      // Prisma's groupBy has no COUNT(DISTINCT ...), and orderCount needs
+      // *distinct orders* per vendor, not line-item rows (one order can
+      // contain several of a vendor's items). Grouping by the
+      // (vendorId, orderId) pair first — selecting only those two
+      // columns, not the full rows — gives one row per pair; counting
+      // those in JS below reproduces the original distinct-order count.
+      this.prisma.vendorOrderItem.groupBy({
+        by: ['vendorId', 'orderId'],
+        where: { vendor: { status: 'APPROVED' } },
+      }),
+      this.prisma.order.count(),
+    ]);
 
-    const vendorBreakdown = vendors.map((vendor) => {
-      const revenue = vendor.vendorOrderItems.reduce(
-        (sum, item) => sum + item.lineTotal.toNumber(),
-        0,
+    const revenueByVendorId = new Map(
+      revenueByVendor.map((r) => [
+        r.vendorId,
+        r._sum.lineTotal?.toNumber() ?? 0,
+      ]),
+    );
+    const commissionByVendorId = new Map(
+      commissionByVendor.map((c) => [
+        c.vendorId,
+        c._sum.amount?.toNumber() ?? 0,
+      ]),
+    );
+    const orderCountByVendorId = new Map<string, number>();
+    for (const pair of vendorOrderPairs) {
+      orderCountByVendorId.set(
+        pair.vendorId,
+        (orderCountByVendorId.get(pair.vendorId) ?? 0) + 1,
       );
-      const commission = vendor.vendorOrderItems.reduce(
-        (sum, item) => sum + (item.commission?.amount.toNumber() ?? 0),
-        0,
-      );
-      const orderCount = new Set(vendor.vendorOrderItems.map((i) => i.orderId))
-        .size;
+    }
 
-      return {
-        vendorId: vendor.id,
-        businessName: vendor.businessName,
-        totalRevenue: revenue.toFixed(2),
-        totalCommission: commission.toFixed(2),
-        totalOrders: orderCount,
-      };
-    });
+    const vendorBreakdown = approvedVendors.map((vendor) => ({
+      vendorId: vendor.id,
+      businessName: vendor.businessName,
+      totalRevenue: (revenueByVendorId.get(vendor.id) ?? 0).toFixed(2),
+      totalCommission: (commissionByVendorId.get(vendor.id) ?? 0).toFixed(2),
+      totalOrders: orderCountByVendorId.get(vendor.id) ?? 0,
+    }));
 
     const totalRevenue = vendorBreakdown.reduce(
       (sum, v) => sum + parseFloat(v.totalRevenue),
@@ -48,13 +92,12 @@ export class AdminService {
       (sum, v) => sum + parseFloat(v.totalCommission),
       0,
     );
-    const totalOrders = await this.prisma.order.count();
 
     return {
       totalOrders,
       totalRevenue: totalRevenue.toFixed(2),
       totalCommissionEarned: totalCommissionEarned.toFixed(2),
-      activeVendorCount: vendors.length,
+      activeVendorCount: approvedVendors.length,
       vendorBreakdown,
     };
   }
@@ -92,13 +135,31 @@ export class AdminService {
     };
   }
 
-  async listOrders(): Promise<AdminOrderListItemDto[]> {
-    const orders = await this.prisma.order.findMany({
-      include: { user: true, payments: true, returnRequest: true },
-      orderBy: { createdAt: 'desc' },
-    });
+  async listOrders(
+    query: QueryAdminOrdersDto,
+  ): Promise<PaginatedAdminOrdersResponseDto> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
 
-    return orders.map((order) => this.toAdminOrderListItem(order));
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        include: { user: true, payments: true, returnRequest: true },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.order.count(),
+    ]);
+
+    return {
+      data: orders.map((order) => this.toAdminOrderListItem(order)),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   // Approving/rejecting only updates the return request's own record —

@@ -54,8 +54,18 @@ export interface AdminOrderListItem {
   createdAt: string;
 }
 
-export function getAdminOrders() {
-  return apiClient.get<AdminOrderListItem[]>('/admin/orders');
+export interface PaginatedAdminOrders {
+  data: AdminOrderListItem[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export function getAdminOrders(page = 1) {
+  return apiClient.get<PaginatedAdminOrders>(`/admin/orders?page=${page}`);
 }
 
 export function resolveReturnRequest(orderId: string, status: 'APPROVED' | 'REJECTED') {
