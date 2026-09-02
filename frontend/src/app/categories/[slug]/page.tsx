@@ -17,10 +17,11 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; minPrice?: string; maxPrice?: string }>;
 }) {
   const { slug } = await params;
-  const { page: pageParam } = await searchParams;
+  const { page: pageParam, minPrice: minPriceParam, maxPrice: maxPriceParam } =
+    await searchParams;
 
   const categories = await getCategories();
   const category = findCategoryBySlug(categories, slug);
@@ -30,9 +31,23 @@ export default async function CategoryPage({
   }
 
   const page = pageParam ? Number(pageParam) : 1;
-  const productsResult = await getProducts({ category: slug, page, limit: 12 });
+  const minPrice = minPriceParam ? Number(minPriceParam) : undefined;
+  const maxPrice = maxPriceParam ? Number(maxPriceParam) : undefined;
+  const productsResult = await getProducts({
+    category: slug,
+    page,
+    minPrice,
+    maxPrice,
+    limit: 12,
+  });
 
   return (
-    <CategoryClient category={category} categories={categories} products={productsResult} />
+    <CategoryClient
+      category={category}
+      categories={categories}
+      products={productsResult}
+      activeMinPrice={minPrice}
+      activeMaxPrice={maxPrice}
+    />
   );
 }

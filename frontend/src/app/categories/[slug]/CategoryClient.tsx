@@ -5,7 +5,10 @@ import { useTransition } from "react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Breadcrumb from "@/src/app/components/shared/Breadcrumb";
-import FilterSidebar from "@/src/app/components/shared/FilterSidebar";
+import FilterSidebar, {
+  PRICE_FLOOR,
+  PRICE_CEILING,
+} from "@/src/app/components/shared/FilterSidebar";
 import ProductCard from "@/src/app/components/shared/ProductCard";
 import Select from "@/src/app/components/ui/Select";
 import Spinner from "@/src/app/components/ui/Spinner";
@@ -16,6 +19,8 @@ interface CategoryClientProps {
   category: Category;
   categories: Category[];
   products: PaginatedProducts;
+  activeMinPrice?: number;
+  activeMaxPrice?: number;
 }
 
 function flattenCategories(categories: Category[]) {
@@ -27,7 +32,13 @@ function flattenCategories(categories: Category[]) {
   return flat;
 }
 
-export default function CategoryClient({ category, categories, products }: CategoryClientProps) {
+export default function CategoryClient({
+  category,
+  categories,
+  products,
+  activeMinPrice,
+  activeMaxPrice,
+}: CategoryClientProps) {
   const router = useRouter();
   const { addItem } = useCart();
   const [isPending, startTransition] = useTransition();
@@ -35,6 +46,23 @@ export default function CategoryClient({ category, categories, products }: Categ
   function handleCategoryChange(slug: string, checked: boolean) {
     startTransition(() => {
       router.push(checked ? `/categories/${slug}` : "/catalogue");
+    });
+  }
+
+  function handlePriceChange(min: number, max: number) {
+    const params = new URLSearchParams(window.location.search);
+    if (min > PRICE_FLOOR) {
+      params.set("minPrice", String(min));
+    } else {
+      params.delete("minPrice");
+    }
+    if (max < PRICE_CEILING) {
+      params.set("maxPrice", String(max));
+    } else {
+      params.delete("maxPrice");
+    }
+    startTransition(() => {
+      router.push(`/categories/${category.slug}?${params.toString()}`);
     });
   }
 
@@ -66,6 +94,9 @@ export default function CategoryClient({ category, categories, products }: Categ
             brands={[]}
             selectedCategories={[category.slug]}
             onCategoryChange={handleCategoryChange}
+            minPrice={activeMinPrice}
+            maxPrice={activeMaxPrice}
+            onPriceChange={handlePriceChange}
           />
 
           <div className="flex-1">

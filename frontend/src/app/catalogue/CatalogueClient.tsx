@@ -1,10 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
-import FilterSidebar from "@/src/app/components/shared/FilterSidebar";
+import FilterSidebar, {
+  PRICE_FLOOR,
+  PRICE_CEILING,
+} from "@/src/app/components/shared/FilterSidebar";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 import ProductCard from "@/src/app/components/shared/ProductCard";
 import Select from "@/src/app/components/ui/Select";
@@ -17,6 +20,8 @@ interface CatalogueClientProps {
   initialProducts: PaginatedProducts;
   categories: Category[];
   activeCategory?: string;
+  activeMinPrice?: number;
+  activeMaxPrice?: number;
 }
 
 // Flatten the category tree into a flat list for the sidebar's checkbox
@@ -36,6 +41,8 @@ export default function CatalogueClient({
   initialProducts,
   categories,
   activeCategory,
+  activeMinPrice,
+  activeMaxPrice,
 }: CatalogueClientProps) {
   const router = useRouter();
   const { addItem } = useCart();
@@ -43,6 +50,16 @@ export default function CatalogueClient({
 
   const [products, setProducts] = useState(initialProducts);
   const [isSearching, setIsSearching] = useState(false);
+
+  // initialProducts is a fresh server-fetched prop on every category/
+  // price/page navigation (router.push re-renders the server component
+  // with the new searchParams) — but useState's initial value is only
+  // used on first mount, so without this the grid would keep showing
+  // whatever was first rendered no matter what filter changed the URL.
+  useEffect(() => {
+    const timer = setTimeout(() => setProducts(initialProducts), 0);
+    return () => clearTimeout(timer);
+  }, [initialProducts]);
 
   const categoryOptions = flattenCategories(categories);
 
@@ -52,6 +69,23 @@ export default function CatalogueClient({
       params.set("category", slug);
     } else {
       params.delete("category");
+    }
+    startTransition(() => {
+      router.push(`/catalogue?${params.toString()}`);
+    });
+  }
+
+  function handlePriceChange(min: number, max: number) {
+    const params = new URLSearchParams(window.location.search);
+    if (min > PRICE_FLOOR) {
+      params.set("minPrice", String(min));
+    } else {
+      params.delete("minPrice");
+    }
+    if (max < PRICE_CEILING) {
+      params.set("maxPrice", String(max));
+    } else {
+      params.delete("maxPrice");
     }
     startTransition(() => {
       router.push(`/catalogue?${params.toString()}`);
@@ -84,6 +118,9 @@ export default function CatalogueClient({
           brands={[]}
           selectedCategories={activeCategory ? [activeCategory] : []}
           onCategoryChange={handleCategoryChange}
+          minPrice={activeMinPrice}
+          maxPrice={activeMaxPrice}
+          onPriceChange={handlePriceChange}
         />
 
         <div className="flex-1">
