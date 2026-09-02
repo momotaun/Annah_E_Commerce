@@ -1,5 +1,12 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsOptional, IsPositive, IsString } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsPositive,
+  IsString,
+  Max,
+} from 'class-validator';
 
 export class SearchQueryDto {
   @IsString()
@@ -16,5 +23,6 @@ export class SearchQueryDto {
   @Type(() => Number)
   @IsInt()
   @IsPositive()
+  @Max(100) // a client could otherwise request ?limit=999999 and force every match back in one query
   limit?: number = 20;
 }

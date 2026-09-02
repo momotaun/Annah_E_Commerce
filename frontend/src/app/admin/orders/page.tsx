@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Badge from "@/src/app/components/ui/Badge";
 import Button from "@/src/app/components/ui/Button";
 import Spinner from "@/src/app/components/ui/Spinner";
-import { getAdminOrders, resolveReturnRequest, AdminOrderListItem } from "@/src/lib/api/admin";
+import { getAdminOrders, resolveReturnRequest, PaginatedAdminOrders } from "@/src/lib/api/admin";
 
 const STATUS_VARIANT: Record<string, "success" | "warning" | "danger" | "default"> = {
   PAID: "success",
@@ -28,37 +28,45 @@ const RETURN_STATUS_VARIANT: Record<string, "success" | "warning" | "danger" | "
 };
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<AdminOrderListItem[]>([]);
+  const [response, setResponse] = useState<PaginatedAdminOrders | null>(null);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  function loadOrders() {
+  function loadOrders(pageToLoad: number) {
     setIsLoading(true);
-    getAdminOrders()
-      .then(setOrders)
+    getAdminOrders(pageToLoad)
+      .then(setResponse)
       .finally(() => setIsLoading(false));
   }
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      loadOrders();
+      loadOrders(page);
     }, 0);
     return () => clearTimeout(timer);
-  }, []);
+  }, [page]);
 
   async function handleResolve(orderId: string, status: "APPROVED" | "REJECTED") {
     setActioningId(orderId);
     setError(null);
     try {
       const updated = await resolveReturnRequest(orderId, status);
-      setOrders((prev) => prev.map((o) => (o.id === orderId ? updated : o)));
+      setResponse((prev) =>
+        prev
+          ? { ...prev, data: prev.data.map((o) => (o.id === orderId ? updated : o)) }
+          : prev,
+      );
     } catch {
       setError("Couldn't update this return request. Please try again.");
     } finally {
       setActioningId(null);
     }
   }
+
+  const orders = response?.data ?? [];
+  const meta = response?.meta;
 
   if (isLoading) {
     return (
@@ -134,6 +142,30 @@ export default function AdminOrdersPage() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {meta && meta.totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-gray-500">
+            Page {meta.page} of {meta.totalPages}
+          </span>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={page >= meta.totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </Button>
         </div>
       )}
     </div>
