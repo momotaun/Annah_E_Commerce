@@ -22,6 +22,7 @@ import { VendorProductsModule } from './vendor-products/vendor-products.module';
 import { VendorOrdersModule } from './vendor-orders/vendor-orders.module';
 import { AdminModule } from './admin/admin.module';
 import { LegalPagesModule } from './legal-pages/legal-pages.module';
+import { isPinoPrettyAvailable } from './bootstrap/is-pino-pretty-available';
 
 @Module({
   imports: [
@@ -46,15 +47,16 @@ import { LegalPagesModule } from './legal-pages/legal-pages.module';
           ],
           censor: '[REDACTED]',
         },
-        // Plain JSON in production (what a log aggregator expects);
-        // pino-pretty's human-readable formatting everywhere else.
-        transport:
-          process.env.NODE_ENV === 'production'
-            ? undefined
-            : {
-                target: 'pino-pretty',
-                options: { colorize: true, singleLine: true },
-              },
+        // Human-readable formatting when pino-pretty is actually
+        // available (local dev); plain JSON otherwise — what a log
+        // aggregator expects, and the only safe choice in an environment
+        // that never installed pino-pretty in the first place.
+        transport: isPinoPrettyAvailable()
+          ? {
+              target: 'pino-pretty',
+              options: { colorize: true, singleLine: true },
+            }
+          : undefined,
       },
     }),
     ThrottlerModule.forRoot({
