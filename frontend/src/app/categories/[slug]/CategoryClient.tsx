@@ -14,6 +14,13 @@ import Select from "@/src/app/components/ui/Select";
 import Spinner from "@/src/app/components/ui/Spinner";
 import { useCart } from "@/src/context/CartContext";
 import { Category, PaginatedProducts } from "@/src/lib/api-types";
+import { ProductSort } from "@/src/lib/api/products";
+
+const SORT_OPTIONS = [
+  { label: "Newest", value: "newest" },
+  { label: "Price: Low to High", value: "price-asc" },
+  { label: "Price: High to Low", value: "price-desc" },
+];
 
 interface CategoryClientProps {
   category: Category;
@@ -21,6 +28,7 @@ interface CategoryClientProps {
   products: PaginatedProducts;
   activeMinPrice?: number;
   activeMaxPrice?: number;
+  activeSort?: ProductSort;
 }
 
 function flattenCategories(categories: Category[]) {
@@ -38,6 +46,7 @@ export default function CategoryClient({
   products,
   activeMinPrice,
   activeMaxPrice,
+  activeSort,
 }: CategoryClientProps) {
   const router = useRouter();
   const { addItem } = useCart();
@@ -60,6 +69,18 @@ export default function CategoryClient({
       params.set("maxPrice", String(max));
     } else {
       params.delete("maxPrice");
+    }
+    startTransition(() => {
+      router.push(`/categories/${category.slug}?${params.toString()}`);
+    });
+  }
+
+  function handleSortChange(sort: ProductSort) {
+    const params = new URLSearchParams(window.location.search);
+    if (sort === "newest") {
+      params.delete("sort");
+    } else {
+      params.set("sort", sort);
     }
     startTransition(() => {
       router.push(`/categories/${category.slug}?${params.toString()}`);
@@ -107,7 +128,9 @@ export default function CategoryClient({
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500">Sort by:</span>
                 <Select
-                  options={[{ label: "Newest", value: "newest" }]}
+                  options={SORT_OPTIONS}
+                  value={activeSort ?? "newest"}
+                  onChange={(e) => handleSortChange(e.target.value as ProductSort)}
                   className="w-40"
                 />
               </div>

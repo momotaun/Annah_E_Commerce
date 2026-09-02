@@ -5,6 +5,7 @@ import {
   PaginatedProductsResponseDto,
   ProductResponseDto,
 } from './dto/product-response.dto';
+import { getProductOrderBy } from '../common/product-sort';
 
 @Injectable()
 export class ProductsService {
@@ -42,7 +43,7 @@ export class ProductsService {
         where,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: getProductOrderBy(query.sort),
       }),
       this.prisma.product.count({ where }),
     ]);

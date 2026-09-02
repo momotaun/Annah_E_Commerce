@@ -14,7 +14,13 @@ import Select from "@/src/app/components/ui/Select";
 import Spinner from "@/src/app/components/ui/Spinner";
 import { useCart } from "@/src/context/CartContext";
 import { Category, PaginatedProducts } from "@/src/lib/api-types";
-import { searchProducts } from "@/src/lib/api/products";
+import { ProductSort, searchProducts } from "@/src/lib/api/products";
+
+const SORT_OPTIONS = [
+  { label: "Newest Arrivals", value: "newest" },
+  { label: "Price: Low to High", value: "price-asc" },
+  { label: "Price: High to Low", value: "price-desc" },
+];
 
 interface CatalogueClientProps {
   initialProducts: PaginatedProducts;
@@ -22,6 +28,7 @@ interface CatalogueClientProps {
   activeCategory?: string;
   activeMinPrice?: number;
   activeMaxPrice?: number;
+  activeSort?: ProductSort;
 }
 
 // Flatten the category tree into a flat list for the sidebar's checkbox
@@ -43,6 +50,7 @@ export default function CatalogueClient({
   activeCategory,
   activeMinPrice,
   activeMaxPrice,
+  activeSort,
 }: CatalogueClientProps) {
   const router = useRouter();
   const { addItem } = useCart();
@@ -50,6 +58,11 @@ export default function CatalogueClient({
 
   const [products, setProducts] = useState(initialProducts);
   const [isSearching, setIsSearching] = useState(false);
+  // Tracks the active search term so a sort change while searching
+  // re-runs the search with the new sort instead of navigating the URL
+  // (search itself is a client-side fetch, not URL-driven, so sort
+  // stays consistent with that while a query is active).
+  const [currentQuery, setCurrentQuery] = useState("");
 
   // initialProducts is a fresh server-fetched prop on every category/
   // price/page navigation (router.push re-renders the server component
@@ -93,19 +106,45 @@ export default function CatalogueClient({
   }
 
   async function handleSearch(query: string) {
+    setCurrentQuery(query);
     if (!query) {
       setProducts(initialProducts);
       return;
     }
     setIsSearching(true);
     try {
-      const result = await searchProducts(query);
+      const result = await searchProducts(query, 1, 20, activeSort);
       setProducts(result);
     } catch (err) {
       console.error("Search failed", err);
     } finally {
       setIsSearching(false);
     }
+  }
+
+  async function handleSortChange(sort: ProductSort) {
+    if (currentQuery) {
+      setIsSearching(true);
+      try {
+        const result = await searchProducts(currentQuery, 1, 20, sort);
+        setProducts(result);
+      } catch (err) {
+        console.error("Search failed", err);
+      } finally {
+        setIsSearching(false);
+      }
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    if (sort === "newest") {
+      params.delete("sort");
+    } else {
+      params.set("sort", sort);
+    }
+    startTransition(() => {
+      router.push(`/catalogue?${params.toString()}`);
+    });
   }
 
   return (
@@ -129,16 +168,11 @@ export default function CatalogueClient({
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Sort by:</span>
               <Select
-                options={[
-                  { label: "Newest Arrivals", value: "newest" },
-                  { label: "Price: Low to High", value: "price-asc" },
-                  { label: "Price: High to Low", value: "price-desc" },
-                ]}
+                options={SORT_OPTIONS}
+                value={activeSort ?? "newest"}
+                onChange={(e) => handleSortChange(e.target.value as ProductSort)}
                 className="w-48"
               />
-              {/* Sorting isn't supported by our /api/products endpoint yet
-                  (no ?sort= param documented) — selector is present for
-                  visual parity but not yet wired to a real request. */}
             </div>
           </div>
 

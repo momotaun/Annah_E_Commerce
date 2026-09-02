@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsIn,
   IsInt,
   IsNumber,
   IsOptional,
@@ -8,6 +9,8 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { PRODUCT_SORT_OPTIONS } from '../../common/product-sort';
+import type { ProductSort } from '../../common/product-sort';
 
 export class QueryProductsDto {
   @IsOptional()
@@ -17,6 +20,10 @@ export class QueryProductsDto {
   @IsOptional()
   @IsString()
   vendorId?: string;
+
+  @IsOptional()
+  @IsIn(PRODUCT_SORT_OPTIONS)
+  sort?: ProductSort;
 
   @IsOptional()
   @Type(() => Number)

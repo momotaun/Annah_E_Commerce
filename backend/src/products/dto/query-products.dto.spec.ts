@@ -72,4 +72,21 @@ describe('QueryProductsDto', () => {
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'minPrice')).toBe(true);
   });
+
+  it.each(['newest', 'price-asc', 'price-desc'])(
+    'accepts %s as a valid sort value',
+    async (sort) => {
+      const dto = plainToInstance(QueryProductsDto, { sort });
+
+      const errors = await validate(dto);
+      expect(errors).toHaveLength(0);
+    },
+  );
+
+  it('rejects a sort value that is not one of the known options', async () => {
+    const dto = plainToInstance(QueryProductsDto, { sort: 'most-popular' });
+
+    const errors = await validate(dto);
+    expect(errors.some((e) => e.property === 'sort')).toBe(true);
+  });
 });

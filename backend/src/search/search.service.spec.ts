@@ -4,7 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 describe('SearchService', () => {
   let service: SearchService;
-  let prisma: any;
+  let prisma: { product: { findMany: jest.Mock; count: jest.Mock } };
 
   beforeEach(async () => {
     prisma = { product: { findMany: jest.fn(), count: jest.fn() } };
@@ -44,5 +44,27 @@ describe('SearchService', () => {
 
     expect(result.data).toHaveLength(1);
     expect(result.meta.total).toBe(1);
+  });
+
+  it('defaults to newest-first when no sort is given', async () => {
+    prisma.product.findMany.mockResolvedValue([]);
+    prisma.product.count.mockResolvedValue(0);
+
+    await service.search({ q: 'test', page: 1, limit: 20 });
+
+    expect(prisma.product.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: { createdAt: 'desc' } }),
+    );
+  });
+
+  it('sorts search results by price when requested', async () => {
+    prisma.product.findMany.mockResolvedValue([]);
+    prisma.product.count.mockResolvedValue(0);
+
+    await service.search({ q: 'test', page: 1, limit: 20, sort: 'price-asc' });
+
+    expect(prisma.product.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ orderBy: { price: 'asc' } }),
+    );
   });
 });

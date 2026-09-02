@@ -105,6 +105,33 @@ describe('ProductsService', () => {
       });
     });
 
+    it('defaults to newest-first when no sort is given', async () => {
+      await service.findAll({ page: 1, limit: 20 });
+
+      const [call] = prisma.product.findMany.mock.calls[0] as [
+        { orderBy: unknown },
+      ];
+      expect(call.orderBy).toEqual({ createdAt: 'desc' });
+    });
+
+    it('sorts by price ascending when requested', async () => {
+      await service.findAll({ page: 1, limit: 20, sort: 'price-asc' });
+
+      const [call] = prisma.product.findMany.mock.calls[0] as [
+        { orderBy: unknown },
+      ];
+      expect(call.orderBy).toEqual({ price: 'asc' });
+    });
+
+    it('sorts by price descending when requested', async () => {
+      await service.findAll({ page: 1, limit: 20, sort: 'price-desc' });
+
+      const [call] = prisma.product.findMany.mock.calls[0] as [
+        { orderBy: unknown },
+      ];
+      expect(call.orderBy).toEqual({ price: 'desc' });
+    });
+
     it('paginates using skip/take derived from page and limit', async () => {
       prisma.product.count.mockResolvedValue(45);
 
