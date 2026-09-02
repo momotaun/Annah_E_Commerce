@@ -36,3 +36,28 @@ export function approveVendor(vendorId: string, status: 'APPROVED' | 'SUSPENDED'
 export function getMarketplaceAnalytics() {
   return apiClient.get<MarketplaceAnalytics>('/admin/marketplace/analytics');
 }
+
+export interface AdminOrderReturnRequest {
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  reason: string;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
+export interface AdminOrderListItem {
+  id: string;
+  customerEmail: string;
+  status: string;
+  totalAmount: string;
+  paymentStatus: string | null;
+  returnRequest: AdminOrderReturnRequest | null;
+  createdAt: string;
+}
+
+export function getAdminOrders() {
+  return apiClient.get<AdminOrderListItem[]>('/admin/orders');
+}
+
+export function resolveReturnRequest(orderId: string, status: 'APPROVED' | 'REJECTED') {
+  return apiClient.patch<AdminOrderListItem>(`/admin/orders/${orderId}/return-request`, { status });
+}

@@ -206,12 +206,13 @@ enum ReturnRequestStatus {
 }
 
 model ReturnRequest {
-  id        String              @id @default(cuid())
-  orderId   String              @unique
-  order     Order               @relation(fields: [orderId], references: [id])
-  reason    String
-  status    ReturnRequestStatus @default(PENDING)
-  createdAt DateTime            @default(now())
+  id         String              @id @default(cuid())
+  orderId    String              @unique
+  order      Order               @relation(fields: [orderId], references: [id])
+  reason     String
+  status     ReturnRequestStatus @default(PENDING)
+  createdAt  DateTime            @default(now())
+  resolvedAt DateTime?
 }
 
 // ─────────────────────────────────────────────
