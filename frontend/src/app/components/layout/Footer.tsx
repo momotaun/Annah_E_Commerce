@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Banknote, CreditCard, Landmark } from "lucide-react";
+import { Banknote, ChevronDown, CreditCard, Landmark } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import SocialIcon from "@/src/app/components/ui/SocialIcon";
 import TwitterIcon from "@/src/app/components/ui/icons/TwitterIcon";
@@ -49,8 +49,8 @@ function Footer({ variant = "full", className }: FooterProps) {
     <footer className={cn("w-full border-t border-gray-200 bg-white", className)}>
       {variant === "full" && (
         <div className="mx-auto max-w-7xl px-6 py-12">
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
-            <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-10">
+            <div className="flex flex-col gap-3 pb-2 md:pb-0">
               <span className="text-xl font-bold text-primary-600">
                 Apex Marketplace
               </span>
@@ -63,22 +63,49 @@ function Footer({ variant = "full", className }: FooterProps) {
             </div>
 
             {FOOTER_COLUMNS.map((column) => (
-              <div key={column.title} className="flex flex-col gap-3">
-                <span className="text-sm font-semibold text-gray-900">
-                  {column.title}
-                </span>
-                <ul className="flex flex-col gap-2">
-                  {column.links.map((link) => (
-                    <li key={link.href}>
-                      <Link
-                        href={link.href}
-                        className="text-sm text-gray-500 hover:text-primary-600"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+              <div key={column.title} className="border-t border-gray-200 md:border-0">
+                {/* Mobile: each column collapses into an accordion — three
+                    always-expanded link lists is a lot of scroll to get
+                    past on a phone. <details>/<summary> gives us this with
+                    no JS/client component needed. Desktop keeps the
+                    original always-expanded column (hidden md:flex below),
+                    since there's no scroll problem to solve there. */}
+                <details className="group md:hidden">
+                  <summary className="flex cursor-pointer list-none items-center justify-between py-3 text-sm font-semibold text-gray-900 [&::-webkit-details-marker]:hidden">
+                    {column.title}
+                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <ul className="flex flex-col gap-2 pb-4">
+                    {column.links.map((link) => (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          className="text-sm text-gray-500 hover:text-primary-600"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+
+                <div className="hidden flex-col gap-3 md:flex">
+                  <span className="text-sm font-semibold text-gray-900">
+                    {column.title}
+                  </span>
+                  <ul className="flex flex-col gap-2">
+                    {column.links.map((link) => (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          className="text-sm text-gray-500 hover:text-primary-600"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             ))}
           </div>
