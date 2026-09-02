@@ -29,7 +29,10 @@ function CartLineItem({
         <Image src={image} alt={title} fill className="object-cover" />
       </div>
 
-      <div className="flex flex-1 flex-col justify-between">
+      {/* min-w-0 overrides flex items' default min-width:auto — without it,
+          a long product name refuses to wrap and pushes the price/remove
+          column off the right edge on narrow screens instead of shrinking. */}
+      <div className="flex min-w-0 flex-1 flex-col justify-between">
         <div>
           <p className="text-base font-semibold text-gray-900">{title}</p>
           {variant && <p className="text-sm text-gray-500">{variant}</p>}

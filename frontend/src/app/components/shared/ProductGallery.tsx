@@ -14,14 +14,18 @@ function ProductGallery({ images, alt }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
-    <div className="flex gap-4">
-      <div className="flex flex-col gap-3">
+    // Column-reverse on mobile so the (visually first) main image stays
+    // first in DOM/tab order, with thumbnails as a horizontal scroll strip
+    // below it — a vertical thumbnail rail next to the image only works
+    // once there's enough width for both, hence sm:flex-row.
+    <div className="flex flex-col-reverse gap-4 sm:flex-row">
+      <div className="flex gap-3 overflow-x-auto sm:flex-col sm:overflow-visible">
         {images.map((img, i) => (
           <button
             key={img}
             onClick={() => setActiveIndex(i)}
             className={cn(
-              "relative h-20 w-20 overflow-hidden rounded-md border-2 bg-gray-100",
+              "relative h-20 w-20 shrink-0 overflow-hidden rounded-md border-2 bg-gray-100",
               activeIndex === i ? "border-primary-600" : "border-transparent"
             )}
           >
