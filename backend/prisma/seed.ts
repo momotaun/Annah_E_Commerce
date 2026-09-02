@@ -1,6 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 
 import * as bcrypt from 'bcrypt';
+import { assertSafeToSeed } from '../src/bootstrap/assert-safe-to-seed';
+
+assertSafeToSeed();
 
 const prisma = new PrismaClient();
 
