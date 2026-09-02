@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { LoggerModule, LoggerErrorInterceptor } from 'nestjs-pino';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -25,6 +26,37 @@ import { LegalPagesModule } from './legal-pages/legal-pages.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.LOG_LEVEL ?? 'info',
+        // The Docker/Compose HEALTHCHECK and any uptime monitor poll this
+        // every few seconds — logging each one would drown out real
+        // request traffic.
+        autoLogging: {
+          ignore: (req) => req.url === '/api/health',
+        },
+        redact: {
+          paths: [
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'res.headers["set-cookie"]',
+            'req.body.password',
+            'req.body.currentPassword',
+            'req.body.newPassword',
+          ],
+          censor: '[REDACTED]',
+        },
+        // Plain JSON in production (what a log aggregator expects);
+        // pino-pretty's human-readable formatting everywhere else.
+        transport:
+          process.env.NODE_ENV === 'production'
+            ? undefined
+            : {
+                target: 'pino-pretty',
+                options: { colorize: true, singleLine: true },
+              },
+      },
+    }),
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -51,6 +83,14 @@ import { LegalPagesModule } from './legal-pages/legal-pages.module';
     LegalPagesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    // Attaches a thrown error to the response so pino-http's own
+    // request-completion log line includes the full error/stack, instead
+    // of just knowing the request failed. AllExceptionsFilter separately
+    // logs and reports each error — this only enriches the access log.
+    { provide: APP_INTERCEPTOR, useClass: LoggerErrorInterceptor },
+  ],
 })
 export class AppModule {}
