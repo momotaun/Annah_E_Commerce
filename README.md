@@ -98,6 +98,12 @@ cd backend && npx prisma migrate deploy
 
 The API is then healthy at `http://localhost:3001/api/health`, and the site at `http://localhost:3000`. See [`backend/README.md`](backend/README.md#docker) for why the frontend needs two different API URLs (one for the browser, one for server-side rendering inside its own container).
 
+The `http://localhost:3001/api` default only works when the whole stack runs on one local machine — it's baked into the browser bundle at build time. Deploying for real users needs the actual public API URL instead:
+
+```bash
+NEXT_PUBLIC_API_URL=https://api.example.com docker compose up -d --build
+```
+
 ## Running tests
 
 ```bash

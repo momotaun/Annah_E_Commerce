@@ -1,7 +1,14 @@
+# None of the three services below set a fixed `container_name`: a hardcoded
+# name collides the moment a second copy of this stack tries to start on the
+# same Docker host (a second git worktree, a staging stack next to
+# production, parallel CI runs) — the container name has to be unique
+# host-wide, unlike the Compose project name. Compose's own default naming
+# (`<project>-<service>-<n>`) is unique per project directory, and service
+# names ("postgres", "backend", "frontend") still work for inter-container
+# DNS on the Compose network regardless.
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: apex-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -19,7 +26,6 @@ services:
 
   backend:
     build: ./backend
-    container_name: apex-backend
     restart: unless-stopped
     env_file:
       - ./backend/.env
@@ -38,9 +44,12 @@ services:
       context: ./frontend
       args:
         # Baked into the browser bundle at build time — must be reachable
-        # from the browser (on the host), not the internal service name.
-        NEXT_PUBLIC_API_URL: http://localhost:3001/api
-    container_name: apex-frontend
+        # from the browser, not the internal service name. The
+        # http://localhost:3001/api default only works when the whole
+        # stack runs on one local machine; a real deployment needs the
+        # public API URL set here, e.g.
+        # NEXT_PUBLIC_API_URL=https://api.example.com docker compose up -d --build
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
     restart: unless-stopped
     environment:
       # Runtime-only, used for server-side rendering inside this
