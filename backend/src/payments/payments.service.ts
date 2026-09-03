@@ -8,8 +8,11 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { InitiatePaymentDto } from './dto/initiate-payment.dto';
 import { PaymentWebhookDto } from './dto/payment-webhook.dto';
+import { PayfastWebhookDto } from './dto/payfast-webhook.dto';
 import { PaymentResponseDto } from './dto/payment-response.dto';
 import type { PaymentGateway } from './gateways/payment-gateway.interface';
+import { OzowPaymentGateway } from './gateways/ozow-payment.gateway';
+import { PayfastPaymentGateway } from './gateways/payfast-payment.gateway';
 
 export const PAYMENT_GATEWAY = 'PAYMENT_GATEWAY';
 
@@ -17,7 +20,13 @@ export const PAYMENT_GATEWAY = 'PAYMENT_GATEWAY';
 export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
+    // Used for initiate() — whichever gateway PAYMENT_PROVIDER selects.
     @Inject(PAYMENT_GATEWAY) private readonly gateway: PaymentGateway,
+    // Webhooks arrive on gateway-specific routes and must always be
+    // verified by the matching gateway, regardless of which one is
+    // currently active for new payments — see handleWebhook/handlePayfastWebhook.
+    private readonly ozowGateway: OzowPaymentGateway,
+    private readonly payfastGateway: PayfastPaymentGateway,
   ) {}
 
   async initiate(
@@ -48,7 +57,7 @@ export class PaymentsService {
     const payment = await this.prisma.payment.create({
       data: {
         orderId: order.id,
-        provider: 'ozow',
+        provider: this.gateway.providerName,
         transactionRef: gatewayResult.transactionRef,
         status: 'INITIATED',
         amount: order.totalAmount,
@@ -79,23 +88,72 @@ export class PaymentsService {
 
   async handleWebhook(dto: PaymentWebhookDto) {
     const payload: Record<string, string> = { ...dto };
-    const isValid = this.gateway.verifyWebhookSignature(payload);
+    const isValid = this.ozowGateway.verifyWebhookSignature(payload);
+    if (!isValid) {
+      throw new ForbiddenException('Invalid webhook signature');
+    }
+
+    return this.applyWebhookStatus(
+      dto.TransactionReference,
+      this.mapOzowStatus(dto.Status),
+    );
+  }
+
+  // PayFast's own statuses (not our internal PaymentStatus enum). COMPLETE
+  // is the only success state; CANCELLED is a terminal failure. Any other
+  // value (e.g. a future status PayFast adds) is deliberately left
+  // unmapped rather than guessed at.
+  private mapPayfastStatus(status: string): 'SUCCEEDED' | 'FAILED' | null {
+    if (status === 'COMPLETE') return 'SUCCEEDED';
+    if (status === 'CANCELLED') return 'FAILED';
+    return null;
+  }
+
+  async handlePayfastWebhook(dto: PayfastWebhookDto) {
+    const payload: Record<string, string> = { ...dto };
+    const isValid = this.payfastGateway.verifyWebhookSignature(payload);
     if (!isValid) {
       throw new ForbiddenException('Invalid webhook signature');
     }
 
     const payment = await this.prisma.payment.findUnique({
-      where: { transactionRef: dto.TransactionReference },
+      where: { transactionRef: dto.m_payment_id },
     });
     if (!payment) {
       throw new NotFoundException(
-        `No payment found for transactionRef "${dto.TransactionReference}"`,
+        `No payment found for transactionRef "${dto.m_payment_id}"`,
       );
     }
 
-    const mappedStatus = this.mapOzowStatus(dto.Status);
+    // PayFast's own recommended check: the amount they say was paid must
+    // match what we actually charged for, not just a valid signature.
+    if (Math.abs(Number(dto.amount_gross) - Number(payment.amount)) > 0.01) {
+      throw new ForbiddenException('Webhook amount does not match payment');
+    }
+
+    return this.applyWebhookStatus(
+      dto.m_payment_id,
+      this.mapPayfastStatus(dto.payment_status),
+      payment,
+    );
+  }
+
+  private async applyWebhookStatus(
+    transactionRef: string,
+    mappedStatus: 'SUCCEEDED' | 'FAILED' | null,
+    knownPayment?: { id: string; orderId: string; status: string },
+  ) {
+    const payment =
+      knownPayment ??
+      (await this.prisma.payment.findUnique({ where: { transactionRef } }));
+    if (!payment) {
+      throw new NotFoundException(
+        `No payment found for transactionRef "${transactionRef}"`,
+      );
+    }
+
     if (!mappedStatus) {
-      // e.g. PendingInvestigation — nothing to apply yet.
+      // e.g. Ozow's PendingInvestigation — nothing to apply yet.
       return { received: true, alreadyProcessed: false };
     }
 

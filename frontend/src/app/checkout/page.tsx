@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { CreditCard, Landmark, ShieldCheck, Smartphone } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Breadcrumb from "@/src/app/components/shared/Breadcrumb";
+import Badge from "@/src/app/components/ui/Badge";
 import Button from "@/src/app/components/ui/Button";
 import Input from "@/src/app/components/ui/Input";
 import Spinner from "@/src/app/components/ui/Spinner";
@@ -14,6 +16,15 @@ import { getMyAddresses, addMyAddress, Address } from "@/src/lib/api/addresses";
 import { checkout } from "@/src/lib/api/checkout";
 import { initiatePayment } from "@/src/lib/api/payments";
 import { ApiError } from "@/src/lib/api-client";
+
+// PayFast's hosted checkout offers all of these by default (we don't
+// restrict `payment_method` in the redirect) — listed here so shoppers
+// know what they'll be able to pick from before we send them there.
+const PAYMENT_METHODS = [
+  { label: "Card", icon: CreditCard },
+  { label: "Instant EFT", icon: Landmark },
+  { label: "SnapScan / Zapper", icon: Smartphone },
+];
 
 export default function CheckoutPage() {
   const { isLoading: authLoading, user } = useRequireAuth();
@@ -216,6 +227,21 @@ export default function CheckoutPage() {
                   <span className="text-2xl font-bold text-primary-600">
                     R{Number(cart?.subtotal ?? 0).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}
                   </span>
+                </div>
+
+                <div className="mt-4 border-t border-gray-200 pt-4">
+                  <p className="text-sm font-medium text-gray-900">Payment Method</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {PAYMENT_METHODS.map(({ label, icon: Icon }) => (
+                      <Badge key={label} variant="outline" icon={<Icon className="h-3 w-3" />}>
+                        {label}
+                      </Badge>
+                    ))}
+                  </div>
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
+                    <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                    You&apos;ll choose how to pay securely on the next screen, powered by PayFast.
+                  </p>
                 </div>
 
                 {error && <p className="mt-3 text-sm text-danger-500">{error}</p>}
