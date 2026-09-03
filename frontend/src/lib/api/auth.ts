@@ -46,3 +46,11 @@ export function initiatePasswordReset(email: string) {
 export function confirmPasswordReset(token: string, newPassword: string) {
   return apiClient.post<{ message: string }>('/auth/password-reset/confirm', { token, newPassword });
 }
+
+export function confirmEmailVerification(token: string) {
+  return apiClient.post<{ message: string }>('/auth/verify-email/confirm', { token });
+}
+
+export function resendVerificationEmail(email: string) {
+  return apiClient.post<{ message: string }>('/auth/verify-email/resend', { email });
+}

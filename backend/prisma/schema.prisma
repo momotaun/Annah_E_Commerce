@@ -48,16 +48,16 @@ model Product {
 }
 
 model Cart {
-  id        String   @id @default(cuid())
-  sessionId String   @unique
+  id        String @id @default(cuid())
+  sessionId String @unique
 
   // Reserved in Phase 1, populated from Phase 2 onward
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
 
-  items        CartItem[]
+  items         CartItem[]
   orderRequests OrderRequest[]
-  createdAt    DateTime       @default(now())
+  createdAt     DateTime       @default(now())
 }
 
 model CartItem {
@@ -78,14 +78,14 @@ enum OrderRequestStatus {
 }
 
 model OrderRequest {
-  id              String              @id @default(cuid())
+  id              String             @id @default(cuid())
   cartId          String
-  cart            Cart                @relation(fields: [cartId], references: [id])
+  cart            Cart               @relation(fields: [cartId], references: [id])
   customerName    String
   customerContact String
-  status          OrderRequestStatus  @default(PENDING)
+  status          OrderRequestStatus @default(PENDING)
   items           OrderRequestItem[]
-  createdAt       DateTime            @default(now())
+  createdAt       DateTime           @default(now())
 }
 
 model OrderRequestItem {
@@ -103,19 +103,21 @@ model OrderRequestItem {
 // ─────────────────────────────────────────────
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  passwordHash String
-  firstName    String
-  lastName     String
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  firstName       String
+  lastName        String
+  emailVerifiedAt DateTime?
 
   carts     Cart[]
   addresses Address[]
   orders    Order[]
   createdAt DateTime  @default(now())
 
-  refreshTokens       RefreshToken[]
-  passwordResetTokens PasswordResetToken[]
+  refreshTokens           RefreshToken[]
+  passwordResetTokens     PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
 
   role Role @default(CUSTOMER)
 
@@ -159,9 +161,9 @@ model Order {
 
   createdAt DateTime @default(now())
 
-  @@index([userId])
-
   items OrderItem[]
+
+  @@index([userId])
 }
 
 model OrderItem {
@@ -270,18 +272,30 @@ model Commission {
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash String   @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
   expiresAt DateTime
   revokedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([userId])
 }
 
 model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
   id        String    @id @default(cuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
