@@ -1,16 +1,25 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { VendorOrderItemResponseDto } from './dto/vendor-order-item-response.dto';
 import { SalesReportResponseDto } from './dto/sales-report-response.dto';
+import type { Mailer } from '../mailer/mailer.interface';
+import { MAILER } from '../mailer/mailer.module';
 
 @Injectable()
 export class VendorOrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(VendorOrdersService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(MAILER) private readonly mailer: Mailer,
+  ) {}
 
   private async requireVendor(userId: string) {
     const vendor = await this.prisma.vendor.findUnique({ where: { userId } });
@@ -193,6 +202,36 @@ export class VendorOrdersService {
         where: { id: orderId },
         data: { status: nextStatus },
       });
+
+      await this.notifyOrderStatus(orderId, nextStatus);
+    }
+  }
+
+  // Only reached right after the whole order (all vendors' items, not
+  // just this one) actually transitions to SHIPPED/DELIVERED — never on
+  // a no-op recompute — so this can't double-send.
+  private async notifyOrderStatus(
+    orderId: string,
+    status: 'SHIPPED' | 'DELIVERED',
+  ): Promise<void> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { user: { select: { email: true, firstName: true } } },
+    });
+    if (!order) return;
+
+    try {
+      await this.mailer.sendOrderStatusEmail({
+        to: order.user.email,
+        firstName: order.user.firstName,
+        orderId,
+        status,
+      });
+    } catch (err) {
+      this.logger.error(
+        `Failed to send ${status} email for order ${orderId}`,
+        err instanceof Error ? err.stack : err,
+      );
     }
   }
 }

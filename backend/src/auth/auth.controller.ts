@@ -5,6 +5,8 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { PasswordResetDto } from './dto/password-reset.dto';
 import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
+import { ConfirmEmailVerificationDto } from './dto/confirm-email-verification.dto';
+import { ResendVerificationDto } from './dto/resend-verification.dto';
 
 import { Throttle } from '@nestjs/throttler';
 
@@ -44,5 +46,19 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   confirmPasswordReset(@Body() dto: ConfirmPasswordResetDto) {
     return this.authService.confirmPasswordReset(dto.token, dto.newPassword);
+  }
+
+  @Post('verify-email/resend')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // tightest — prevents email-bombing
+  resendVerificationEmail(@Body() dto: ResendVerificationDto) {
+    return this.authService.resendVerificationEmail(dto.email);
+  }
+
+  @Post('verify-email/confirm')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  confirmEmailVerification(@Body() dto: ConfirmEmailVerificationDto) {
+    return this.authService.confirmEmailVerification(dto.token);
   }
 }

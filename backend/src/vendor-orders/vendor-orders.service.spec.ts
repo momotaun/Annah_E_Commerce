@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { VendorOrdersService } from './vendor-orders.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MAILER } from '../mailer/mailer.module';
+import { Mailer } from '../mailer/mailer.interface';
 
 describe('VendorOrdersService', () => {
   let service: VendorOrdersService;
@@ -10,6 +12,7 @@ describe('VendorOrdersService', () => {
     vendorOrderItem: { findMany: jest.Mock; updateMany: jest.Mock };
     order: { findUnique: jest.Mock; update: jest.Mock };
   };
+  let mailer: jest.Mocked<Mailer>;
 
   beforeEach(async () => {
     prisma = {
@@ -18,10 +21,18 @@ describe('VendorOrdersService', () => {
       order: { findUnique: jest.fn(), update: jest.fn() },
     };
 
+    mailer = {
+      sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
+      sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+      sendInvoiceEmail: jest.fn().mockResolvedValue(undefined),
+      sendOrderStatusEmail: jest.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         VendorOrdersService,
         { provide: PrismaService, useValue: prisma },
+        { provide: MAILER, useValue: mailer },
       ],
     }).compile();
 
@@ -150,6 +161,7 @@ describe('VendorOrdersService', () => {
       prisma.order.findUnique.mockResolvedValue({
         id: 'order-1',
         status: 'PAID',
+        user: { email: 'jane@example.co.za', firstName: 'Jane' },
       });
 
       const result = await service.markShipped('user-1', 'order-1');
@@ -171,6 +183,14 @@ describe('VendorOrdersService', () => {
         data: { status: 'SHIPPED' },
       });
       expect(result[0].shippedAt).not.toBeNull();
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock, no `this` binding involved
+      expect(mailer.sendOrderStatusEmail).toHaveBeenCalledWith({
+        to: 'jane@example.co.za',
+        firstName: 'Jane',
+        orderId: 'order-1',
+        status: 'SHIPPED',
+      });
     });
 
     it('does not flip Order.status when a different vendor on the same order has not shipped yet', async () => {
@@ -196,6 +216,8 @@ describe('VendorOrdersService', () => {
       await service.markShipped('user-1', 'order-1');
 
       expect(prisma.order.update).not.toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock, no `this` binding involved
+      expect(mailer.sendOrderStatusEmail).not.toHaveBeenCalled();
     });
   });
 
@@ -249,6 +271,7 @@ describe('VendorOrdersService', () => {
       prisma.order.findUnique.mockResolvedValue({
         id: 'order-1',
         status: 'SHIPPED',
+        user: { email: 'jane@example.co.za', firstName: 'Jane' },
       });
 
       const result = await service.markDelivered('user-1', 'order-1');
@@ -258,6 +281,14 @@ describe('VendorOrdersService', () => {
         data: { status: 'DELIVERED' },
       });
       expect(result[0].deliveredAt).not.toBeNull();
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock, no `this` binding involved
+      expect(mailer.sendOrderStatusEmail).toHaveBeenCalledWith({
+        to: 'jane@example.co.za',
+        firstName: 'Jane',
+        orderId: 'order-1',
+        status: 'DELIVERED',
+      });
     });
   });
 });

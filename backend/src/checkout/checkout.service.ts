@@ -1,16 +1,25 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CheckoutDto } from './dto/checkout.dto';
 import { OrderResponseDto } from './dto/order-response.dto';
+import type { Mailer } from '../mailer/mailer.interface';
+import { MAILER } from '../mailer/mailer.module';
 
 @Injectable()
 export class CheckoutService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(CheckoutService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(MAILER) private readonly mailer: Mailer,
+  ) {}
 
   private generateInvoiceNumber(): string {
     const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -113,6 +122,38 @@ export class CheckoutService {
 
       return createdOrder;
     });
+
+    // Fire-and-await, but never let a mail-provider hiccup fail a
+    // checkout that already succeeded — the order and invoice are
+    // already committed at this point.
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, firstName: true },
+    });
+    if (user) {
+      try {
+        await this.mailer.sendInvoiceEmail({
+          to: user.email,
+          firstName: user.firstName,
+          orderId: order.id,
+          invoiceNumber: order.invoice!.invoiceNumber,
+          items: order.items.map((item) => ({
+            name: item.product.name,
+            quantity: item.quantity,
+            priceAtOrder: item.priceAtOrder.toString(),
+          })),
+          totalAmount: order.totalAmount.toString(),
+        });
+      } catch (err) {
+        // Checkout must still return success — the order is already
+        // committed — but a silently-lost invoice email should at least
+        // show up in the logs.
+        this.logger.error(
+          `Failed to send invoice email for order ${order.id}`,
+          err instanceof Error ? err.stack : err,
+        );
+      }
+    }
 
     return {
       id: order.id,

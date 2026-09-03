@@ -11,12 +11,14 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import type { Mailer } from './mailer/mailer.interface';
+import type { Mailer } from '../mailer/mailer.interface';
+import { MAILER } from '../mailer/mailer.module';
 
 const SALT_ROUNDS = 12;
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour — matches the frontend's copy
+const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours — less sensitive than a password reset, so more generous
 
-export const MAILER = 'MAILER';
+export { MAILER };
 
 @Injectable()
 export class AuthService {
@@ -90,6 +92,8 @@ export class AuthService {
         lastName: dto.lastName,
       },
     });
+
+    await this.sendVerificationEmail(user.id, user.email, user.firstName);
 
     const tokens = await this.issueTokens(user.id, user.email);
 
@@ -248,5 +252,80 @@ export class AuthService {
     });
 
     return { message: 'Your password has been reset.' };
+  }
+
+  // Shared by register() (always) and resendVerificationEmail() (on
+  // request) — same one-active-token-at-a-time pattern as password reset.
+  private async sendVerificationEmail(
+    userId: string,
+    email: string,
+    firstName: string,
+  ): Promise<void> {
+    await this.prisma.emailVerificationToken.deleteMany({
+      where: { userId, usedAt: null },
+    });
+
+    const rawToken = randomBytes(32).toString('hex');
+    await this.prisma.emailVerificationToken.create({
+      data: {
+        userId,
+        tokenHash: this.hashToken(rawToken),
+        expiresAt: new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
+      },
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    await this.mailer.sendVerificationEmail({
+      to: email,
+      firstName,
+      verifyUrl: `${frontendUrl}/verify-email?token=${rawToken}`,
+    });
+  }
+
+  async resendVerificationEmail(email: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    // Enumeration-safe, same as initiatePasswordReset — and a no-op for
+    // an already-verified account rather than an error, since the caller
+    // has no way to know that status in advance.
+    if (user && !user.emailVerifiedAt) {
+      await this.sendVerificationEmail(user.id, user.email, user.firstName);
+    }
+
+    return {
+      message:
+        'If an account exists for this email and is not yet verified, a new verification link has been sent.',
+    };
+  }
+
+  async confirmEmailVerification(token: string): Promise<{ message: string }> {
+    const verificationToken =
+      await this.prisma.emailVerificationToken.findUnique({
+        where: { tokenHash: this.hashToken(token) },
+      });
+
+    if (
+      !verificationToken ||
+      verificationToken.usedAt ||
+      verificationToken.expiresAt < new Date()
+    ) {
+      throw new UnauthorizedException(
+        'This verification link is invalid or has expired',
+      );
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: verificationToken.userId },
+        data: { emailVerifiedAt: new Date() },
+      });
+
+      await tx.emailVerificationToken.update({
+        where: { id: verificationToken.id },
+        data: { usedAt: new Date() },
+      });
+    });
+
+    return { message: 'Your email has been verified.' };
   }
 }
