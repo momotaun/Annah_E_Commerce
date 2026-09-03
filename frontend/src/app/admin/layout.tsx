@@ -23,8 +23,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-8 px-6 py-8">
-        <nav className="flex w-48 shrink-0 flex-col gap-1">
+      {/* Same stack-then-sidebar pattern as AccountSidebar (customer
+          profile) / the vendor dashboard layout: a fixed w-48 side nav
+          had no mobile fallback, sitting beside the content at any
+          width and forcing horizontal overflow on a phone. */}
+      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-8 md:flex-row">
+        <nav className="flex w-full shrink-0 flex-col gap-1 md:w-48">
           <Link href="/admin/vendors" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
             Vendors
           </Link>
