@@ -5,6 +5,7 @@ import type { CurrentUserPayload } from '../auth/decorators/current-user.decorat
 import { PaymentsService } from './payments.service';
 import { InitiatePaymentDto } from './dto/initiate-payment.dto';
 import { PaymentWebhookDto } from './dto/payment-webhook.dto';
+import { PayfastWebhookDto } from './dto/payfast-webhook.dto';
 
 @Controller('payments')
 export class PaymentsController {
@@ -22,5 +23,10 @@ export class PaymentsController {
   @Post('webhook')
   handleWebhook(@Body() dto: PaymentWebhookDto) {
     return this.paymentsService.handleWebhook(dto);
+  }
+
+  @Post('webhook/payfast')
+  handlePayfastWebhook(@Body() dto: PayfastWebhookDto) {
+    return this.paymentsService.handlePayfastWebhook(dto);
   }
 }

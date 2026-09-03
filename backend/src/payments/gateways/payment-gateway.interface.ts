@@ -4,6 +4,8 @@ export interface InitiatePaymentResult {
 }
 
 export interface PaymentGateway {
+  readonly providerName: string;
+
   initiate(params: {
     orderId: string;
     amount: string;

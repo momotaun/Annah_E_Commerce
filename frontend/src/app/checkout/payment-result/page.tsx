@@ -138,7 +138,7 @@ function PaymentResultContent() {
     <div className="w-full max-w-md rounded-md border border-gray-200 bg-white p-8 text-center shadow-sm">
       <Spinner label="Confirming your payment..." />
       <p className="mt-4 text-sm text-gray-500">
-        This can take a few moments. This page will update automatically once we hear back from Ozow.
+        This can take a few moments. This page will update automatically once we hear back from your payment provider.
       </p>
       {pollCount >= MAX_POLLS && (
         <Button variant="ghost" className="mt-4" onClick={() => setPollCount(0)}>

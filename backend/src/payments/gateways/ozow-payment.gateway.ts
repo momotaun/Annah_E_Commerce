@@ -21,6 +21,8 @@ interface OzowPostPaymentRequestResponse {
  */
 @Injectable()
 export class OzowPaymentGateway implements PaymentGateway {
+  readonly providerName = 'ozow';
+
   private hash(values: Array<string | undefined>, privateKey: string): string {
     const concatenated = values.map((v) => v ?? '').join('') + privateKey;
     return createHash('sha512')
