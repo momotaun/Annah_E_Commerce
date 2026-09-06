@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { ArrowRight, Truck, Lock, Leaf, ShieldCheck, Award, Headset } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
@@ -7,16 +6,10 @@ import Button from "@/src/app/components/ui/Button";
 import InfoCard from "@/src/app/components/shared/InfoCard";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
 import { getProducts } from "@/src/lib/api/products";
-import { getCategories } from "@/src/lib/api/categories";
-import { Category } from "@/src/lib/api-types";
 import TopRatedEssentials from "@/src/app/TopRatedEssentials";
-import { cn } from "@/src/lib/utils";
 
 export default async function LandingPage() {
-  const [essentials, categories] = await Promise.all([
-    getProducts({ limit: 6 }),
-    getCategories(),
-  ]);
+  const essentials = await getProducts({ limit: 6 });
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -24,7 +17,6 @@ export default async function LandingPage() {
 
       <main className="flex-1">
         <HeroSection />
-        <CuratedCategories categories={categories} />
         <TopRatedEssentials products={essentials.data} />
         <PromoBanner />
         <TrustBadges />
@@ -105,78 +97,6 @@ function HeroSection() {
           <span className="h-2 w-2 rounded-full bg-white/40" />
           <span className="h-2 w-2 rounded-full bg-white/40" />
         </div>
-      </div>
-    </section>
-  );
-}
-
-// Curated photography for the categories we can show a real picture for —
-// anything without an entry here (a category added on the backend before
-// a photo exists for it) falls back to a gradient tile, same as /categories.
-const CATEGORY_IMAGES: Record<string, string> = {
-  electronics: "/images/cat-electronics.jpg",
-  "home-living": "/images/cat-home.jpg",
-  fashion: "/images/cat-fashion.jpg",
-};
-
-const CATEGORY_GRADIENTS = [
-  "from-primary-700 to-primary-500",
-  "from-gray-800 to-gray-600",
-  "from-slate-700 to-slate-500",
-];
-
-function CuratedCategories({ categories }: { categories: Category[] }) {
-  if (categories.length === 0) {
-    return null;
-  }
-
-  const singleCategory = categories.length === 1;
-
-  return (
-    <section className="mx-auto max-w-7xl px-6 py-16">
-      <div className="mb-6 flex items-end justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Curated Categories</h2>
-          <p className="text-sm text-gray-500">Explore our specialized collections</p>
-        </div>
-        <Link href="/categories" className="text-sm font-medium text-primary-600 hover:underline">
-          Explore All
-        </Link>
-      </div>
-
-      {/* A lone category spans the full width instead of sitting in a
-          third-width column with empty space either side; with more than
-          one, up to 3 share a row and the grid wraps naturally beyond that. */}
-      <div className={singleCategory ? "grid grid-cols-1" : "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"}>
-        {categories.map((category, i) => {
-          const image = CATEGORY_IMAGES[category.slug];
-          return (
-            <Link
-              key={category.id}
-              href={`/categories/${category.slug}`}
-              className={cn(
-                "group relative overflow-hidden rounded-md",
-                singleCategory ? "min-h-[280px]" : "min-h-[200px]",
-                !image && `bg-gradient-to-br ${CATEGORY_GRADIENTS[i % CATEGORY_GRADIENTS.length]}`
-              )}
-            >
-              {image && (
-                <>
-                  <Image
-                    src={image}
-                    alt={category.name}
-                    fill
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                </>
-              )}
-              <div className="absolute bottom-4 left-4 text-white">
-                <span className="text-lg font-semibold">{category.name}</span>
-              </div>
-            </Link>
-          );
-        })}
       </div>
     </section>
   );
