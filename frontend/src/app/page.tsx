@@ -4,17 +4,10 @@ import { ArrowRight, Truck, Lock, Leaf, ShieldCheck, Award, Headset } from "luci
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";
-import Avatar from "@/src/app/components/ui/Avatar";
 import InfoCard from "@/src/app/components/shared/InfoCard";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
 import { getProducts } from "@/src/lib/api/products";
 import TopRatedEssentials from "@/src/app/TopRatedEssentials";
-
-const testimonials = [
-  { name: "Thandi Mthembu", role: "Interior Designer, Joburg", quote: "The curated selection at Apex is unmatched. I recently refurbished my studio and every piece exceeded expectations. Delivery was prompt even in Sandton traffic.", rating: 4, avatar: "/images/thandi.jpg" },
-  { name: "Johan de Beer", role: "Tech Lead", quote: "Apex is my go-to for tech gear. Their service is elite and the products are always authentic. The Aero-Pulse headphones changed my work-from-home life.", rating: 5, avatar: "/images/johan.jpg" },
-  { name: "Lwazi Nkosi", role: "Outdoor Enthusiast", quote: "The camping gear is top-tier. Finally a marketplace that understands the quality needed for South African trails. Exceptional stock.", rating: 5, avatar: "/images/lwazi.jpg" },
-];
 
 export default async function LandingPage() {
   const essentials = await getProducts({ limit: 8 });
@@ -29,7 +22,6 @@ export default async function LandingPage() {
         <TopRatedEssentials products={essentials.data} />
         <PromoBanner />
         <TrustBadges />
-        <Testimonials />
         <NewsletterBand />
       </main>
 
@@ -194,24 +186,3 @@ function TrustBadges() {
   );
 }
 
-function Testimonials() {
-  return (
-    <section className="mx-auto max-w-7xl px-6 pb-16">
-      <h2 className="mb-8 text-center text-2xl font-bold text-gray-900">Trusted by Experts</h2>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {testimonials.map((t) => (
-          <div key={t.name} className="flex flex-col gap-4 rounded-md border border-gray-200 p-6">
-            <div className="flex items-center gap-3">
-              <Avatar src={t.avatar} alt={t.name} size="md" />
-              <div>
-                <p className="text-sm font-semibold text-gray-900">{t.name}</p>
-                <p className="text-xs text-gray-500">{t.role}</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-500">&ldquo;{t.quote}&rdquo;</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
