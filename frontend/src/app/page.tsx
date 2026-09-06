@@ -7,10 +7,16 @@ import Button from "@/src/app/components/ui/Button";
 import InfoCard from "@/src/app/components/shared/InfoCard";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
 import { getProducts } from "@/src/lib/api/products";
+import { getCategories } from "@/src/lib/api/categories";
+import { Category } from "@/src/lib/api-types";
 import TopRatedEssentials from "@/src/app/TopRatedEssentials";
+import { cn } from "@/src/lib/utils";
 
 export default async function LandingPage() {
-  const essentials = await getProducts({ limit: 6 });
+  const [essentials, categories] = await Promise.all([
+    getProducts({ limit: 6 }),
+    getCategories(),
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -18,7 +24,7 @@ export default async function LandingPage() {
 
       <main className="flex-1">
         <HeroSection />
-        <CuratedCategories />
+        <CuratedCategories categories={categories} />
         <TopRatedEssentials products={essentials.data} />
         <PromoBanner />
         <TrustBadges />
@@ -104,13 +110,27 @@ function HeroSection() {
   );
 }
 
-function CuratedCategories() {
-  const categories = [
-    { title: "Electronics", subtitle: "Precision gear for the digital nomad", href: "/categories/electronics", image: "/images/cat-electronics.jpg", span: "col-span-2 row-span-1" },
-    { title: "Home & Living", href: "/categories/home-living", image: "/images/cat-home.jpg", span: "row-span-2" },
-    { title: "Fashion", href: "/categories/fashion", image: "/images/cat-fashion.jpg", span: "" },
-    { title: "Outdoor", href: "/categories/outdoor", image: "/images/cat-outdoor.jpg", span: "" },
-  ];
+// Curated photography for the categories we can show a real picture for —
+// anything without an entry here (a category added on the backend before
+// a photo exists for it) falls back to a gradient tile, same as /categories.
+const CATEGORY_IMAGES: Record<string, string> = {
+  electronics: "/images/cat-electronics.jpg",
+  "home-living": "/images/cat-home.jpg",
+  fashion: "/images/cat-fashion.jpg",
+};
+
+const CATEGORY_GRADIENTS = [
+  "from-primary-700 to-primary-500",
+  "from-gray-800 to-gray-600",
+  "from-slate-700 to-slate-500",
+];
+
+function CuratedCategories({ categories }: { categories: Category[] }) {
+  if (categories.length === 0) {
+    return null;
+  }
+
+  const singleCategory = categories.length === 1;
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
@@ -124,50 +144,107 @@ function CuratedCategories() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:grid-rows-2">
-        {categories.map((cat) => (
-          <Link
-            key={cat.title}
-            href={cat.href}
-            className={`group relative min-h-[200px] overflow-hidden rounded-md ${cat.span}`}
-          >
-            <Image
-              src={cat.image}
-              alt={cat.title}
-              fill
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <div className="absolute bottom-4 left-4 text-white">
-              <span className="text-lg font-semibold">{cat.title}</span>
-              {cat.subtitle && <p className="text-sm">{cat.subtitle}</p>}
-            </div>
-          </Link>
-        ))}
+      {/* A lone category spans the full width instead of sitting in a
+          third-width column with empty space either side; with more than
+          one, up to 3 share a row and the grid wraps naturally beyond that. */}
+      <div className={singleCategory ? "grid grid-cols-1" : "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"}>
+        {categories.map((category, i) => {
+          const image = CATEGORY_IMAGES[category.slug];
+          return (
+            <Link
+              key={category.id}
+              href={`/categories/${category.slug}`}
+              className={cn(
+                "group relative overflow-hidden rounded-md",
+                singleCategory ? "min-h-[280px]" : "min-h-[200px]",
+                !image && `bg-gradient-to-br ${CATEGORY_GRADIENTS[i % CATEGORY_GRADIENTS.length]}`
+              )}
+            >
+              {image && (
+                <>
+                  <Image
+                    src={image}
+                    alt={category.name}
+                    fill
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                </>
+              )}
+              <div className="absolute bottom-4 left-4 text-white">
+                <span className="text-lg font-semibold">{category.name}</span>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
 }
 
+const promoCards = [
+  {
+    eyebrow: "Home Essentials",
+    headline: "Make home a happier place",
+    subtext: "Stylish. Practical. Made for everyday living",
+    cta: "Shop Home & Living",
+    href: "/categories/home-living",
+    discount: "40%",
+    image: "/images/cat-home.jpg",
+  },
+  {
+    eyebrow: "Tech For A Brighter Tomorrow",
+    headline: "Smarter tech. Greener choices.",
+    subtext: "Innovation for a better everyday.",
+    cta: "Shop Electronics",
+    href: "/categories/electronics",
+    discount: "30%",
+    image: "/images/cat-electronics.jpg",
+  },
+];
+
 function PromoBanner() {
   return (
     <section className="mx-auto max-w-7xl px-6 pb-16">
-      <div className="group relative flex min-h-[220px] items-center overflow-hidden rounded-md bg-gray-900">
-        <Image
-          src="/images/promo-abstract.jpg"
-          alt=""
-          fill
-          className="object-cover opacity-60 transition-transform duration-700 ease-out group-hover:scale-110"
-        />
-        <div className="relative flex w-full items-center justify-between px-10">
-          <div>
-            <span className="text-sm uppercase tracking-wide text-gray-300">
-              Limited Edition Collection
-            </span>
-            <h3 className="mt-1 text-3xl font-bold text-white">Up to 30% Off</h3>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {promoCards.map((card) => (
+          <div
+            key={card.href}
+            className="group relative min-h-[260px] overflow-hidden rounded-md"
+          >
+            <Image
+              src={card.image}
+              alt=""
+              fill
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent" />
+
+            <div className="relative flex h-full w-3/4 flex-col justify-center gap-3 px-8 py-8">
+              <span className="text-xs font-bold uppercase tracking-widest text-primary-500">
+                {card.eyebrow}
+              </span>
+              <h3 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
+                {card.headline}
+              </h3>
+              <p className="text-sm text-gray-500">{card.subtext}</p>
+              <Button
+                href={card.href}
+                className="mt-2 w-fit"
+                icon={<ArrowRight className="h-4 w-4" />}
+                iconPosition="right"
+              >
+                {card.cta}
+              </Button>
+            </div>
+
+            <div className="absolute right-6 top-6 flex h-20 w-20 flex-col items-center justify-center rounded-full bg-primary-100 text-center leading-none text-primary-600">
+              <span className="text-[10px] font-bold uppercase">Up to</span>
+              <span className="text-xl font-extrabold">{card.discount}</span>
+              <span className="text-[10px] font-bold uppercase">Off</span>
+            </div>
           </div>
-          <Button variant="primary" href="/collections/limited-edition">Claim Offer</Button>
-        </div>
+        ))}
       </div>
     </section>
   );
