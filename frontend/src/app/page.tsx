@@ -1,9 +1,8 @@
 import Image from "next/image";
-import { ArrowRight, Truck, Lock, Leaf, ShieldCheck, Award, Headset } from "lucide-react";
+import { ArrowRight, Truck, Lock, Leaf, ShieldCheck, Star } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";
-import InfoCard from "@/src/app/components/shared/InfoCard";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
 import { getProducts } from "@/src/lib/api/products";
 import TopRatedEssentials from "@/src/app/TopRatedEssentials";
@@ -170,14 +169,28 @@ function PromoBanner() {
   );
 }
 
+const trustProps = [
+  { icon: Leaf, title: "Sustainable products", subtitle: "A cleaner, greener future" },
+  { icon: Truck, title: "Fast & reliable delivery", subtitle: "Get it when you need it" },
+  { icon: ShieldCheck, title: "Secure checkout", subtitle: "Shop with confidence" },
+  { icon: Star, title: "Rated by real customers", subtitle: "Trusted by thousands" },
+];
+
 function TrustBadges() {
   return (
-    <section className="mx-auto max-w-7xl px-6 pb-16">
-      <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-        <InfoCard icon={<Truck className="h-6 w-6" />} title="Fast Delivery" description="Same-day shipping in major SA metros." />
-        <InfoCard icon={<ShieldCheck className="h-6 w-6" />} title="Secure Payment" description="Encrypted transactions via PayFast." />
-        <InfoCard icon={<Award className="h-6 w-6" />} title="Quality Guarantee" description="Curated products with full warranties." />
-        <InfoCard icon={<Headset className="h-6 w-6" />} title="24/7 Support" description="Local experts ready to assist you." />
+    <section className="mx-auto max-w-7xl border-t border-gray-200 px-6 py-12">
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        {trustProps.map(({ icon: Icon, title, subtitle }) => (
+          <div key={title} className="flex items-center gap-3">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-600">
+              <Icon className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{title}</p>
+              <p className="text-sm text-gray-500">{subtitle}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
