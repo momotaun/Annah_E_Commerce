@@ -63,13 +63,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header
-        navLinks={[
-          { label: "Home", href: "/" },
-          { label: "Catalogue", href: "/catalogue" },
-          { label: "Categories", href: "/categories" },
-        ]}
-      />
+      <Header />
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-10 md:flex-row">
         <AccountSidebar onLogout={logout} />

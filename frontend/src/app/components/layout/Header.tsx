@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Menu, ShoppingCart, X } from "lucide-react";
-import Button from "@/src/app/components/ui/Button";
+import { Menu, Heart, ShoppingCart, User, X } from "lucide-react";
 import Badge from "@/src/app/components/ui/Badge";
-import Avatar from "@/src/app/components/ui/Avatar";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
@@ -18,7 +16,6 @@ export interface NavLink {
 }
 
 export interface HeaderProps {
-  navLinks?: NavLink[];
   showSearch?: boolean;
   showCart?: boolean;
   announcementText?: string;
@@ -26,16 +23,18 @@ export interface HeaderProps {
   minimalRightLink?: NavLink;
 }
 
-const defaultNavLinks: NavLink[] = [
-  { label: "Home", href: "/" },
-  { label: "Catalogue", href: "/catalogue" },
-  { label: "Categories", href: "/categories" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
+// Mirrors the marketplace's real top-level categories (seeded via the
+// backend's CategoriesModule) rather than fetching them, so the header stays
+// a lightweight client component with no data dependency of its own.
+const categoryLinks: NavLink[] = [
+  { label: "Electronics", href: "/categories/electronics" },
+  { label: "Home & Living", href: "/categories/home-living" },
+  { label: "Fashion", href: "/categories/fashion" },
 ];
 
+const dealsLink: NavLink = { label: "Deals", href: "/collections/limited-edition" };
+
 function Header({
-  navLinks = defaultNavLinks,
   showSearch = false,
   showCart = true,
   announcementText,
@@ -45,7 +44,7 @@ function Header({
   const pathname = usePathname();
   const router = useRouter();
   const { itemCount } = useCart();
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   function handleSearch(query: string) {
@@ -60,14 +59,13 @@ function Header({
     return () => clearTimeout(timer);
   }, [pathname]);
 
+  const accountHref = user ? "/profile" : "/login";
+
   const cartLink = (
     <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-gray-900">
       <ShoppingCart className="h-5 w-5" />
       {itemCount > 0 && (
-        <Badge
-          variant="primary"
-          className="absolute -right-1 -top-1 h-5 min-w-5 justify-center px-1"
-        >
+        <Badge className="absolute -right-1 -top-1 h-5 min-w-5 justify-center bg-danger-500 px-1 text-white">
           {itemCount}
         </Badge>
       )}
@@ -82,68 +80,67 @@ function Header({
         </div>
       )}
 
-      <header className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6">
-        <Link href="/" className="shrink-0 text-lg font-bold text-primary-600 sm:text-xl">
-          Apex Marketplace
+      <header className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-4 sm:px-6 md:gap-8">
+        <Link href="/" className="flex shrink-0 items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 text-lg font-bold text-white">
+            E
+          </span>
+          <span className="hidden text-xl font-extrabold tracking-tight text-gray-900 sm:inline">
+            Elite<span className="text-primary-600">Commerce</span>
+          </span>
         </Link>
 
-        {/* The full nav + cart + login cluster genuinely doesn't fit in a
-            768px-wide row (verified live — it overflows by ~30px), so this
-            switches from the hamburger to the full desktop header at lg
-            (1024px), not md. That means portrait tablets (iPad et al.,
-            ~768-834px) keep the hamburger — landscape and up get the full
-            nav. */}
-        {variant === "full" && (
-          <nav className="hidden items-center gap-6 lg:flex">
-            {navLinks.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary-600",
-                    isActive ? "text-primary-600 underline underline-offset-4" : "text-gray-900"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
+        {/* Search sits in the middle, using up whatever space the logo and
+            icon cluster don't need — there's no separate page-nav row
+            competing for width anymore (that's now the category bar below). */}
+        {variant === "full" && showSearch && (
+          <div className="mx-auto hidden w-full max-w-2xl flex-1 lg:block">
+            <SearchBar
+              placeholder="Search for products, brands or categories..."
+              onSearch={handleSearch}
+            />
+          </div>
         )}
 
-        {/* Desktop-only right cluster: search, cart, and account. Hidden
-            below lg — the mobile/tablet cluster below covers the same
-            ground (cart + hamburger, which opens search/nav/account in a
-            panel) without overflowing a narrower header row. */}
-        <div className="hidden items-center gap-4 lg:flex">
-          {/* w-44 rather than the more spacious w-56 it used to be: nav +
-              cart + login alone are already a tight fit right at lg
-              (1024px) — a 224px search box appearing at that same instant
-              overflowed the header by ~12px (verified live). Narrowing it
-              wins back enough room without punching a gap in search
-              availability the way delaying it to a later breakpoint
-              would've (this header is the only search entry point on
-              pages like Home). */}
-          {variant === "full" && showSearch && (
-            <div className="hidden w-44 lg:block">
-              <SearchBar size="sm" onSearch={handleSearch} />
-            </div>
-          )}
-
-          {variant === "full" && showCart && cartLink}
-
-          {variant === "full" && !isLoading && user && (
-            <Link href="/profile">
-              <Avatar alt={`${user.firstName} ${user.lastName}`} size="sm" />
+        {/* Desktop-only icon cluster: hidden below lg — the mobile/tablet
+            cluster further down covers the same ground (cart + hamburger)
+            without overflowing a narrower header row. */}
+        <div className="hidden items-center gap-1 lg:flex">
+          {variant === "full" && (
+            <Link
+              href={accountHref}
+              className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-gray-900 hover:text-primary-600"
+            >
+              <User className="h-5 w-5" />
+              <span className="text-[11px] font-medium">Account</span>
             </Link>
           )}
 
-          {variant === "full" && !isLoading && !user && (
-            <Button variant="outline" size="sm" href="/login">
-              Login/Register
-            </Button>
+          {variant === "full" && (
+            <Link
+              href="/profile"
+              className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-gray-900 hover:text-primary-600"
+            >
+              <Heart className="h-5 w-5" />
+              <span className="text-[11px] font-medium">Wishlist</span>
+            </Link>
+          )}
+
+          {variant === "full" && showCart && (
+            <Link
+              href="/cart"
+              className="relative flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-gray-900 hover:text-primary-600"
+            >
+              <div className="relative">
+                <ShoppingCart className="h-5 w-5" />
+                {itemCount > 0 && (
+                  <Badge className="absolute -right-2 -top-1.5 h-5 min-w-5 justify-center bg-danger-500 px-1 text-white">
+                    {itemCount}
+                  </Badge>
+                )}
+              </div>
+              <span className="text-[11px] font-medium">Cart</span>
+            </Link>
           )}
 
           {variant === "minimal" && minimalRightLink && (
@@ -157,10 +154,10 @@ function Header({
         </div>
 
         {/* Mobile/tablet right cluster: cart stays one tap away, everything
-            else (nav links, search, account) lives behind the hamburger so
-            the header row never has to squeeze the full nav + login button
-            into a width that can't fit them (confirmed broken at 768px). */}
-        <div className="flex items-center gap-3 lg:hidden">
+            else (search, categories, account) lives behind the hamburger so
+            the header row never has to squeeze the full cluster into a
+            width that can't fit it. */}
+        <div className="ml-auto flex items-center gap-3 lg:hidden">
           {variant === "full" && showCart && cartLink}
 
           {variant === "full" && (
@@ -186,16 +183,55 @@ function Header({
         </div>
       </header>
 
+      {/* Category bar: "All Categories" + the top-level categories, with
+          Deals called out in the danger colour on the far right. Desktop
+          only — the mobile menu below covers the same links. */}
+      {variant === "full" && (
+        <div className="hidden border-t border-gray-200 lg:block">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 text-sm sm:px-6">
+            <div className="flex items-center gap-6">
+              <Link
+                href="/categories"
+                className="flex items-center gap-2 font-bold text-gray-900 hover:text-primary-600"
+              >
+                <Menu className="h-4 w-4" />
+                All Categories
+              </Link>
+              <div className="h-4 w-px bg-gray-200" />
+              <nav className="flex items-center gap-6 font-medium text-gray-900">
+                {categoryLinks.map((link) => (
+                  <Link key={link.href} href={link.href} className="hover:text-primary-600">
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+            <Link href={dealsLink.href} className="font-bold text-danger-500 hover:opacity-80">
+              {dealsLink.label}
+            </Link>
+          </div>
+        </div>
+      )}
+
       {variant === "full" && mobileMenuOpen && (
         <div className="border-t border-gray-200 px-4 pb-6 pt-4 lg:hidden">
           {showSearch && (
             <div className="mb-4">
-              <SearchBar size="sm" onSearch={handleSearch} />
+              <SearchBar
+                placeholder="Search for products, brands or categories..."
+                onSearch={handleSearch}
+              />
             </div>
           )}
 
           <nav className="flex flex-col gap-1">
-            {navLinks.map((link) => {
+            <Link
+              href="/categories"
+              className="rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
+            >
+              All Categories
+            </Link>
+            {categoryLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
@@ -212,24 +248,29 @@ function Header({
                 </Link>
               );
             })}
+            <Link
+              href={dealsLink.href}
+              className="rounded-md px-3 py-2.5 text-base font-bold text-danger-500 hover:bg-gray-50"
+            >
+              {dealsLink.label}
+            </Link>
           </nav>
 
-          <div className="mt-4 border-t border-gray-200 pt-4">
-            {!isLoading && user && (
-              <Link
-                href="/profile"
-                className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
-              >
-                <Avatar alt={`${user.firstName} ${user.lastName}`} size="sm" />
-                My Profile
-              </Link>
-            )}
-
-            {!isLoading && !user && (
-              <Button variant="outline" href="/login" className="w-full">
-                Login/Register
-              </Button>
-            )}
+          <div className="mt-4 flex flex-col gap-1 border-t border-gray-200 pt-4">
+            <Link
+              href={accountHref}
+              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
+            >
+              <User className="h-5 w-5" />
+              Account
+            </Link>
+            <Link
+              href="/profile"
+              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
+            >
+              <Heart className="h-5 w-5" />
+              Wishlist
+            </Link>
           </div>
         </div>
       )}

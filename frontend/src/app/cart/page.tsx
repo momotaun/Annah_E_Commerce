@@ -23,14 +23,7 @@ export default function ShoppingCartPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header
-        navLinks={[
-          { label: "Home", href: "/" },
-          { label: "Catalogue", href: "/catalogue" },
-          { label: "Categories", href: "/categories" },
-        ]}
-        showSearch
-      />
+      <Header showSearch />
 
       <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-6">
         <Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Your Shopping Cart" }]} />
