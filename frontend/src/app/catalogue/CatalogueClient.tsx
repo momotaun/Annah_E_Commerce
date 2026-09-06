@@ -25,6 +25,8 @@ const SORT_OPTIONS = [
 interface CatalogueClientProps {
   initialProducts: PaginatedProducts;
   categories: Category[];
+  // Comma-separated category slugs, e.g. "electronics,fashion" — mirrors
+  // how it's carried in the URL's ?category= param.
   activeCategory?: string;
   activeMinPrice?: number;
   activeMaxPrice?: number;
@@ -149,8 +151,12 @@ export default function CatalogueClient({
 
   function handleCategoryChange(slug: string, checked: boolean) {
     const params = new URLSearchParams(window.location.search);
-    if (checked) {
-      params.set("category", slug);
+    const selected = params.get("category")?.split(",").filter(Boolean) ?? [];
+    const next = checked
+      ? [...new Set([...selected, slug])]
+      : selected.filter((s) => s !== slug);
+    if (next.length > 0) {
+      params.set("category", next.join(","));
     } else {
       params.delete("category");
     }
@@ -226,7 +232,7 @@ export default function CatalogueClient({
         <FilterSidebar
           categories={categoryOptions}
           brands={[]}
-          selectedCategories={activeCategory ? [activeCategory] : []}
+          selectedCategories={activeCategory ? activeCategory.split(",") : []}
           onCategoryChange={handleCategoryChange}
           minPrice={activeMinPrice}
           maxPrice={activeMaxPrice}

@@ -89,4 +89,24 @@ describe('QueryProductsDto', () => {
     const errors = await validate(dto);
     expect(errors.some((e) => e.property === 'sort')).toBe(true);
   });
+
+  it('wraps a single category slug in an array', () => {
+    const dto = plainToInstance(QueryProductsDto, { category: 'apparel' });
+
+    expect(dto.category).toEqual(['apparel']);
+  });
+
+  it('splits a comma-separated category list into an array', () => {
+    const dto = plainToInstance(QueryProductsDto, {
+      category: 'apparel,footwear',
+    });
+
+    expect(dto.category).toEqual(['apparel', 'footwear']);
+  });
+
+  it('leaves category undefined when not provided', () => {
+    const dto = plainToInstance(QueryProductsDto, {});
+
+    expect(dto.category).toBeUndefined();
+  });
 });

@@ -28,7 +28,9 @@ export class ProductsService {
       query.minPrice !== undefined || query.maxPrice !== undefined;
 
     const where = {
-      ...(query.category && { category: { slug: query.category } }),
+      ...(query.category?.length && {
+        category: { slug: { in: query.category } },
+      }),
       ...(query.vendorId && { vendorId: query.vendorId }),
       ...(hasPriceFilter && {
         price: {

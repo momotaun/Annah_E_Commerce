@@ -1,5 +1,6 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsArray,
   IsIn,
   IsInt,
   IsNumber,
@@ -13,9 +14,15 @@ import { PRODUCT_SORT_OPTIONS } from '../../common/product-sort';
 import type { ProductSort } from '../../common/product-sort';
 
 export class QueryProductsDto {
+  // Accepts either a single slug or a comma-separated list (?category=a,b)
+  // so the catalogue filter can select more than one category at once.
   @IsOptional()
-  @IsString()
-  category?: string; // category slug
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.split(',').filter(Boolean) : value,
+  )
+  @IsArray()
+  @IsString({ each: true })
+  category?: string[]; // category slugs
 
   @IsOptional()
   @IsString()

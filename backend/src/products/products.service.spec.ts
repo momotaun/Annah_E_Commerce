@@ -83,7 +83,7 @@ describe('ProductsService', () => {
       await service.findAll({
         page: 1,
         limit: 20,
-        category: 'apparel',
+        category: ['apparel'],
         vendorId: 'vendor-1',
         minPrice: 100,
         maxPrice: 500,
@@ -92,16 +92,31 @@ describe('ProductsService', () => {
       const [call] = prisma.product.findMany.mock.calls[0] as [
         {
           where: {
-            category?: { slug: string };
+            category?: { slug: { in: string[] } };
             vendorId?: string;
             price?: { gte?: number; lte?: number };
           };
         },
       ];
       expect(call.where).toEqual({
-        category: { slug: 'apparel' },
+        category: { slug: { in: ['apparel'] } },
         vendorId: 'vendor-1',
         price: { gte: 100, lte: 500 },
+      });
+    });
+
+    it('filters by multiple categories at once', async () => {
+      await service.findAll({
+        page: 1,
+        limit: 20,
+        category: ['apparel', 'footwear'],
+      });
+
+      const [call] = prisma.product.findMany.mock.calls[0] as [
+        { where: { category?: { slug: { in: string[] } } } },
+      ];
+      expect(call.where.category).toEqual({
+        slug: { in: ['apparel', 'footwear'] },
       });
     });
 
