@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, ShoppingCart, X } from "lucide-react";
 import Button from "@/src/app/components/ui/Button";
@@ -43,9 +43,15 @@ function Header({
   minimalRightLink,
 }: HeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { itemCount } = useCart();
   const { user, isLoading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  function handleSearch(query: string) {
+    if (!query) return;
+    router.push(`/catalogue?q=${encodeURIComponent(query)}`);
+  }
 
   // Close the mobile menu on every navigation instead of leaving it open
   // over the new page's content.
@@ -122,7 +128,7 @@ function Header({
               pages like Home). */}
           {variant === "full" && showSearch && (
             <div className="hidden w-44 lg:block">
-              <SearchBar size="sm" />
+              <SearchBar size="sm" onSearch={handleSearch} />
             </div>
           )}
 
@@ -184,7 +190,7 @@ function Header({
         <div className="border-t border-gray-200 px-4 pb-6 pt-4 lg:hidden">
           {showSearch && (
             <div className="mb-4">
-              <SearchBar size="sm" />
+              <SearchBar size="sm" onSearch={handleSearch} />
             </div>
           )}
 

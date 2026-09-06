@@ -29,6 +29,7 @@ interface CatalogueClientProps {
   activeMinPrice?: number;
   activeMaxPrice?: number;
   activeSort?: ProductSort;
+  activeQuery?: string;
 }
 
 // Flatten the category tree into a flat list for the sidebar's checkbox
@@ -51,6 +52,7 @@ export default function CatalogueClient({
   activeMinPrice,
   activeMaxPrice,
   activeSort,
+  activeQuery,
 }: CatalogueClientProps) {
   const router = useRouter();
   const { addItem } = useCart();
@@ -62,8 +64,11 @@ export default function CatalogueClient({
   // Tracks the active search term so a sort change while searching
   // re-runs the search with the new sort instead of navigating the URL
   // (search itself is a client-side fetch, not URL-driven, so sort
-  // stays consistent with that while a query is active).
-  const [currentQuery, setCurrentQuery] = useState("");
+  // stays consistent with that while a query is active). Seeded from
+  // ?q= so a search kicked off from the header (a real navigation) lands
+  // here already in "searching" mode instead of showing the unfiltered
+  // catalogue with a stale query box.
+  const [currentQuery, setCurrentQuery] = useState(activeQuery ?? "");
   // Guards loadMore against firing twice for the same page — a plain ref
   // rather than isLoadingMore state, since the IntersectionObserver
   // callback below closes over whatever this was when the observer was
@@ -81,9 +86,12 @@ export default function CatalogueClient({
   // list back to just the new filter's first page, which is exactly
   // what should happen when the filter itself changes.
   useEffect(() => {
-    const timer = setTimeout(() => setProducts(initialProducts), 0);
+    const timer = setTimeout(() => {
+      setProducts(initialProducts);
+      setCurrentQuery(activeQuery ?? "");
+    }, 0);
     return () => clearTimeout(timer);
-  }, [initialProducts]);
+  }, [initialProducts, activeQuery]);
 
   // Infinite scroll, matching the design (a "Loading more premium
   // products..." indicator, not numbered pages or prev/next buttons):
@@ -227,7 +235,13 @@ export default function CatalogueClient({
 
         <div className="flex-1">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <SearchBar placeholder="Search products..." onSearch={handleSearch} className="sm:max-w-sm" />
+            <SearchBar
+              key={activeQuery ?? ""}
+              placeholder="Search products..."
+              defaultValue={activeQuery ?? ""}
+              onSearch={handleSearch}
+              className="sm:max-w-sm"
+            />
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">Sort by:</span>
               <Select

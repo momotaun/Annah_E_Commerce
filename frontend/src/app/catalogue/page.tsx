@@ -1,4 +1,4 @@
-import { getProducts, ProductSort } from "@/src/lib/api/products";
+import { getProducts, ProductSort, searchProducts } from "@/src/lib/api/products";
 import { getCategories } from "@/src/lib/api/categories";
 import CatalogueClient from "./CatalogueClient";
 
@@ -10,6 +10,7 @@ export default async function CataloguePage({
     minPrice?: string;
     maxPrice?: string;
     sort?: string;
+    q?: string;
   }>;
 }) {
   const {
@@ -17,6 +18,7 @@ export default async function CataloguePage({
     minPrice: minPriceParam,
     maxPrice: maxPriceParam,
     sort: sortParam,
+    q,
   } = await searchParams;
   const minPrice = minPriceParam ? Number(minPriceParam) : undefined;
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : undefined;
@@ -29,7 +31,9 @@ export default async function CataloguePage({
   // navigation — CatalogueClient's IntersectionObserver takes over from
   // here, fetching subsequent pages itself as the user scrolls.
   const [productsResult, categories] = await Promise.all([
-    getProducts({ category, page: 1, minPrice, maxPrice, sort, limit: 12 }),
+    q
+      ? searchProducts(q, 1, 20, sort)
+      : getProducts({ category, page: 1, minPrice, maxPrice, sort, limit: 12 }),
     getCategories(),
   ]);
 
@@ -41,6 +45,7 @@ export default async function CataloguePage({
       activeMinPrice={minPrice}
       activeMaxPrice={maxPrice}
       activeSort={sort}
+      activeQuery={q}
     />
   );
 }
