@@ -33,3 +33,43 @@ services:
         value: "10.00"
       - key: NODE_ENV
         value: production
+
+      # Which gateway handles new payments — "payfast" or "ozow". Both sets
+      # of credentials can be set at once; webhooks for either always work
+      # regardless of this setting.
+      - key: PAYMENT_PROVIDER
+        value: payfast
+
+      # Ozow (https://ozow.com) — from your Ozow merchant dashboard.
+      - key: OZOW_SITE_CODE
+        sync: false
+      - key: OZOW_PRIVATE_KEY
+        sync: false
+      - key: OZOW_API_KEY
+        sync: false
+      - key: OZOW_IS_TEST
+        value: "true"
+
+      # PayFast (https://payfast.co.za) — from your PayFast merchant
+      # dashboard's Account Information page.
+      - key: PAYFAST_MERCHANT_ID
+        sync: false
+      - key: PAYFAST_MERCHANT_KEY
+        sync: false
+      - key: PAYFAST_PASSPHRASE
+        sync: false
+      - key: PAYFAST_IS_TEST
+        value: "true"
+
+      # Resend (https://resend.com) transactional email — leave both unset
+      # to fall back to ConsoleMailer (logs instead of sending).
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        value: "Apex Marketplace <onboarding@resend.dev>"
+
+      - key: LOG_LEVEL
+        value: info
+      # Optional — Sentry error tracking. Leave unset to disable.
+      - key: SENTRY_DSN
+        sync: false
