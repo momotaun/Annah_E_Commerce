@@ -1,10 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Truck, ShieldCheck, Award, Headset } from "lucide-react";
+import { ArrowRight, Truck, Lock, Leaf, ShieldCheck, Award, Headset } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";
-import Badge from "@/src/app/components/ui/Badge";
 import Avatar from "@/src/app/components/ui/Avatar";
 import InfoCard from "@/src/app/components/shared/InfoCard";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
@@ -39,29 +38,74 @@ export default async function LandingPage() {
   );
 }
 
+const heroValueProps = [
+  { icon: Truck, title: "Free shipping", subtitle: "on orders over R1000" },
+  { icon: Lock, title: "Secure payment", subtitle: "100% safe & encrypted" },
+  { icon: Leaf, title: "A greener choice", subtitle: "For a brighter future" },
+];
+
 function HeroSection() {
   return (
-    <section className="group relative flex min-h-[420px] items-center overflow-hidden bg-gray-100 py-[154px]">
-      <Image
-        src="/images/hero-desk.jpg"
-        alt=""
-        fill
-        priority
-        className="object-cover transition-transform duration-[3000ms] ease-out group-hover:scale-110"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-transparent" />
-      <div className="relative mx-auto max-w-7xl px-6">
-        <Badge variant="primary" className="mb-4">SPRING COLLECTION 2024</Badge>
-        <h1 className="max-w-lg text-5xl font-extrabold leading-tight text-gray-900">
-          Elevate Your <span className="text-primary-600">Everyday</span>
-        </h1>
-        <p className="mt-4 max-w-md text-gray-500">
-          Discover curated premium essentials for a modern lifestyle. From
-          technical excellence to aesthetic perfection.
-        </p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:gap-4">
-          <Button size="lg" href="/catalogue" className="w-full sm:w-auto">Shop Now</Button>
-          <Button size="lg" variant="outline" href="/lookbook" className="w-full sm:w-auto">View Lookbook</Button>
+    <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
+      <div className="group relative flex min-h-[520px] items-center overflow-hidden rounded-md">
+        <Image
+          src="/images/hero-desk.jpg"
+          alt=""
+          fill
+          priority
+          className="object-cover transition-transform duration-[3000ms] ease-out group-hover:scale-110"
+        />
+        {/* Two stacked overlays: a full dark-forest tint so the whole
+            banner reads as "brand green", plus a left-to-right fade so the
+            copy on the left has a solid backdrop while the desk/headphones
+            on the right stay visible through the tint. */}
+        <div className="absolute inset-0 bg-primary-600/80" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-600 via-primary-600/90 to-transparent md:w-2/3" />
+
+        <div className="relative z-10 flex w-full flex-col gap-10 px-6 py-12 md:w-3/5 md:px-16">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-widest text-primary-100">
+              A Better Way To Shop
+            </span>
+            <h1 className="mt-4 text-4xl font-extrabold leading-tight text-white sm:text-5xl">
+              Quality products for a <span className="text-primary-500">brighter</span> everyday
+            </h1>
+            <p className="mt-6 max-w-md text-lg text-primary-50">
+              Top brands. Great prices. A more sustainable tomorrow.
+            </p>
+            <Button
+              size="lg"
+              href="/catalogue"
+              className="mt-8 bg-white text-primary-600 hover:bg-gray-100"
+              icon={<ArrowRight className="h-4 w-4" />}
+              iconPosition="right"
+            >
+              Shop Now
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+            {heroValueProps.map(({ icon: Icon, title, subtitle }) => (
+              <div key={title} className="flex items-center gap-2">
+                <Icon className="h-5 w-5 shrink-0 text-primary-300" />
+                <div className="text-sm leading-tight">
+                  <p className="font-semibold text-white">{title}</p>
+                  <p className="text-primary-100">{subtitle}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="absolute right-8 top-8 z-10 hidden rounded-full bg-primary-50 px-6 py-4 text-center shadow-lg md:block">
+          <p className="text-lg font-extrabold text-primary-600">UP TO 50% OFF</p>
+          <p className="text-xs text-gray-600">Selected items</p>
+        </div>
+
+        <div className="absolute bottom-6 right-8 z-10 hidden gap-2 md:flex">
+          <span className="h-2 w-2 rounded-full bg-white" />
+          <span className="h-2 w-2 rounded-full bg-white/40" />
+          <span className="h-2 w-2 rounded-full bg-white/40" />
         </div>
       </div>
     </section>
