@@ -8,6 +8,11 @@ interface TopRatedEssentialsProps {
   products: Product[];
 }
 
+// Matches the reference design's single row of 6 — sliced rather than
+// fetched at 6 upstream so this stays the one place that decides how many
+// fit a row.
+const ROW_SIZE = 6;
+
 export default function TopRatedEssentials({ products }: TopRatedEssentialsProps) {
   const { addItem } = useCart();
 
@@ -15,15 +20,17 @@ export default function TopRatedEssentials({ products }: TopRatedEssentialsProps
     return null; // nothing seeded yet — quietly omit the section rather than show an empty shell
   }
 
+  const rowProducts = products.slice(0, ROW_SIZE);
+
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
-      <div className="mb-8 text-center">
+      <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900">Trending Now</h2>
         <p className="text-sm text-gray-500">Popular products, loved by our customers.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {products.map((product) => (
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        {rowProducts.map((product) => (
           <ProductCard
             key={product.id}
             href={`/products/${product.slug}`}

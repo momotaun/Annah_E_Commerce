@@ -10,7 +10,7 @@ import { getProducts } from "@/src/lib/api/products";
 import TopRatedEssentials from "@/src/app/TopRatedEssentials";
 
 export default async function LandingPage() {
-  const essentials = await getProducts({ limit: 8 });
+  const essentials = await getProducts({ limit: 6 });
 
   return (
     <div className="flex min-h-screen flex-col">
