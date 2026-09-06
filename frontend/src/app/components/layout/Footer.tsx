@@ -1,69 +1,74 @@
 import Link from "next/link";
-import { Banknote, ChevronDown, CreditCard, Landmark } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import SocialIcon from "@/src/app/components/ui/SocialIcon";
-import TwitterIcon from "@/src/app/components/ui/icons/TwitterIcon";
 import InstagramIcon from "@/src/app/components/ui/icons/InstagramIcon";
 import FacebookIcon from "@/src/app/components/ui/icons/FacebookIcon";
+import YoutubeIcon from "@/src/app/components/ui/icons/YoutubeIcon";
+import TikTokIcon from "@/src/app/components/ui/icons/TikTokIcon";
+import LinkedInIcon from "@/src/app/components/ui/icons/LinkedInIcon";
 
 export interface FooterProps {
   variant?: "full" | "minimal";
   className?: string;
 }
 
-const BRAND_BLURB =
-  "Elevating everyday life through curated premium essentials. Your destination for high-end lifestyle and tech products.";
+const BRAND_TAGLINE = "Better products. A brighter everyday.";
 
 const FOOTER_COLUMNS = [
   {
     title: "Shop",
     links: [
-      { label: "Catalogue", href: "/catalogue" },
-      { label: "Categories", href: "/categories" },
+      { label: "All Categories", href: "/categories" },
+      { label: "Special Offers", href: "/collections/limited-edition" },
+      { label: "New Arrivals", href: "/catalogue?sort=newest" },
+      { label: "Best Sellers", href: "/catalogue" },
     ],
   },
   {
-    title: "Company",
+    title: "Help",
     links: [
-      { label: "About Us", href: "/about" },
-      { label: "Sustainability", href: "/sustainability" },
-      { label: "Contact", href: "/contact" },
-      { label: "Careers", href: "/careers" },
-    ],
-  },
-  {
-    title: "Support",
-    links: [
-      { label: "Shipping & Delivery", href: "/shipping" },
+      { label: "Track Your Order", href: "/orders" },
       { label: "Returns & Refunds", href: "/returns" },
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Terms of Service", href: "/terms" },
+      { label: "Shipping Information", href: "/shipping" },
+      { label: "FAQs", href: "/help" },
+    ],
+  },
+  {
+    title: "About",
+    links: [
+      { label: "Our Story", href: "/about" },
+      { label: "Sustainability", href: "/sustainability" },
+      { label: "Careers", href: "/careers" },
+      { label: "Contact Us", href: "/contact" },
     ],
   },
 ];
+
+const socialIconClassName = "bg-white/10 text-primary-100 hover:bg-white/20 hover:text-white";
 
 function Footer({ variant = "full", className }: FooterProps) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className={cn("w-full border-t border-gray-200 bg-white", className)}>
+    <footer className={cn("w-full bg-primary-600 text-white", className)}>
       {variant === "full" && (
         <div className="mx-auto max-w-7xl px-6 py-12">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-10">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-5 md:gap-8">
             <div className="flex flex-col gap-3 pb-2 md:pb-0">
-              <span className="text-xl font-bold text-primary-600">
-                Apex Marketplace
-              </span>
-              <p className="text-sm text-gray-500">{BRAND_BLURB}</p>
-              <div className="mt-2 flex gap-3">
-                <SocialIcon icon={<TwitterIcon className="h-4 w-4" />} label="Twitter" />
-                <SocialIcon icon={<InstagramIcon className="h-4 w-4" />} label="Instagram" />
-                <SocialIcon icon={<FacebookIcon className="h-4 w-4" />} label="Facebook" />
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-lg font-bold text-primary-600">
+                  E
+                </span>
+                <span className="text-lg font-extrabold tracking-tight">
+                  Elite<span className="text-primary-300">Commerce</span>
+                </span>
               </div>
+              <p className="text-sm text-primary-100">{BRAND_TAGLINE}</p>
             </div>
 
             {FOOTER_COLUMNS.map((column) => (
-              <div key={column.title} className="border-t border-gray-200 md:border-0">
+              <div key={column.title} className="border-t border-white/10 md:border-0">
                 {/* Mobile: each column collapses into an accordion — three
                     always-expanded link lists is a lot of scroll to get
                     past on a phone. <details>/<summary> gives us this with
@@ -71,17 +76,14 @@ function Footer({ variant = "full", className }: FooterProps) {
                     original always-expanded column (hidden md:flex below),
                     since there's no scroll problem to solve there. */}
                 <details className="group md:hidden">
-                  <summary className="flex cursor-pointer list-none items-center justify-between py-3 text-sm font-semibold text-gray-900 [&::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer list-none items-center justify-between py-3 text-sm font-semibold text-white [&::-webkit-details-marker]:hidden">
                     {column.title}
-                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
+                    <ChevronDown className="h-4 w-4 text-primary-100 transition-transform group-open:rotate-180" />
                   </summary>
                   <ul className="flex flex-col gap-2 pb-4">
                     {column.links.map((link) => (
                       <li key={link.href}>
-                        <Link
-                          href={link.href}
-                          className="text-sm text-gray-500 hover:text-primary-600"
-                        >
+                        <Link href={link.href} className="text-sm text-primary-100 hover:text-white">
                           {link.label}
                         </Link>
                       </li>
@@ -90,16 +92,11 @@ function Footer({ variant = "full", className }: FooterProps) {
                 </details>
 
                 <div className="hidden flex-col gap-3 md:flex">
-                  <span className="text-sm font-semibold text-gray-900">
-                    {column.title}
-                  </span>
+                  <span className="text-sm font-semibold text-white">{column.title}</span>
                   <ul className="flex flex-col gap-2">
                     {column.links.map((link) => (
                       <li key={link.href}>
-                        <Link
-                          href={link.href}
-                          className="text-sm text-gray-500 hover:text-primary-600"
-                        >
+                        <Link href={link.href} className="text-sm text-primary-100 hover:text-white">
                           {link.label}
                         </Link>
                       </li>
@@ -108,20 +105,31 @@ function Footer({ variant = "full", className }: FooterProps) {
                 </div>
               </div>
             ))}
+
+            <div className="flex flex-col gap-3 border-t border-white/10 pt-4 md:border-0 md:pt-0">
+              <span className="text-sm font-semibold text-white">Follow Us</span>
+              <div className="flex gap-3">
+                <SocialIcon icon={<InstagramIcon className="h-4 w-4" />} label="Instagram" className={socialIconClassName} />
+                <SocialIcon icon={<FacebookIcon className="h-4 w-4" />} label="Facebook" className={socialIconClassName} />
+                <SocialIcon icon={<YoutubeIcon className="h-4 w-4" />} label="YouTube" className={socialIconClassName} />
+                <SocialIcon icon={<TikTokIcon className="h-4 w-4" />} label="TikTok" className={socialIconClassName} />
+                <SocialIcon icon={<LinkedInIcon className="h-4 w-4" />} label="LinkedIn" className={socialIconClassName} />
+              </div>
+              <p className="mt-2 text-xs text-primary-100">
+                © {year} EliteCommerce. All rights reserved.
+                <br />
+                A brighter everyday. Together.
+              </p>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="border-t border-gray-200">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-5 text-sm text-gray-500 sm:flex-row">
-          <span>© {year} Apex Marketplace. All rights reserved.</span>
-          <div className="flex items-center gap-4 text-gray-400">
-            <Banknote className="h-4 w-4" aria-label="Cash on delivery" />
-            <CreditCard className="h-4 w-4" aria-label="Card payments" />
-            <Landmark className="h-4 w-4" aria-label="EFT / bank transfer" />
-          </div>
+      {variant === "minimal" && (
+        <div className="mx-auto max-w-7xl px-6 py-6 text-center text-sm text-primary-100">
+          © {year} EliteCommerce. All rights reserved.
         </div>
-      </div>
+      )}
     </footer>
   );
 }
