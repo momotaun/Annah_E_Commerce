@@ -18,8 +18,8 @@ export default function TopRatedEssentials({ products }: TopRatedEssentialsProps
   return (
     <section className="mx-auto max-w-7xl px-6 py-16">
       <div className="mb-8 text-center">
-        <h2 className="text-2xl font-bold text-gray-900">Top-Rated Essentials</h2>
-        <p className="text-sm text-gray-500">Voted by our community of enthusiasts</p>
+        <h2 className="text-2xl font-bold text-gray-900">Trending Now</h2>
+        <p className="text-sm text-gray-500">Popular products, loved by our customers.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
