@@ -86,9 +86,11 @@ function HeroSection() {
           </div>
         </div>
 
-        <div className="absolute right-8 top-8 z-10 hidden rounded-full bg-primary-50 px-6 py-4 text-center shadow-lg md:block">
-          <p className="text-lg font-extrabold text-primary-600">UP TO 50% OFF</p>
-          <p className="text-xs text-gray-600">Selected items</p>
+        <div className="absolute right-8 top-8 z-10 hidden h-32 w-32 flex-col items-center justify-center rounded-full border border-primary-100/40 text-center md:flex">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-primary-100">Up to</span>
+          <span className="text-3xl font-extrabold leading-tight text-white">50%</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-primary-100">Off</span>
+          <span className="mt-1 text-[10px] text-primary-100/80">Selected items</span>
         </div>
 
         <div className="absolute bottom-6 right-8 z-10 hidden gap-2 md:flex">
