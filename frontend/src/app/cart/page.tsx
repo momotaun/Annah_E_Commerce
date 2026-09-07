@@ -10,6 +10,7 @@ import Button from "@/src/app/components/ui/Button";
 import Spinner from "@/src/app/components/ui/Spinner";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
+import { withLoginRedirect } from "@/src/lib/loginRedirect";
 
 export default function ShoppingCartPage() {
   const { cart, isLoading, updateItem, removeItem } = useCart();
@@ -96,7 +97,7 @@ export default function ShoppingCartPage() {
                   <div className="mt-4 flex gap-2 rounded-md bg-gray-50 p-3 text-xs text-gray-500">
                     <Info className="h-4 w-4 shrink-0 text-gray-400" />
                     Checkout requires an account.{" "}
-                    <Link href="/login" className="font-medium text-primary-600 hover:underline">
+                    <Link href={withLoginRedirect("/cart")} className="font-medium text-primary-600 hover:underline">
                       Log in
                     </Link>{" "}
                     to complete your purchase.

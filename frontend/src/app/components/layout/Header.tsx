@@ -9,6 +9,7 @@ import SearchBar from "@/src/app/components/shared/SearchBar";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
 import { cn } from "@/src/lib/utils";
+import { withLoginRedirect } from "@/src/lib/loginRedirect";
 
 export interface NavLink {
   label: string;
@@ -45,6 +46,7 @@ function Header({
   const router = useRouter();
   const { itemCount } = useCart();
   const { user, logout } = useAuth();
+  const loginHref = withLoginRedirect(pathname);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
@@ -182,7 +184,7 @@ function Header({
                     </>
                   ) : (
                     <Link
-                      href="/login"
+                      href={loginHref}
                       role="menuitem"
                       className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
                     >
@@ -362,7 +364,7 @@ function Header({
               </>
             ) : (
               <Link
-                href="/login"
+                href={loginHref}
                 className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
               >
                 <User className="h-5 w-5" />
