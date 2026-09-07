@@ -41,6 +41,7 @@ const FOOTER_COLUMNS = [
       { label: "Sustainability", href: "/sustainability" },
       { label: "Careers", href: "/careers" },
       { label: "Contact Us", href: "/contact" },
+      { label: "Become a Vendor", href: "/vendor-onboarding/business-info" },
     ],
   },
 ];
