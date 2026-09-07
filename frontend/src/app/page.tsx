@@ -1,15 +1,21 @@
 import Image from "next/image";
-import { ArrowRight, Truck, Leaf, ShieldCheck, Star } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Armchair, Laptop, Percent, Shirt, Tag, Truck, Leaf, ShieldCheck, Star } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
 import { getProducts } from "@/src/lib/api/products";
+import { getCategories } from "@/src/lib/api/categories";
+import { Category } from "@/src/lib/api-types";
 import TopRatedEssentials from "@/src/app/TopRatedEssentials";
 import HeroSection from "@/src/app/HeroSection";
 
 export default async function LandingPage() {
-  const essentials = await getProducts({ limit: 6 });
+  const [essentials, categories] = await Promise.all([
+    getProducts({ limit: 6 }),
+    getCategories(),
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -17,6 +23,7 @@ export default async function LandingPage() {
 
       <main className="flex-1">
         <HeroSection />
+        <CategoryIconRow categories={categories} />
         <TopRatedEssentials products={essentials.data} />
         <PromoBanner />
         <TrustBadges />
@@ -25,6 +32,57 @@ export default async function LandingPage() {
 
       <Footer />
     </div>
+  );
+}
+
+// Icons for the real, seeded top-level categories — anything without an
+// entry here falls back to a generic tag icon rather than breaking.
+const CATEGORY_ICONS: Record<string, typeof Laptop> = {
+  electronics: Laptop,
+  "home-living": Armchair,
+  fashion: Shirt,
+};
+
+// Alternating on-brand tints for card variety — kept within the green
+// palette rather than the rainbow pastels in the reference, so the row
+// still reads as this site's own branding. primary-50 is deliberately
+// excluded: it's essentially the same colour as the page background
+// (both #F2FBF6), so a card in that shade would be invisible.
+const CATEGORY_CARD_TINTS = ["bg-primary-100", "bg-primary-200"];
+
+function CategoryIconRow({ categories }: { categories: Category[] }) {
+  if (categories.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-10">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {categories.map((category, i) => {
+          const Icon = CATEGORY_ICONS[category.slug] ?? Tag;
+          return (
+            <Link
+              key={category.id}
+              href={`/categories/${category.slug}`}
+              className="group flex flex-col items-center gap-3"
+            >
+              <span
+                className={`flex aspect-square w-full items-center justify-center rounded-md text-primary-600 transition-transform group-hover:scale-[1.03] ${CATEGORY_CARD_TINTS[i % CATEGORY_CARD_TINTS.length]}`}
+              >
+                <Icon className="h-10 w-10" />
+              </span>
+              <span className="text-sm font-medium text-gray-900">{category.name}</span>
+            </Link>
+          );
+        })}
+        <Link href="/collections/limited-edition" className="group flex flex-col items-center gap-3">
+          <span className="flex aspect-square w-full items-center justify-center rounded-md bg-danger-50 text-danger-500 transition-transform group-hover:scale-[1.03]">
+            <Percent className="h-10 w-10" />
+          </span>
+          <span className="text-sm font-medium text-danger-500">Special Offers</span>
+        </Link>
+      </div>
+    </section>
   );
 }
 
