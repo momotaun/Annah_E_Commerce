@@ -8,6 +8,7 @@ import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
 import { getProducts } from "@/src/lib/api/products";
 import { getCategories } from "@/src/lib/api/categories";
 import { Category } from "@/src/lib/api-types";
+import { getCategoryTheme } from "@/src/lib/categoryTheme";
 import TopRatedEssentials from "@/src/app/TopRatedEssentials";
 import HeroSection from "@/src/app/HeroSection";
 
@@ -43,13 +44,6 @@ const CATEGORY_ICONS: Record<string, typeof Laptop> = {
   fashion: Shirt,
 };
 
-// Alternating on-brand tints for card variety — kept within the green
-// palette rather than the rainbow pastels in the reference, so the row
-// still reads as this site's own branding. primary-50 is deliberately
-// excluded: it's essentially the same colour as the page background
-// (both #F2FBF6), so a card in that shade would be invisible.
-const CATEGORY_CARD_TINTS = ["bg-primary-100", "bg-primary-200"];
-
 function CategoryIconRow({ categories }: { categories: Category[] }) {
   if (categories.length === 0) {
     return null;
@@ -58,8 +52,9 @@ function CategoryIconRow({ categories }: { categories: Category[] }) {
   return (
     <section className="mx-auto max-w-7xl px-6 py-10">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {categories.map((category, i) => {
+        {categories.map((category) => {
           const Icon = CATEGORY_ICONS[category.slug] ?? Tag;
+          const theme = getCategoryTheme(category.slug);
           return (
             <Link
               key={category.id}
@@ -67,7 +62,7 @@ function CategoryIconRow({ categories }: { categories: Category[] }) {
               className="group flex flex-col items-center gap-3"
             >
               <span
-                className={`flex h-8 w-8 items-center justify-center rounded-md text-primary-600 transition-transform group-hover:scale-[1.03] ${CATEGORY_CARD_TINTS[i % CATEGORY_CARD_TINTS.length]}`}
+                className={`flex h-8 w-8 items-center justify-center rounded-md transition-transform group-hover:scale-[1.03] ${theme.bgSoft} ${theme.text}`}
               >
                 <Icon className="h-4 w-4" />
               </span>
@@ -88,6 +83,7 @@ function CategoryIconRow({ categories }: { categories: Category[] }) {
 
 const promoCards = [
   {
+    slug: "home-living",
     eyebrow: "Home Essentials",
     headline: "Make home a happier place",
     subtext: "Stylish. Practical. Made for everyday living",
@@ -97,6 +93,7 @@ const promoCards = [
     image: "/images/cat-home.jpg",
   },
   {
+    slug: "electronics",
     eyebrow: "Tech For A Brighter Tomorrow",
     headline: "Smarter tech. Greener choices.",
     subtext: "Innovation for a better everyday.",
@@ -111,44 +108,49 @@ function PromoBanner() {
   return (
     <section className="mx-auto max-w-7xl px-6 pb-16">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {promoCards.map((card) => (
-          <div
-            key={card.href}
-            className="group relative min-h-[260px] overflow-hidden rounded-md"
-          >
-            <Image
-              src={card.image}
-              alt=""
-              fill
-              className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent" />
+        {promoCards.map((card) => {
+          const theme = getCategoryTheme(card.slug);
+          return (
+            <div
+              key={card.href}
+              className="group relative min-h-[260px] overflow-hidden rounded-md"
+            >
+              <Image
+                src={card.image}
+                alt=""
+                fill
+                className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent" />
 
-            <div className="relative flex h-full w-3/4 flex-col justify-center gap-3 px-8 py-8">
-              <span className="text-xs font-bold uppercase tracking-widest text-primary-500">
-                {card.eyebrow}
-              </span>
-              <h3 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
-                {card.headline}
-              </h3>
-              <p className="text-sm text-gray-500">{card.subtext}</p>
-              <Button
-                href={card.href}
-                className="mt-2 w-fit"
-                icon={<ArrowRight className="h-4 w-4" />}
-                iconPosition="right"
+              <div className="relative flex h-full w-3/4 flex-col justify-center gap-3 px-8 py-8">
+                <span className={`text-xs font-bold uppercase tracking-widest ${theme.text}`}>
+                  {card.eyebrow}
+                </span>
+                <h3 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
+                  {card.headline}
+                </h3>
+                <p className="text-sm text-gray-500">{card.subtext}</p>
+                <Button
+                  href={card.href}
+                  className={`mt-2 w-fit ${theme.button}`}
+                  icon={<ArrowRight className="h-4 w-4" />}
+                  iconPosition="right"
+                >
+                  {card.cta}
+                </Button>
+              </div>
+
+              <div
+                className={`absolute right-6 top-6 flex h-20 w-20 flex-col items-center justify-center rounded-full text-center leading-none ${theme.bgSoft} ${theme.text}`}
               >
-                {card.cta}
-              </Button>
+                <span className="text-[10px] font-bold uppercase">Up to</span>
+                <span className="text-xl font-extrabold">{card.discount}</span>
+                <span className="text-[10px] font-bold uppercase">Off</span>
+              </div>
             </div>
-
-            <div className="absolute right-6 top-6 flex h-20 w-20 flex-col items-center justify-center rounded-full bg-primary-100 text-center leading-none text-primary-600">
-              <span className="text-[10px] font-bold uppercase">Up to</span>
-              <span className="text-xl font-extrabold">{card.discount}</span>
-              <span className="text-[10px] font-bold uppercase">Off</span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

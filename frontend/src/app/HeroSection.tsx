@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ArrowRight, Truck, Lock, Leaf } from "lucide-react";
 import Button from "@/src/app/components/ui/Button";
+import { getCategoryTheme } from "@/src/lib/categoryTheme";
 
 interface Slide {
   eyebrow: string;
@@ -15,6 +16,10 @@ interface Slide {
   cta: { label: string; href: string };
   badgeValue: string;
   badgeCaption: string;
+  /** Ties this slide to a real category's colour theme — omitted for the
+      flagship and adventure/outdoor slides, which aren't a real category
+      and stay the default brand green. */
+  categorySlug?: string;
 }
 
 const slides: Slide[] = [
@@ -39,6 +44,7 @@ const slides: Slide[] = [
     cta: { label: "Shop Fashion", href: "/categories/fashion" },
     badgeValue: "25%",
     badgeCaption: "New arrivals",
+    categorySlug: "fashion",
   },
   {
     eyebrow: "Tech For Tomorrow",
@@ -50,6 +56,7 @@ const slides: Slide[] = [
     cta: { label: "Shop Electronics", href: "/categories/electronics" },
     badgeValue: "30%",
     badgeCaption: "Selected items",
+    categorySlug: "electronics",
   },
   {
     eyebrow: "Weekend Ready",
@@ -86,6 +93,7 @@ export default function HeroSection() {
   }, [activeSlide]);
 
   const slide = slides[activeSlide];
+  const theme = getCategoryTheme(slide.categorySlug);
 
   return (
     <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
@@ -98,12 +106,15 @@ export default function HeroSection() {
           priority
           className="object-cover transition-transform duration-[3000ms] ease-out group-hover:scale-110"
         />
-        {/* Two stacked overlays: a full dark-forest tint so the whole
-            banner reads as "brand green", plus a left-to-right fade so the
-            copy on the left has a solid backdrop while the photo on the
-            right stays visible through the tint. */}
-        <div className="absolute inset-0 bg-primary-600/80" />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-600 via-primary-600/90 to-transparent md:w-2/3" />
+        {/* Two stacked overlays: a full colour tint (brand green by default,
+            or the slide's category colour) so the whole banner reads as one
+            block, plus a left-to-right fade so the copy on the left has a
+            solid backdrop while the photo on the right stays visible
+            through the tint. */}
+        <div className={`absolute inset-0 ${theme.heroOverlay}`} />
+        <div
+          className={`absolute inset-0 bg-gradient-to-r ${theme.heroGradientFrom} ${theme.heroGradientVia} to-transparent md:w-2/3`}
+        />
 
         <div className="relative z-10 flex w-full flex-col gap-10 px-6 py-12 md:w-3/5 md:px-16">
           <div>
@@ -111,14 +122,14 @@ export default function HeroSection() {
               {slide.eyebrow}
             </span>
             <h1 className="mt-4 text-4xl font-extrabold leading-tight text-white sm:text-5xl">
-              {slide.headlineBefore} <span className="text-primary-500">{slide.highlight}</span>{" "}
+              {slide.headlineBefore} <span className={theme.highlightText}>{slide.highlight}</span>{" "}
               {slide.headlineAfter}
             </h1>
             <p className="mt-6 max-w-md text-lg text-primary-50">{slide.subheading}</p>
             <Button
               size="lg"
               href={slide.cta.href}
-              className="mt-8 bg-white text-primary-600 hover:bg-gray-100"
+              className={`mt-8 bg-white hover:bg-gray-100 ${theme.text}`}
               icon={<ArrowRight className="h-4 w-4" />}
               iconPosition="right"
             >

@@ -15,6 +15,7 @@ import Spinner from "@/src/app/components/ui/Spinner";
 import { useCart } from "@/src/context/CartContext";
 import { Category, PaginatedProducts } from "@/src/lib/api-types";
 import { getProducts, ProductSort } from "@/src/lib/api/products";
+import { getCategoryTheme } from "@/src/lib/categoryTheme";
 
 const SORT_OPTIONS = [
   { label: "Newest", value: "newest" },
@@ -147,6 +148,8 @@ export default function CategoryClient({
     });
   }
 
+  const theme = getCategoryTheme(category.slug);
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header showSearch />
@@ -160,7 +163,9 @@ export default function CategoryClient({
           ]}
         />
 
-        <section className="relative mt-4 flex min-h-[200px] items-center overflow-hidden rounded-md bg-gray-900 px-8">
+        <section
+          className={`relative mt-4 flex min-h-[200px] items-center overflow-hidden rounded-md bg-gradient-to-br px-8 ${theme.gradientFrom} ${theme.gradientTo}`}
+        >
           <div className="relative max-w-lg text-white">
             <h1 className="text-4xl font-extrabold">{category.name}</h1>
             {/* No description field exists on Category in our schema —
