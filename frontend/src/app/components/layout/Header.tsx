@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Menu, Heart, ShoppingCart, User, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Menu, Heart, LogOut, Settings, ShoppingCart, User, X } from "lucide-react";
 import Badge from "@/src/app/components/ui/Badge";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 import { useCart } from "@/src/context/CartContext";
@@ -44,22 +44,52 @@ function Header({
   const pathname = usePathname();
   const router = useRouter();
   const { itemCount } = useCart();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
 
   function handleSearch(query: string) {
     if (!query) return;
     router.push(`/catalogue?q=${encodeURIComponent(query)}`);
   }
 
-  // Close the mobile menu on every navigation instead of leaving it open
-  // over the new page's content.
+  // Close the mobile menu and the account dropdown on every navigation
+  // instead of leaving them open over the new page's content.
   useEffect(() => {
-    const timer = setTimeout(() => setMobileMenuOpen(false), 0);
+    const timer = setTimeout(() => {
+      setMobileMenuOpen(false);
+      setAccountMenuOpen(false);
+    }, 0);
     return () => clearTimeout(timer);
   }, [pathname]);
 
-  const accountHref = user ? "/profile" : "/login";
+  // Dismiss the account dropdown on an outside click or Escape — it has no
+  // other close affordance once open.
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!accountMenuRef.current?.contains(event.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setAccountMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [accountMenuOpen]);
+
+  function handleLogout() {
+    setAccountMenuOpen(false);
+    logout();
+  }
 
   const cartLink = (
     <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-gray-900">
@@ -107,13 +137,61 @@ function Header({
             without overflowing a narrower header row. */}
         <div className="hidden items-center gap-1 lg:flex">
           {variant === "full" && (
-            <Link
-              href={accountHref}
-              className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-gray-900 hover:text-primary-600"
-            >
-              <User className="h-5 w-5" />
-              <span className="text-[11px] font-medium">Account</span>
-            </Link>
+            <div className="relative" ref={accountMenuRef}>
+              <button
+                type="button"
+                onClick={() => setAccountMenuOpen((open) => !open)}
+                aria-expanded={accountMenuOpen}
+                aria-haspopup="menu"
+                className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-gray-900 hover:text-primary-600"
+              >
+                <User className="h-5 w-5" />
+                <span className="text-[11px] font-medium">Account</span>
+              </button>
+
+              {accountMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full z-50 mt-2 w-44 rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+                >
+                  {user ? (
+                    <>
+                      <Link
+                        href="/profile"
+                        role="menuitem"
+                        className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
+                      >
+                        Profile
+                      </Link>
+                      <Link
+                        href="/profile/settings"
+                        role="menuitem"
+                        className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
+                      >
+                        Settings
+                      </Link>
+                      <div className="my-1 border-t border-gray-200" />
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={handleLogout}
+                        className="block w-full px-4 py-2 text-left text-sm text-danger-500 hover:bg-gray-50"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      href="/login"
+                      role="menuitem"
+                      className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
+                    >
+                      Login
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           {variant === "full" && (
@@ -257,13 +335,40 @@ function Header({
           </nav>
 
           <div className="mt-4 flex flex-col gap-1 border-t border-gray-200 pt-4">
-            <Link
-              href={accountHref}
-              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
-            >
-              <User className="h-5 w-5" />
-              Account
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
+                >
+                  <User className="h-5 w-5" />
+                  Profile
+                </Link>
+                <Link
+                  href="/profile/settings"
+                  className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
+                >
+                  <Settings className="h-5 w-5" />
+                  Settings
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 rounded-md px-3 py-2.5 text-left text-base font-medium text-danger-500 hover:bg-gray-50"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
+              >
+                <User className="h-5 w-5" />
+                Login
+              </Link>
+            )}
             <Link
               href="/profile"
               className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
