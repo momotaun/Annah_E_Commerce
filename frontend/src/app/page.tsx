@@ -67,17 +67,17 @@ function CategoryIconRow({ categories }: { categories: Category[] }) {
               className="group flex flex-col items-center gap-3"
             >
               <span
-                className={`flex aspect-square w-full items-center justify-center rounded-md text-primary-600 transition-transform group-hover:scale-[1.03] ${CATEGORY_CARD_TINTS[i % CATEGORY_CARD_TINTS.length]}`}
+                className={`flex h-8 w-8 items-center justify-center rounded-md text-primary-600 transition-transform group-hover:scale-[1.03] ${CATEGORY_CARD_TINTS[i % CATEGORY_CARD_TINTS.length]}`}
               >
-                <Icon className="h-10 w-10" />
+                <Icon className="h-4 w-4" />
               </span>
               <span className="text-sm font-medium text-gray-900">{category.name}</span>
             </Link>
           );
         })}
         <Link href="/collections/limited-edition" className="group flex flex-col items-center gap-3">
-          <span className="flex aspect-square w-full items-center justify-center rounded-md bg-danger-50 text-danger-500 transition-transform group-hover:scale-[1.03]">
-            <Percent className="h-10 w-10" />
+          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-danger-50 text-danger-500 transition-transform group-hover:scale-[1.03]">
+            <Percent className="h-4 w-4" />
           </span>
           <span className="text-sm font-medium text-danger-500">Special Offers</span>
         </Link>
