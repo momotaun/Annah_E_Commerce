@@ -193,6 +193,30 @@ describe('AuthService', () => {
         /^http:\/\/localhost:3000\/verify-email\?token=/,
       );
     });
+
+    it('still returns tokens if the verification email fails to send', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.user.create.mockResolvedValue({
+        id: 'new-user',
+        email: 'jane@example.co.za',
+        firstName: 'Jane',
+        lastName: 'Dlamini',
+      });
+      prisma.refreshToken.create.mockResolvedValue({});
+      mailer.sendVerificationEmail.mockRejectedValue(
+        new Error('Resend is down'),
+      );
+
+      const result = await service.register({
+        email: 'jane@example.co.za',
+        password: 'password123',
+        firstName: 'Jane',
+        lastName: 'Dlamini',
+      });
+
+      expect(result.accessToken).toBeDefined();
+      expect(result.user.email).toBe('jane@example.co.za');
+    });
   });
 
   describe('login', () => {
@@ -328,6 +352,22 @@ describe('AuthService', () => {
       const rawToken = new URL(resetUrl).searchParams.get('token')!;
       const hashedRaw = createHash('sha256').update(rawToken).digest('hex');
       expect(persisted.tokenHash).toBe(hashedRaw);
+    });
+
+    it('still returns the generic message if the reset email fails to send', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'jane@example.co.za',
+      });
+      prisma.passwordResetToken.deleteMany.mockResolvedValue({});
+      prisma.passwordResetToken.create.mockResolvedValue({});
+      mailer.sendPasswordResetEmail.mockRejectedValue(
+        new Error('Resend is down'),
+      );
+
+      const result = await service.initiatePasswordReset('jane@example.co.za');
+
+      expect(result.message).toMatch(/if an account exists/i);
     });
   });
 

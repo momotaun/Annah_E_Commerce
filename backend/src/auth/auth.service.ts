@@ -2,6 +2,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
@@ -22,6 +23,8 @@ export { MAILER };
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
@@ -203,10 +206,20 @@ export class AuthService {
       });
 
       const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-      await this.mailer.sendPasswordResetEmail({
-        to: user.email,
-        resetUrl: `${frontendUrl}/reset-password?token=${rawToken}`,
-      });
+      // Never let a mail-provider hiccup fail this request — besides the
+      // general principle, throwing here would also break the whole point
+      // of returning the same generic message below regardless of outcome.
+      try {
+        await this.mailer.sendPasswordResetEmail({
+          to: user.email,
+          resetUrl: `${frontendUrl}/reset-password?token=${rawToken}`,
+        });
+      } catch (err) {
+        this.logger.error(
+          `Failed to send password reset email to user ${user.id}`,
+          err instanceof Error ? err.stack : err,
+        );
+      }
     }
 
     return {
@@ -275,11 +288,22 @@ export class AuthService {
     });
 
     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-    await this.mailer.sendVerificationEmail({
-      to: email,
-      firstName,
-      verifyUrl: `${frontendUrl}/verify-email?token=${rawToken}`,
-    });
+    // Never let a mail-provider hiccup fail registration or a resend
+    // request — the token is already committed, and the user can still
+    // request another verification email later. Same rationale as
+    // CheckoutService's invoice email.
+    try {
+      await this.mailer.sendVerificationEmail({
+        to: email,
+        firstName,
+        verifyUrl: `${frontendUrl}/verify-email?token=${rawToken}`,
+      });
+    } catch (err) {
+      this.logger.error(
+        `Failed to send verification email to user ${userId}`,
+        err instanceof Error ? err.stack : err,
+      );
+    }
   }
 
   async resendVerificationEmail(email: string): Promise<{ message: string }> {
