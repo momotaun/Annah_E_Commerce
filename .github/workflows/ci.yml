@@ -63,6 +63,11 @@ jobs:
 
       - run: npx prisma migrate deploy
 
+      # The e2e specs exercise real storefront flows (checkout, payments)
+      # against products/vendors that only exist once seeded — migrate
+      # deploy alone leaves an empty database.
+      - run: npx prisma db seed
+
       - run: npm run test:e2e
 
   frontend:
