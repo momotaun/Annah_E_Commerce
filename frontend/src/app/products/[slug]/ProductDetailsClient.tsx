@@ -87,7 +87,7 @@ export default function ProductDetailsClient({
                 than faking numbers. */}
 
             <div className="mt-4 border-t border-gray-200 pt-4">
-              <span className={product.price === null ? "text-xl font-semibold text-gray-500" : "text-3xl font-bold text-primary-600"}>
+              <span className="text-3xl font-bold text-primary-600">
                 {formatPrice(product.price)}
               </span>
             </div>
@@ -126,13 +126,8 @@ export default function ProductDetailsClient({
 
             <div className="mt-6 flex gap-4">
               <Stepper value={quantity} onChange={setQuantity} />
-              <Button
-                fullWidth
-                isLoading={isAdding}
-                disabled={product.price === null}
-                onClick={handleAddToCart}
-              >
-                {product.price === null ? "Not Available Yet" : "Add to Cart"}
+              <Button fullWidth isLoading={isAdding} onClick={handleAddToCart}>
+                Add to Cart
               </Button>
             </div>
 

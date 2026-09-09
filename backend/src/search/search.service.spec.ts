@@ -47,15 +47,6 @@ describe('SearchService', () => {
     expect(call.where.status).toBe('PUBLISHED');
   });
 
-  it('returns null, not a crash, for a result with no price set yet', async () => {
-    prisma.product.findMany.mockResolvedValue([{ id: '1', price: null }]);
-    prisma.product.count.mockResolvedValue(1);
-
-    const result = await service.search({ q: 'test', page: 1, limit: 20 });
-
-    expect(result.data[0].price).toBeNull();
-  });
-
   it('returns paginated results in the same shape as ProductsService', async () => {
     prisma.product.findMany.mockResolvedValue([
       { id: '1', price: { toString: () => '50.00' } },

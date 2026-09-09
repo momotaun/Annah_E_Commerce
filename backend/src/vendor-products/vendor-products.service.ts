@@ -19,11 +19,11 @@ export class VendorProductsService {
   ) {}
 
   private toResponseDto(product: any): VendorProductResponseDto {
-    return { ...product, price: product.price?.toString() ?? null };
+    return { ...product, price: product.price.toString() };
   }
 
   private toProductResponseDto(product: any): ProductResponseDto {
-    return { ...product, price: product.price?.toString() ?? null };
+    return { ...product, price: product.price.toString() };
   }
 
   private async requireVendor(userId: string) {

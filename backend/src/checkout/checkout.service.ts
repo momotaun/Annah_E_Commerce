@@ -51,14 +51,12 @@ export class CheckoutService {
       throw new BadRequestException('Cannot checkout an empty cart');
     }
 
-    // A product priced and published when added to the cart can, in
-    // principle, be un-published or have its price cleared by the vendor
-    // before checkout — addItem blocks adding it in the first place, but
-    // this re-checks at the only other point stale cart state could slip
-    // through.
+    // A product published when added to the cart can, in principle, be
+    // un-published by the vendor before checkout — addItem blocks adding
+    // it in the first place, but this re-checks at the only other point
+    // stale cart state could slip through.
     const unavailableItem = cart.items.find(
-      (item) =>
-        item.product.status !== 'PUBLISHED' || item.product.price === null,
+      (item) => item.product.status !== 'PUBLISHED',
     );
     if (unavailableItem) {
       throw new BadRequestException(
@@ -68,7 +66,7 @@ export class CheckoutService {
 
     const totalAmount = cart.items
       .reduce(
-        (sum, item) => sum + item.product.price!.toNumber() * item.quantity,
+        (sum, item) => sum + item.product.price.toNumber() * item.quantity,
         0,
       )
       .toFixed(2);
@@ -87,7 +85,7 @@ export class CheckoutService {
             create: cart.items.map((item) => ({
               productId: item.productId,
               quantity: item.quantity,
-              priceAtOrder: item.product.price!,
+              priceAtOrder: item.product.price,
             })),
           },
           invoice: {

@@ -40,6 +40,7 @@ export default function NewVendorProductPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [sku, setSku] = useState("");
+  const [price, setPrice] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [images, setImages] = useState<string[]>([]);
 
@@ -59,8 +60,9 @@ export default function NewVendorProductPage() {
 
   function goNext() {
     if (step === 0) {
-      if (!name.trim() || !sku.trim()) {
-        setBasicsError("Name and SKU are required to continue.");
+      const parsedPrice = parseFloat(price);
+      if (!name.trim() || !sku.trim() || !price.trim() || !(parsedPrice > 0)) {
+        setBasicsError("Name, SKU, and a valid price are required to continue.");
         return;
       }
       setBasicsError(null);
@@ -120,6 +122,7 @@ export default function NewVendorProductPage() {
       await createVendorProduct({
         name: name.trim(),
         sku: sku.trim(),
+        price: parseFloat(price),
         description: description.trim() || undefined,
         categoryId,
         images: images.length > 0 ? images : undefined,
@@ -159,6 +162,10 @@ export default function NewVendorProductPage() {
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-900">SKU</label>
                 <Input placeholder="e.g. APEX-SILK-POCKET-SQUARE" value={sku} onChange={(e) => setSku(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-900">Price (ZAR)</label>
+                <Input placeholder="e.g. 349.00" type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} />
               </div>
             </div>
 
@@ -244,7 +251,7 @@ export default function NewVendorProductPage() {
                 <h2 className="mt-3 text-2xl font-bold text-gray-900">{name || "Untitled Product"}</h2>
 
                 <div className="mt-3 border-t border-gray-200 pt-3">
-                  <span className="text-lg font-semibold text-gray-500">{formatPrice(null)}</span>
+                  <span className="text-3xl font-bold text-primary-600">{formatPrice(price)}</span>
                 </div>
 
                 {description && <p className="mt-3 text-sm text-gray-500">{description}</p>}
@@ -252,12 +259,9 @@ export default function NewVendorProductPage() {
                 <div className="mt-6 flex gap-4">
                   <Stepper value={1} onChange={() => {}} />
                   <Button fullWidth disabled>
-                    Not Available Yet
+                    Add to Cart
                   </Button>
                 </div>
-                <p className="mt-2 text-xs text-gray-500">
-                  Price hasn&apos;t been set yet — add one after publishing to make this product purchasable.
-                </p>
               </div>
             </div>
 

@@ -65,7 +65,7 @@ export class OrderRequestsService {
           create: cart.items.map((item) => ({
             productId: item.productId,
             quantity: item.quantity,
-            priceAtOrder: item.product.price ?? 0, // snapshot at submission time; unpriced draft products shouldn't reach this legacy flow in practice
+            priceAtOrder: item.product.price, // snapshot at submission time
           })),
         },
       },

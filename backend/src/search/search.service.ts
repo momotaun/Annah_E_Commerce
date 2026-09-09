@@ -31,7 +31,7 @@ export class SearchService {
     ]);
 
     return {
-      data: products.map((p) => ({ ...p, price: p.price?.toString() ?? null })),
+      data: products.map((p) => ({ ...p, price: p.price.toString() })),
       meta: {
         page,
         limit,

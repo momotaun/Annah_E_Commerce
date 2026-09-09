@@ -3,7 +3,7 @@ export class ProductResponseDto {
   name: string;
   sku: string;
   description: string | null;
-  price: string | null; // Decimal serialized as string to avoid float precision issues; null until a vendor sets one
+  price: string; // Decimal serialized as string to avoid float precision issues
   imageUrl: string | null;
   images: string[];
   categoryId: string;

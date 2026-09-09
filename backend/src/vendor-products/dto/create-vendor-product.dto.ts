@@ -24,12 +24,9 @@ export class CreateVendorProductDto {
   @IsString()
   description?: string;
 
-  // Optional — a product (draft or published) can exist with pricing TBD;
-  // it just won't be addable to cart until priced (see CartService.addItem).
-  @IsOptional()
   @IsNumber()
   @IsPositive()
-  price?: number;
+  price: number;
 
   @IsOptional()
   @IsString()

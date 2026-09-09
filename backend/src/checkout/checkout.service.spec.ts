@@ -263,34 +263,4 @@ describe('CheckoutService', () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
-  it('rejects checkout if a cart item lost its price after being added to the cart', async () => {
-    prisma.address.findUnique.mockResolvedValue({
-      id: 'addr-1',
-      userId: 'user-1',
-    });
-    prisma.cart.findUnique.mockResolvedValue({
-      id: 'cart-1',
-      userId: 'user-1',
-      items: [
-        {
-          productId: 'product-1',
-          quantity: 1,
-          product: {
-            name: 'Unpriced Product',
-            status: 'PUBLISHED',
-            price: null,
-          },
-        },
-      ],
-    });
-
-    await expect(
-      service.checkout('user-1', {
-        sessionId: 'session-1',
-        addressId: 'addr-1',
-      }),
-    ).rejects.toThrow(BadRequestException);
-
-    expect(prisma.$transaction).not.toHaveBeenCalled();
-  });
 });

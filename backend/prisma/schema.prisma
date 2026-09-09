@@ -28,14 +28,10 @@ model Product {
   slug        String   @unique
   sku         String   @unique
   description String?
-  // Nullable: a vendor's multi-step "add product" journey can save a
-  // draft before price is set. A DRAFT product may have no price; a
-  // PUBLISHED one always should (enforced in VendorProductsService, not
-  // the schema, since the DB has no cross-field check constraints here).
-  price      Decimal?      @db.Decimal(10, 2)
-  imageUrl   String? // primary/thumbnail — mirrors images[0] once set
-  images     String[]      @default([])
-  status     ProductStatus @default(PUBLISHED)
+  price       Decimal       @db.Decimal(10, 2)
+  imageUrl    String? // primary/thumbnail — mirrors images[0] once set
+  images      String[]      @default([])
+  status      ProductStatus @default(PUBLISHED)
   categoryId String
   category   Category      @relation(fields: [categoryId], references: [id])
 

@@ -185,12 +185,13 @@ describe('VendorProductsService', () => {
       prisma.category.findUnique.mockResolvedValue({ id: 'cat-1' });
       prisma.product.create.mockResolvedValue({
         id: 'product-1',
-        price: null,
+        price: { toString: () => '100.00' },
       });
 
       await service.create('user-1', {
         name: 'Gallery Product',
         sku: 'GALLERY-SKU',
+        price: 100,
         categoryId: 'cat-1',
         images: ['/images/one.jpg', '/images/two.jpg'],
       });
@@ -213,11 +214,15 @@ describe('VendorProductsService', () => {
       });
       prisma.product.findUnique.mockResolvedValue(null);
       prisma.category.findUnique.mockResolvedValue({ id: 'cat-1' });
-      prisma.product.create.mockResolvedValue({ id: 'product-1', price: null });
+      prisma.product.create.mockResolvedValue({
+        id: 'product-1',
+        price: { toString: () => '100.00' },
+      });
 
       await service.create('user-1', {
         name: 'No Status Product',
         sku: 'NO-STATUS-SKU',
+        price: 100,
         categoryId: 'cat-1',
       });
 
@@ -228,7 +233,7 @@ describe('VendorProductsService', () => {
       );
     });
 
-    it('saves a draft with no price and no images at all', async () => {
+    it('saves a draft with a price but no images at all', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
         userId: 'user-1',
@@ -236,16 +241,20 @@ describe('VendorProductsService', () => {
       });
       prisma.product.findUnique.mockResolvedValue(null);
       prisma.category.findUnique.mockResolvedValue({ id: 'cat-1' });
-      prisma.product.create.mockResolvedValue({ id: 'product-1', price: null });
+      prisma.product.create.mockResolvedValue({
+        id: 'product-1',
+        price: { toString: () => '100.00' },
+      });
 
       const result = await service.create('user-1', {
         name: 'Draft Product',
         sku: 'DRAFT-SKU',
+        price: 100,
         categoryId: 'cat-1',
         status: 'DRAFT',
       });
 
-      expect(result.price).toBeNull();
+      expect(result.price).toBe('100.00');
       expect(prisma.product.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({

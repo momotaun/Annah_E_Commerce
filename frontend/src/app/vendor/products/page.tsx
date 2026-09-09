@@ -58,7 +58,7 @@ export default function VendorProductsPage() {
                   {p.status === "PUBLISHED" ? "Published" : "Draft"}
                 </Badge>
               </div>
-              <span className={p.price === null ? "text-sm font-medium text-gray-500" : "text-sm font-bold text-primary-600"}>
+              <span className="text-sm font-bold text-primary-600">
                 {formatPrice(p.price)}
               </span>
             </div>

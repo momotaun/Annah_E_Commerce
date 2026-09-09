@@ -14,7 +14,7 @@ export class ProductsService {
   private toResponseDto(product: any): ProductResponseDto {
     return {
       ...product,
-      price: product.price?.toString() ?? null,
+      price: product.price.toString(),
     };
   }
 

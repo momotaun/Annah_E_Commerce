@@ -7,7 +7,7 @@ export interface VendorProduct {
   name: string;
   sku: string;
   description: string | null;
-  price: string | null;
+  price: string;
   imageUrl: string | null;
   images: string[];
   status: ProductStatus;
@@ -23,7 +23,7 @@ export function createVendorProduct(data: {
   name: string;
   sku: string;
   description?: string;
-  price?: number;
+  price: number;
   imageUrl?: string;
   images?: string[];
   status?: ProductStatus;

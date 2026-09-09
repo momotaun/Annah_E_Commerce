@@ -197,18 +197,6 @@ describe('ProductsService', () => {
       expect(result.price).toBe('349.00');
     });
 
-    it('returns null, not a crash, for a product with no price set yet', async () => {
-      prisma.product.findFirst.mockResolvedValue({
-        id: 'product-1',
-        slug: 'draft-product',
-        price: null,
-      });
-
-      const result = await service.findOne('draft-product');
-
-      expect(result.price).toBeNull();
-    });
-
     it('only ever looks up PUBLISHED products — a draft 404s for customers', async () => {
       prisma.product.findFirst.mockResolvedValue(null);
 

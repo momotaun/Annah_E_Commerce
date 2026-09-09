@@ -51,18 +51,6 @@ describe('CartService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('rejects adding a PUBLISHED product that has no price set yet', async () => {
-      prisma.product.findUnique.mockResolvedValue({
-        id: 'product-1',
-        status: 'PUBLISHED',
-        price: null,
-      });
-
-      await expect(
-        service.addItem({ productId: 'product-1', quantity: 1 }),
-      ).rejects.toThrow(BadRequestException);
-    });
-
     it('throws NotFoundException if a sessionId is supplied but no matching cart exists', async () => {
       prisma.product.findUnique.mockResolvedValue({
         id: 'product-1',

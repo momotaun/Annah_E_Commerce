@@ -87,9 +87,14 @@ describe('CreateVendorProductDto imageUrl validation', () => {
 });
 
 describe('CreateVendorProductDto price', () => {
-  it('allows a missing price — products can be saved unpriced', async () => {
+  it('rejects a missing price — every product must be priced', async () => {
     const errors = await validateDto({ price: undefined });
-    expect(errors.find((e) => e.property === 'price')).toBeUndefined();
+    expect(errors.find((e) => e.property === 'price')).toBeDefined();
+  });
+
+  it('rejects a zero or negative price', async () => {
+    const errors = await validateDto({ price: 0 });
+    expect(errors.find((e) => e.property === 'price')).toBeDefined();
   });
 });
 
