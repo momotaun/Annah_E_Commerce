@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Menu, Heart, LogOut, Settings, ShoppingCart, User, X } from "lucide-react";
+import { Menu, Heart, LogOut, Package, Settings, ShoppingCart, User, X } from "lucide-react";
 import Badge from "@/src/app/components/ui/Badge";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 import { useCart } from "@/src/context/CartContext";
@@ -138,6 +138,19 @@ function Header({
             cluster further down covers the same ground (cart + hamburger)
             without overflowing a narrower header row. */}
         <div className="hidden items-center gap-1 lg:flex">
+          {variant === "full" && user && (
+            <>
+              <Link
+                href="/orders"
+                className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-gray-900 hover:text-primary-600"
+              >
+                <Package className="h-5 w-5" />
+                <span className="text-[11px] font-medium">Orders</span>
+              </Link>
+              <span className="h-8 w-px bg-gray-200" />
+            </>
+          )}
+
           {variant === "full" && (
             <div className="relative" ref={accountMenuRef}>
               <button
