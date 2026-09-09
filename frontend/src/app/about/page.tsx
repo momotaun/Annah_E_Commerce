@@ -7,6 +7,7 @@ import Button from "@/src/app/components/ui/Button";
 import StatBlock from "@/src/app/components/ui/StatBlock";
 import InfoCard from "@/src/app/components/shared/InfoCard";
 import TeamMemberCard from "@/src/app/components/shared/TeamMemberCard";
+import { SITE_NAME } from "@/src/lib/siteConfig";
 
 const pillars = [
   {
@@ -61,7 +62,7 @@ export default function AboutPage() {
                 Born from a vision of seamless luxury.
               </h2>
               <p className="mt-4 text-sm text-gray-500">
-                Founded in 2018, Apex Marketplace started with a simple
+                Founded in 2018, {SITE_NAME} started with a simple
                 observation: the digital shopping experience often
                 sacrificed trust for convenience. We set out to change that
                 by curating a selection of products that represent the
@@ -82,7 +83,7 @@ export default function AboutPage() {
 
             <div className="relative">
               <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-gray-100">
-                <Image src="/images/about/banner.png" alt="Apex Marketplace office" fill className="object-cover" />
+                <Image src="/images/about/banner.png" alt={`${SITE_NAME} office`} fill className="object-cover" />
               </div>
               <div className="absolute -bottom-6 left-6 flex items-center gap-3 rounded-md bg-primary-600 p-4 text-white shadow-lg">
                 <Award className="h-6 w-6" />

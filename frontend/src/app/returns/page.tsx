@@ -1,5 +1,6 @@
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
+import { SITE_NAME } from "@/src/lib/siteConfig";
 
 const sections = [
   {
@@ -34,7 +35,7 @@ export default function ReturnsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Returns & Refunds</h1>
           <p className="mt-3 text-sm leading-relaxed text-gray-500">
             Not quite right? We want you to love what you ordered — here&apos;s how returns and
-            refunds work at Apex Marketplace.
+            refunds work at {SITE_NAME}.
           </p>
 
           <div className="mt-10 flex flex-col gap-8">

@@ -3,12 +3,13 @@ import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";
 import Accordion from "@/src/app/components/ui/Accordion";
+import { SITE_NAME } from "@/src/lib/siteConfig";
 
 const topics = [
   { icon: <Truck className="h-5 w-5" />, title: "Shipping & Delivery", description: "Delivery times, tracking, and costs.", href: "/shipping" },
   { icon: <RotateCcw className="h-5 w-5" />, title: "Returns & Refunds", description: "How to return an item and get refunded.", href: "/returns" },
   { icon: <UserCircle className="h-5 w-5" />, title: "Account & Orders", description: "Managing your profile and order history.", href: "/profile" },
-  { icon: <Store className="h-5 w-5" />, title: "Selling on Apex", description: "Vendor onboarding and support.", href: "/support" },
+  { icon: <Store className="h-5 w-5" />, title: `Selling on ${SITE_NAME}`, description: "Vendor onboarding and support.", href: "/support" },
 ];
 
 const faqs = [
@@ -21,7 +22,7 @@ const faqs = [
     answer: "Reach out to our support team as soon as possible — we can amend or cancel orders that haven't shipped yet.",
   },
   {
-    question: "How do I become a vendor on Apex Marketplace?",
+    question: `How do I become a vendor on ${SITE_NAME}?`,
     answer: "Start the vendor onboarding flow from your account, or contact us and our vendor success team will guide you through verification.",
   },
   {

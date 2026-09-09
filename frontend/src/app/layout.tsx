@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/src/context/CartContext";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { Analytics } from "@vercel/analytics/next";
+import { SITE_NAME } from "@/src/lib/siteConfig";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -11,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Apex Marketplace",
+  title: SITE_NAME,
   description:
     "Elevating everyday life through curated premium essentials. Your destination for high-end lifestyle and tech products.",
 };

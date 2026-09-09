@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import Footer from "@/src/app/components/layout/Footer";
+import Logo from "@/src/app/components/layout/Logo";
 import Input from "@/src/app/components/ui/Input";
 import Button from "@/src/app/components/ui/Button";
 import GoogleIcon from "@/src/app/components/ui/icons/GoogleIcon";
@@ -12,6 +13,7 @@ import AppleIcon from "@/src/app/components/ui/icons/AppleIcon";
 import { useAuth } from "@/src/context/AuthContext";
 import { ApiError } from "@/src/lib/api-client";
 import { getHomeRouteForRole } from "@/src/lib/api/auth";
+import { SITE_NAME } from "@/src/lib/siteConfig";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -68,8 +70,8 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex flex-1 flex-col items-center bg-gray-50 px-6 py-16">
-        <Link href="/" className="text-2xl font-bold text-primary-600">
-          Apex Marketplace
+        <Link href="/">
+          <Logo />
         </Link>
 
         <div className="mt-8 w-full max-w-md rounded-md border border-gray-200 bg-white p-8 shadow-sm">
@@ -77,7 +79,7 @@ export default function RegisterPage() {
             Create your account
           </h1>
           <p className="mt-2 text-center text-sm text-gray-500">
-            Join Apex Marketplace for a personalized shopping experience.
+            Join {SITE_NAME} for a personalized shopping experience.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">

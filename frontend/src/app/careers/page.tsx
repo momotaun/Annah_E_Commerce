@@ -2,6 +2,7 @@ import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Badge from "@/src/app/components/ui/Badge";
 import Button from "@/src/app/components/ui/Button";
+import { SITE_NAME } from "@/src/lib/siteConfig";
 
 const openRoles = [
   { title: "Senior Frontend Engineer", team: "Engineering", location: "Cape Town · Hybrid" },
@@ -17,7 +18,7 @@ export default function CareersPage() {
 
       <main className="flex-1">
         <section className="mx-auto max-w-3xl px-6 py-16">
-          <h1 className="text-3xl font-bold text-gray-900">Careers at Apex Marketplace</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Careers at {SITE_NAME}</h1>
           <p className="mt-3 text-sm leading-relaxed text-gray-500">
             We&apos;re a small team building a premium marketplace for South African shoppers and
             vendors. If you care about craft, speed, and customer experience, we&apos;d love to

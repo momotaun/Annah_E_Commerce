@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Resend } from 'resend';
 import { InvoiceEmailItem, Mailer } from './mailer.interface';
+import { SITE_NAME } from '../common/siteConfig';
 
 // Kept deliberately plain — no template engine, no shared layout file.
 // Four short emails don't earn that abstraction; if a fifth or a real
@@ -12,7 +13,7 @@ function wrap(title: string, bodyHtml: string): string {
     <table role="presentation" width="100%" style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden;">
       <tr>
         <td style="background: #1d4ed8; padding: 20px 24px;">
-          <span style="color: #ffffff; font-size: 18px; font-weight: 700;">Apex Marketplace</span>
+          <span style="color: #ffffff; font-size: 18px; font-weight: 700;">${SITE_NAME}</span>
         </td>
       </tr>
       <tr>
@@ -49,8 +50,7 @@ export class ResendMailer implements Mailer {
 
   private get from(): string {
     return (
-      process.env.RESEND_FROM_EMAIL ??
-      'Apex Marketplace <onboarding@resend.dev>'
+      process.env.RESEND_FROM_EMAIL ?? `${SITE_NAME} <onboarding@resend.dev>`
     );
   }
 
@@ -100,7 +100,7 @@ export class ResendMailer implements Mailer {
       'Verify your email address',
       wrap(
         `Welcome, ${firstName}`,
-        `<p style="color: #4b5563; font-size: 14px;">Confirm your email address to finish setting up your Apex Marketplace account. This link expires in 24 hours.</p>
+        `<p style="color: #4b5563; font-size: 14px;">Confirm your email address to finish setting up your ${SITE_NAME} account. This link expires in 24 hours.</p>
          ${button(verifyUrl, 'Verify Email')}`,
       ),
     );

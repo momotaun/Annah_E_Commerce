@@ -66,7 +66,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM_EMAIL
-        value: "Apex Marketplace <onboarding@resend.dev>"
+        value: "EliteCommerce <onboarding@resend.dev>"
 
       - key: LOG_LEVEL
         value: info

@@ -6,6 +6,8 @@ import { RefreshCw, HelpCircle, CloudOff } from "lucide-react";
 import Badge from "@/src/app/components/ui/Badge";
 import Button from "@/src/app/components/ui/Button";
 import Footer from "@/src/app/components/layout/Footer";
+import Logo from "@/src/app/components/layout/Logo";
+import { SITE_NAME } from "@/src/lib/siteConfig";
 
 export default function Error({
   error,
@@ -22,9 +24,9 @@ export default function Error({
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-        <span className="text-xl font-bold text-primary-600">Apex Marketplace</span>
+        <Logo size="sm" />
         <span className="text-sm text-gray-500">
-          © {new Date().getFullYear()} Apex Marketplace. All rights reserved.
+          © {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
         </span>
       </div>
 
@@ -44,7 +46,7 @@ export default function Error({
           We&apos;re on it.
         </h1>
         <p className="mt-4 max-w-md text-gray-500">
-          Apex Marketplace is experiencing a brief technical interruption. Our
+          {SITE_NAME} is experiencing a brief technical interruption. Our
           engineering team has been notified and is currently resolving the
           issue.
         </p>

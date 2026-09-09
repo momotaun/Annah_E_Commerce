@@ -3,6 +3,7 @@ import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import StatBlock from "@/src/app/components/ui/StatBlock";
 import InfoCard from "@/src/app/components/shared/InfoCard";
+import { SITE_NAME } from "@/src/lib/siteConfig";
 
 const stats = [
   { value: "40%", label: "Recycled packaging materials" },
@@ -26,7 +27,7 @@ export default function SustainabilityPage() {
           <h1 className="text-3xl font-bold text-gray-900">Sustainability</h1>
           <p className="mt-3 text-sm leading-relaxed text-gray-500">
             Curating premium products shouldn&apos;t come at the planet&apos;s expense. Here&apos;s
-            how we&apos;re working to make Apex Marketplace more responsible, one order at a time.
+            how we&apos;re working to make {SITE_NAME} more responsible, one order at a time.
           </p>
 
           <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">

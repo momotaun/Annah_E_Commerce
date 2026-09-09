@@ -3,6 +3,7 @@ import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";
 import InfoCard from "@/src/app/components/shared/InfoCard";
+import { SITE_NAME } from "@/src/lib/siteConfig";
 
 export default function SupportPage() {
   return (
@@ -13,7 +14,7 @@ export default function SupportPage() {
         <section className="mx-auto max-w-3xl px-6 py-16 text-center">
           <h1 className="text-3xl font-bold text-gray-900">Support Center</h1>
           <p className="mt-3 text-sm leading-relaxed text-gray-500">
-            Have a question about an order, your account, or selling on Apex Marketplace?
+            Have a question about an order, your account, or selling on {SITE_NAME}?
             Here&apos;s how to reach us.
           </p>
         </section>

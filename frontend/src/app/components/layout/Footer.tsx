@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/src/lib/utils";
+import { SITE_NAME } from "@/src/lib/siteConfig";
+import Logo from "@/src/app/components/layout/Logo";
 import SocialIcon from "@/src/app/components/ui/SocialIcon";
 import InstagramIcon from "@/src/app/components/ui/icons/InstagramIcon";
 import FacebookIcon from "@/src/app/components/ui/icons/FacebookIcon";
@@ -57,14 +59,7 @@ function Footer({ variant = "full", className }: FooterProps) {
         <div className="mx-auto max-w-7xl px-6 py-12">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-5 md:gap-8">
             <div className="flex flex-col gap-3 pb-2 md:pb-0">
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-lg font-bold text-primary-600">
-                  E
-                </span>
-                <span className="text-lg font-extrabold tracking-tight">
-                  Elite<span className="text-primary-300">Commerce</span>
-                </span>
-              </div>
+              <Logo theme="dark" size="sm" />
               <p className="text-sm text-primary-100">{BRAND_TAGLINE}</p>
             </div>
 
@@ -117,7 +112,7 @@ function Footer({ variant = "full", className }: FooterProps) {
                 <SocialIcon icon={<LinkedInIcon className="h-4 w-4" />} label="LinkedIn" className={socialIconClassName} />
               </div>
               <p className="mt-2 text-xs text-primary-100">
-                © {year} EliteCommerce. All rights reserved.
+                © {year} {SITE_NAME}. All rights reserved.
                 <br />
                 A brighter everyday. Together.
               </p>
@@ -128,7 +123,7 @@ function Footer({ variant = "full", className }: FooterProps) {
 
       {variant === "minimal" && (
         <div className="mx-auto max-w-7xl px-6 py-6 text-center text-sm text-primary-100">
-          © {year} EliteCommerce. All rights reserved.
+          © {year} {SITE_NAME}. All rights reserved.
         </div>
       )}
     </footer>

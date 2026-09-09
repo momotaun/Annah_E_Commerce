@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react";
 import Input from "@/src/app/components/ui/Input";
 import Button from "@/src/app/components/ui/Button";
+import { SITE_NAME } from "@/src/lib/siteConfig";
 
 function NewsletterBand() {
   const [email, setEmail] = useState("");
@@ -16,7 +17,7 @@ function NewsletterBand() {
     <section className="bg-primary-600 py-10 text-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Join the EliteCommerce community</h2>
+          <h2 className="text-2xl font-bold">Join the {SITE_NAME} community</h2>
           <p className="mt-1 text-sm text-primary-100">
             Be the first to know about new arrivals, exclusive deals and more.
           </p>

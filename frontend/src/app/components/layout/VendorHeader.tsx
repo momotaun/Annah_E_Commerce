@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AccountMenu from "@/src/app/components/layout/AccountMenu";
+import Logo from "@/src/app/components/layout/Logo";
 
 function VendorHeader() {
   return (
@@ -10,8 +11,8 @@ function VendorHeader() {
           overflows a mobile-width header (verified live). */}
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <Link href="/" className="shrink-0 text-lg font-bold text-primary-600 sm:text-xl">
-            Apex Marketplace
+          <Link href="/" className="shrink-0">
+            <Logo size="sm" />
           </Link>
           <span className="hidden h-5 w-px bg-gray-200 sm:block" />
           <span className="hidden text-sm text-gray-500 sm:block">Vendor Portal</span>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRequireRole } from "@/src/hooks/useRequireRole";
 import Spinner from "@/src/app/components/ui/Spinner";
 import AccountMenu from "@/src/app/components/layout/AccountMenu";
+import Logo from "@/src/app/components/layout/Logo";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { isLoading } = useRequireRole("ADMIN");
@@ -20,7 +21,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex min-h-screen flex-col bg-gray-50">
       <header className="border-b border-gray-200 bg-white px-6 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <span className="text-xl font-bold text-primary-600">Apex Marketplace — Admin</span>
+          <div className="flex items-center gap-2">
+            <Logo size="sm" />
+            <span className="text-sm text-gray-500">— Admin</span>
+          </div>
           <AccountMenu />
         </div>
       </header>

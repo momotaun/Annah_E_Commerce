@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, Heart, LogOut, Package, Settings, ShoppingCart, User, X } from "lucide-react";
 import Badge from "@/src/app/components/ui/Badge";
+import Logo from "@/src/app/components/layout/Logo";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
@@ -113,13 +114,8 @@ function Header({
       )}
 
       <header className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-4 sm:px-6 md:gap-8">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 text-lg font-bold text-white">
-            E
-          </span>
-          <span className="hidden text-xl font-extrabold tracking-tight text-gray-900 sm:inline">
-            Elite<span className="text-primary-600">Commerce</span>
-          </span>
+        <Link href="/" className="shrink-0">
+          <Logo wordmarkClassName="hidden sm:inline" />
         </Link>
 
         {/* Search sits in the middle, using up whatever space the logo and
