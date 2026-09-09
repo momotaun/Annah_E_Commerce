@@ -14,7 +14,7 @@ export class ProductsService {
   private toResponseDto(product: any): ProductResponseDto {
     return {
       ...product,
-      price: product.price.toString(),
+      price: product.price?.toString() ?? null,
     };
   }
 
@@ -28,6 +28,10 @@ export class ProductsService {
       query.minPrice !== undefined || query.maxPrice !== undefined;
 
     const where = {
+      // Drafts are only ever visible to their own vendor, via
+      // VendorProductsService.findAllForVendor — never in any
+      // customer-facing listing.
+      status: 'PUBLISHED' as const,
       ...(query.category?.length && {
         category: { slug: { in: query.category } },
       }),
@@ -63,7 +67,10 @@ export class ProductsService {
 
   async findOne(idOrSlug: string): Promise<ProductResponseDto> {
     const product = await this.prisma.product.findFirst({
-      where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
+      where: {
+        status: 'PUBLISHED',
+        OR: [{ id: idOrSlug }, { slug: idOrSlug }],
+      },
     });
 
     if (!product) {

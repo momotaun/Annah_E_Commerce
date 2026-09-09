@@ -31,10 +31,16 @@ export class CartService {
       product: {
         id: item.product.id,
         name: item.product.name,
-        price: item.product.price.toString(),
+        price: item.product.price?.toString() ?? null,
         imageUrl: item.product.imageUrl,
       },
-      lineTotal: (item.product.price.toNumber() * item.quantity).toFixed(2),
+      // A product priced when added can, in principle, have its price
+      // cleared later via the vendor's own edit endpoint — treat that as
+      // 0 here rather than crash; addItem already blocks adding an
+      // unpriced product in the first place.
+      lineTotal: (
+        (item.product.price?.toNumber() ?? 0) * item.quantity
+      ).toFixed(2),
     }));
 
     const subtotal = items
@@ -56,6 +62,11 @@ export class CartService {
     if (!product) {
       throw new BadRequestException(
         `Product "${dto.productId}" does not exist`,
+      );
+    }
+    if (product.status !== 'PUBLISHED' || product.price === null) {
+      throw new BadRequestException(
+        `Product "${dto.productId}" is not available for purchase`,
       );
     }
 

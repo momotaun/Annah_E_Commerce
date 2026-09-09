@@ -16,6 +16,7 @@ import { useCart } from "@/src/context/CartContext";
 import { Category, PaginatedProducts } from "@/src/lib/api-types";
 import { getProducts, ProductSort } from "@/src/lib/api/products";
 import { getCategoryTheme } from "@/src/lib/categoryTheme";
+import { formatPrice } from "@/src/lib/utils";
 
 const SORT_OPTIONS = [
   { label: "Newest", value: "newest" },
@@ -225,7 +226,7 @@ export default function CategoryClient({
                     image={product.imageUrl ?? "/images/placeholder-product.jpg"}
                     title={product.name}
                     description={product.description ?? undefined}
-                    price={`R${Number(product.price).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`}
+                    price={formatPrice(product.price)}
                     onAddToCart={() => addItem(product.id)}
                   />
                 ))}

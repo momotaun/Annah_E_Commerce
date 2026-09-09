@@ -68,6 +68,25 @@ services:
       - key: RESEND_FROM_EMAIL
         value: "EliteCommerce <onboarding@resend.dev>"
 
+      # Object storage for vendor-uploaded product images — any
+      # S3-compatible bucket (e.g. Neon Object Storage or AWS S3). Leave
+      # unset to disable uploads (fails with a clear error instead of
+      # crashing).
+      - key: OBJECT_STORAGE_ENDPOINT
+        sync: false
+      - key: OBJECT_STORAGE_BUCKET
+        sync: false
+      - key: OBJECT_STORAGE_ACCESS_KEY_ID
+        sync: false
+      - key: OBJECT_STORAGE_SECRET_ACCESS_KEY
+        sync: false
+      - key: OBJECT_STORAGE_PUBLIC_URL_BASE
+        sync: false
+      - key: OBJECT_STORAGE_REGION
+        value: "auto"
+      - key: OBJECT_STORAGE_FORCE_PATH_STYLE
+        value: "false"
+
       - key: LOG_LEVEL
         value: info
       # Optional — Sentry error tracking. Leave unset to disable.

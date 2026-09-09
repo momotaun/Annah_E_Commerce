@@ -3,6 +3,7 @@ import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import ProductCard from "@/src/app/components/shared/ProductCard";
 import { getProducts } from "@/src/lib/api/products";
+import { formatPrice } from "@/src/lib/utils";
 
 export default async function LimitedEditionCollectionPage() {
   const { data: products } = await getProducts({ limit: 8 });
@@ -33,7 +34,7 @@ export default async function LimitedEditionCollectionPage() {
                   href={`/products/${product.slug}`}
                   image={product.imageUrl ?? "/images/placeholder-product.jpg"}
                   title={product.name}
-                  price={`R${Number(product.price).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`}
+                  price={formatPrice(product.price)}
                   badge={{ label: "Limited", variant: "danger" }}
                 />
               ))}

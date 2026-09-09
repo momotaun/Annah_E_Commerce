@@ -13,6 +13,7 @@ export class SearchService {
     const limit = query.limit ?? 20;
 
     const where = {
+      status: 'PUBLISHED' as const,
       OR: [
         { name: { contains: query.q, mode: 'insensitive' as const } },
         { description: { contains: query.q, mode: 'insensitive' as const } },
@@ -30,7 +31,7 @@ export class SearchService {
     ]);
 
     return {
-      data: products.map((p) => ({ ...p, price: p.price.toString() })),
+      data: products.map((p) => ({ ...p, price: p.price?.toString() ?? null })),
       meta: {
         page,
         limit,

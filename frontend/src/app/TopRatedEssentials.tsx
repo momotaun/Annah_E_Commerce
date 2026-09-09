@@ -3,6 +3,7 @@
 import ProductCard from "@/src/app/components/shared/ProductCard";
 import { useCart } from "@/src/context/CartContext";
 import { Product } from "@/src/lib/api-types";
+import { formatPrice } from "@/src/lib/utils";
 
 interface TopRatedEssentialsProps {
   products: Product[];
@@ -36,7 +37,7 @@ export default function TopRatedEssentials({ products }: TopRatedEssentialsProps
             href={`/products/${product.slug}`}
             image={product.imageUrl ?? "/images/placeholder-product.jpg"}
             title={product.name}
-            price={`R${Number(product.price).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`}
+            price={formatPrice(product.price)}
             onAddToCart={() => addItem(product.id)}
           />
         ))}

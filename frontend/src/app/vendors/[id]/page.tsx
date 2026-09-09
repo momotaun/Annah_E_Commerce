@@ -7,6 +7,7 @@ import ProductCard from "@/src/app/components/shared/ProductCard";
 import { ApiError } from "@/src/lib/api-client";
 import { getVendor } from "@/src/lib/api/vendors";
 import { getProducts } from "@/src/lib/api/products";
+import { formatPrice } from "@/src/lib/utils";
 
 function getInitials(businessName: string) {
   return businessName
@@ -92,7 +93,7 @@ export default async function VendorStorefrontPage({
                   image={product.imageUrl ?? "/images/placeholder-product.jpg"}
                   title={product.name}
                   description={product.description ?? undefined}
-                  price={`R${Number(product.price).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`}
+                  price={formatPrice(product.price)}
                 />
               ))}
             </div>

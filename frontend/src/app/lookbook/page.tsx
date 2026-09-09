@@ -2,6 +2,7 @@ import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import ProductCard from "@/src/app/components/shared/ProductCard";
 import { getProducts } from "@/src/lib/api/products";
+import { formatPrice } from "@/src/lib/utils";
 
 export default async function LookbookPage() {
   const { data: products } = await getProducts({ limit: 8 });
@@ -33,7 +34,7 @@ export default async function LookbookPage() {
                   image={product.imageUrl ?? "/images/placeholder-product.jpg"}
                   title={product.name}
                   description={product.description ?? undefined}
-                  price={`R${Number(product.price).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`}
+                  price={formatPrice(product.price)}
                 />
               ))}
             </div>

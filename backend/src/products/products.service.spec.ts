@@ -99,10 +99,20 @@ describe('ProductsService', () => {
         },
       ];
       expect(call.where).toEqual({
+        status: 'PUBLISHED',
         category: { slug: { in: ['apparel'] } },
         vendorId: 'vendor-1',
         price: { gte: 100, lte: 500 },
       });
+    });
+
+    it('only ever returns PUBLISHED products — drafts never leak into a customer-facing listing', async () => {
+      await service.findAll({ page: 1, limit: 20 });
+
+      const [call] = prisma.product.findMany.mock.calls[0] as [
+        { where: { status?: string } },
+      ];
+      expect(call.where.status).toBe('PUBLISHED');
     });
 
     it('filters by multiple categories at once', async () => {
@@ -185,6 +195,31 @@ describe('ProductsService', () => {
       const result = await service.findOne('apex-silk-pocket-square');
 
       expect(result.price).toBe('349.00');
+    });
+
+    it('returns null, not a crash, for a product with no price set yet', async () => {
+      prisma.product.findFirst.mockResolvedValue({
+        id: 'product-1',
+        slug: 'draft-product',
+        price: null,
+      });
+
+      const result = await service.findOne('draft-product');
+
+      expect(result.price).toBeNull();
+    });
+
+    it('only ever looks up PUBLISHED products — a draft 404s for customers', async () => {
+      prisma.product.findFirst.mockResolvedValue(null);
+
+      await expect(service.findOne('some-draft-slug')).rejects.toThrow(
+        NotFoundException,
+      );
+
+      const [call] = prisma.product.findFirst.mock.calls[0] as [
+        { where: { status?: string } },
+      ];
+      expect(call.where.status).toBe('PUBLISHED');
     });
   });
 });

@@ -5,7 +5,7 @@ export class CartItemResponseDto {
   product: {
     id: string;
     name: string;
-    price: string;
+    price: string | null;
     imageUrl: string | null;
   };
   lineTotal: string;

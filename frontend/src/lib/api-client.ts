@@ -68,10 +68,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const { accessToken, headers, skipAuthRetry, ...rest } = options;
   const token = accessToken ?? tokenStore.getAccessToken();
 
+  // FormData bodies (file uploads) must NOT get an explicit Content-Type —
+  // the browser sets one with the correct multipart boundary itself.
+  const isFormData = typeof FormData !== 'undefined' && rest.body instanceof FormData;
+
   const res = await fetch(`${API_URL}${path}`, {
     ...rest,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
@@ -101,6 +105,8 @@ export const apiClient = {
   get: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'GET' }),
   post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+  postForm: <T>(path: string, formData: FormData, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: 'POST', body: formData }),
   patch: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'DELETE' }),

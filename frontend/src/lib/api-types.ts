@@ -12,8 +12,9 @@ export interface Product {
   slug: string;
   sku: string;
   description: string | null;
-  price: string;
+  price: string | null;
   imageUrl: string | null;
+  images: string[];
   categoryId: string;
   vendorId: string | null;
 }

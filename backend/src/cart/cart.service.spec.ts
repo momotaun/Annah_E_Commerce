@@ -39,8 +39,36 @@ describe('CartService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
+    it('rejects adding a DRAFT product', async () => {
+      prisma.product.findUnique.mockResolvedValue({
+        id: 'product-1',
+        status: 'DRAFT',
+        price: { toNumber: () => 100 },
+      });
+
+      await expect(
+        service.addItem({ productId: 'product-1', quantity: 1 }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects adding a PUBLISHED product that has no price set yet', async () => {
+      prisma.product.findUnique.mockResolvedValue({
+        id: 'product-1',
+        status: 'PUBLISHED',
+        price: null,
+      });
+
+      await expect(
+        service.addItem({ productId: 'product-1', quantity: 1 }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
     it('throws NotFoundException if a sessionId is supplied but no matching cart exists', async () => {
-      prisma.product.findUnique.mockResolvedValue({ id: 'product-1' });
+      prisma.product.findUnique.mockResolvedValue({
+        id: 'product-1',
+        status: 'PUBLISHED',
+        price: { toNumber: () => 100 },
+      });
       prisma.cart.findUnique.mockResolvedValue(null);
 
       await expect(
@@ -53,7 +81,11 @@ describe('CartService', () => {
     });
 
     it('creates a brand new cart when no sessionId is provided', async () => {
-      prisma.product.findUnique.mockResolvedValue({ id: 'product-1' });
+      prisma.product.findUnique.mockResolvedValue({
+        id: 'product-1',
+        status: 'PUBLISHED',
+        price: { toNumber: () => 100 },
+      });
       prisma.cart.create.mockResolvedValue({
         id: 'cart-1',
         sessionId: 'generated-session-id',

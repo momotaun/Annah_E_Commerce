@@ -9,17 +9,21 @@ import { CreateVendorProductDto } from './dto/create-vendor-product.dto';
 import { UpdateVendorProductDto } from './dto/update-vendor-product.dto';
 import { VendorProductResponseDto } from './dto/vendor-product-response.dto';
 import { ProductResponseDto } from 'src/products/dto/product-response.dto';
+import { ObjectStorageService } from '../uploads/object-storage.service';
 
 @Injectable()
 export class VendorProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly objectStorageService: ObjectStorageService,
+  ) {}
 
   private toResponseDto(product: any): VendorProductResponseDto {
-    return { ...product, price: product.price.toString() };
+    return { ...product, price: product.price?.toString() ?? null };
   }
 
   private toProductResponseDto(product: any): ProductResponseDto {
-    return { ...product, price: product.price.toString() };
+    return { ...product, price: product.price?.toString() ?? null };
   }
 
   private async requireVendor(userId: string) {
@@ -79,7 +83,16 @@ export class VendorProductsService {
     const slug = await this.generateUniqueSlug(dto.name);
 
     const product = await this.prisma.product.create({
-      data: { ...dto, slug, vendorId: vendor.id },
+      data: {
+        ...dto,
+        slug,
+        vendorId: vendor.id,
+        // imageUrl is the primary/thumbnail image everywhere outside the
+        // product detail gallery (cards, cart, order line items) — derive
+        // it from the uploaded gallery unless the caller set it directly.
+        imageUrl: dto.imageUrl ?? dto.images?.[0],
+        status: dto.status ?? 'PUBLISHED',
+      },
     });
 
     return this.toResponseDto(product);
@@ -110,6 +123,14 @@ export class VendorProductsService {
     });
 
     return this.toResponseDto(updated);
+  }
+
+  async uploadProductImage(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
+    await this.requireVendor(userId);
+    return this.objectStorageService.uploadProductImage(file);
   }
 
   private slugify(name: string): string {

@@ -18,6 +18,14 @@ async function validateImageUrl(imageUrl?: string) {
   return errors.find((e) => e.property === 'imageUrl');
 }
 
+async function validateDto(overrides: Record<string, unknown>) {
+  const dto = plainToInstance(CreateVendorProductDto, {
+    ...baseProduct,
+    ...overrides,
+  });
+  return validate(dto);
+}
+
 describe('CreateVendorProductDto imageUrl validation', () => {
   it('allows a missing imageUrl (optional field)', async () => {
     expect(await validateImageUrl(undefined)).toBeUndefined();
@@ -75,5 +83,59 @@ describe('CreateVendorProductDto imageUrl validation', () => {
 
   it('rejects a local path outside /images/', async () => {
     expect(await validateImageUrl('/etc/passwd')).toBeDefined();
+  });
+});
+
+describe('CreateVendorProductDto price', () => {
+  it('allows a missing price — products can be saved unpriced', async () => {
+    const errors = await validateDto({ price: undefined });
+    expect(errors.find((e) => e.property === 'price')).toBeUndefined();
+  });
+});
+
+describe('CreateVendorProductDto images', () => {
+  it('allows a missing images array', async () => {
+    const errors = await validateDto({ images: undefined });
+    expect(errors.find((e) => e.property === 'images')).toBeUndefined();
+  });
+
+  it('allows up to 10 images', async () => {
+    const errors = await validateDto({
+      images: Array.from({ length: 10 }, (_, i) => `/images/photo-${i}.jpg`),
+    });
+    expect(errors.find((e) => e.property === 'images')).toBeUndefined();
+  });
+
+  it('rejects more than 10 images', async () => {
+    const errors = await validateDto({
+      images: Array.from({ length: 11 }, (_, i) => `/images/photo-${i}.jpg`),
+    });
+    expect(errors.find((e) => e.property === 'images')).toBeDefined();
+  });
+
+  it('rejects an image URL from a disallowed host', async () => {
+    const errors = await validateDto({
+      images: ['https://evil.example.com/tracking-pixel.jpg'],
+    });
+    expect(errors.find((e) => e.property === 'images')).toBeDefined();
+  });
+});
+
+describe('CreateVendorProductDto status', () => {
+  it('allows a missing status', async () => {
+    const errors = await validateDto({ status: undefined });
+    expect(errors.find((e) => e.property === 'status')).toBeUndefined();
+  });
+
+  it('allows DRAFT and PUBLISHED', async () => {
+    for (const status of ['DRAFT', 'PUBLISHED']) {
+      const errors = await validateDto({ status });
+      expect(errors.find((e) => e.property === 'status')).toBeUndefined();
+    }
+  });
+
+  it('rejects an unrecognized status', async () => {
+    const errors = await validateDto({ status: 'ARCHIVED' });
+    expect(errors.find((e) => e.property === 'status')).toBeDefined();
   });
 });

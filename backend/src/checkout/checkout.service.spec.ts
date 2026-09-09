@@ -106,7 +106,7 @@ describe('CheckoutService', () => {
         {
           productId: 'product-1',
           quantity: 2,
-          product: { price: { toNumber: () => 100 } },
+          product: { status: 'PUBLISHED', price: { toNumber: () => 100 } },
         },
       ],
     });
@@ -173,7 +173,7 @@ describe('CheckoutService', () => {
         {
           productId: 'product-1',
           quantity: 1,
-          product: { price: { toNumber: () => 50 } },
+          product: { status: 'PUBLISHED', price: { toNumber: () => 50 } },
         },
       ],
     });
@@ -211,7 +211,7 @@ describe('CheckoutService', () => {
         {
           productId: 'product-1',
           quantity: 1,
-          product: { price: { toNumber: () => 50 } },
+          product: { status: 'PUBLISHED', price: { toNumber: () => 50 } },
         },
       ],
     });
@@ -230,5 +230,67 @@ describe('CheckoutService', () => {
     });
 
     expect(tx.cart.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects checkout if a cart item is a DRAFT product', async () => {
+    prisma.address.findUnique.mockResolvedValue({
+      id: 'addr-1',
+      userId: 'user-1',
+    });
+    prisma.cart.findUnique.mockResolvedValue({
+      id: 'cart-1',
+      userId: 'user-1',
+      items: [
+        {
+          productId: 'product-1',
+          quantity: 1,
+          product: {
+            name: 'Draft Product',
+            status: 'DRAFT',
+            price: { toNumber: () => 50 },
+          },
+        },
+      ],
+    });
+
+    await expect(
+      service.checkout('user-1', {
+        sessionId: 'session-1',
+        addressId: 'addr-1',
+      }),
+    ).rejects.toThrow(BadRequestException);
+
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('rejects checkout if a cart item lost its price after being added to the cart', async () => {
+    prisma.address.findUnique.mockResolvedValue({
+      id: 'addr-1',
+      userId: 'user-1',
+    });
+    prisma.cart.findUnique.mockResolvedValue({
+      id: 'cart-1',
+      userId: 'user-1',
+      items: [
+        {
+          productId: 'product-1',
+          quantity: 1,
+          product: {
+            name: 'Unpriced Product',
+            status: 'PUBLISHED',
+            price: null,
+          },
+        },
+      ],
+    });
+
+    await expect(
+      service.checkout('user-1', {
+        sessionId: 'session-1',
+        addressId: 'addr-1',
+      }),
+    ).rejects.toThrow(BadRequestException);
+
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });

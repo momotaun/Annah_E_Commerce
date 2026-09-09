@@ -1,4 +1,7 @@
 import {
+  ArrayMaxSize,
+  IsArray,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -6,16 +9,8 @@ import {
   IsString,
   Matches,
 } from 'class-validator';
-
-// Accepts a local /images/... asset (what the seed data uses), an S3
-// virtual-hosted-style URL (bucket.s3.amazonaws.com or
-// bucket.s3.<region>.amazonaws.com), or a Neon Object Storage URL
-// (<branch>.storage.<compute>.<region>.aws.neon.tech) — the only image
-// hosts this app actually integrates with. Anything else is rejected here
-// rather than left to break at render time: next/image throws for any
-// remote host that isn't in next.config.ts's images.remotePatterns.
-const PRODUCT_IMAGE_URL_PATTERN =
-  /^(\/images\/[\w.-]+\.(?:jpg|jpeg|png|webp|gif)|https:\/\/[a-z0-9.-]+\.s3(?:\.[a-z0-9-]+)?\.amazonaws\.com\/.+|https:\/\/[a-z0-9.-]+\.storage\.[a-z0-9.-]+\.aws\.neon\.tech\/.+)$/i;
+import { ProductStatus } from '@prisma/client';
+import { PRODUCT_IMAGE_URL_PATTERN } from '../../common/product-image-url-pattern';
 
 export class CreateVendorProductDto {
   @IsNotEmpty()
@@ -29,9 +24,12 @@ export class CreateVendorProductDto {
   @IsString()
   description?: string;
 
+  // Optional — a product (draft or published) can exist with pricing TBD;
+  // it just won't be addable to cart until priced (see CartService.addItem).
+  @IsOptional()
   @IsNumber()
   @IsPositive()
-  price: number;
+  price?: number;
 
   @IsOptional()
   @IsString()
@@ -40,6 +38,20 @@ export class CreateVendorProductDto {
       'imageUrl must be a local /images/... path, an https S3 URL (bucket.s3.amazonaws.com), or a Neon Object Storage URL (*.aws.neon.tech)',
   })
   imageUrl?: string;
+
+  // Already-uploaded image URLs (via POST /vendors/me/products/images),
+  // in display order. imageUrl is derived from images[0] if not set
+  // explicitly, so existing single-image consumers (product cards, cart,
+  // order line items) keep working unchanged.
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @Matches(PRODUCT_IMAGE_URL_PATTERN, { each: true })
+  images?: string[];
+
+  @IsOptional()
+  @IsEnum(ProductStatus)
+  status?: ProductStatus;
 
   @IsString()
   @IsNotEmpty()

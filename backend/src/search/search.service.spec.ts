@@ -25,6 +25,7 @@ describe('SearchService', () => {
     expect(prisma.product.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
+          status: 'PUBLISHED',
           OR: [
             { name: { contains: 'ProBook', mode: 'insensitive' } },
             { description: { contains: 'ProBook', mode: 'insensitive' } },
@@ -32,6 +33,27 @@ describe('SearchService', () => {
         },
       }),
     );
+  });
+
+  it('only ever returns PUBLISHED products — drafts never appear in search', async () => {
+    prisma.product.findMany.mockResolvedValue([]);
+    prisma.product.count.mockResolvedValue(0);
+
+    await service.search({ q: 'test', page: 1, limit: 20 });
+
+    const [call] = prisma.product.findMany.mock.calls[0] as [
+      { where: { status?: string } },
+    ];
+    expect(call.where.status).toBe('PUBLISHED');
+  });
+
+  it('returns null, not a crash, for a result with no price set yet', async () => {
+    prisma.product.findMany.mockResolvedValue([{ id: '1', price: null }]);
+    prisma.product.count.mockResolvedValue(1);
+
+    const result = await service.search({ q: 'test', page: 1, limit: 20 });
+
+    expect(result.data[0].price).toBeNull();
   });
 
   it('returns paginated results in the same shape as ProductsService', async () => {

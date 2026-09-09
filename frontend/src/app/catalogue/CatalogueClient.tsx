@@ -15,6 +15,7 @@ import Spinner from "@/src/app/components/ui/Spinner";
 import { useCart } from "@/src/context/CartContext";
 import { Category, PaginatedProducts } from "@/src/lib/api-types";
 import { getProducts, ProductSort, searchProducts } from "@/src/lib/api/products";
+import { formatPrice } from "@/src/lib/utils";
 
 const SORT_OPTIONS = [
   { label: "Newest Arrivals", value: "newest" },
@@ -283,7 +284,7 @@ export default function CatalogueClient({
                   href={`/products/${product.slug}`}
                   image={product.imageUrl ?? "/images/placeholder-product.jpg"}
                   title={product.name}
-                  price={`R${Number(product.price).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`}
+                  price={formatPrice(product.price)}
                   showWishlist
                   showQuickView
                   onAddToCart={() => addItem(product.id)}
