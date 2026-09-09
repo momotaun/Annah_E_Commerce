@@ -1,12 +1,7 @@
 import Link from "next/link";
-import Avatar from "@/src/app/components/ui/Avatar";
+import AccountMenu from "@/src/app/components/layout/AccountMenu";
 
-export interface VendorHeaderProps {
-  userName?: string;
-  userAvatarSrc?: string;
-}
-
-function VendorHeader({ userName = "John Doe", userAvatarSrc }: VendorHeaderProps) {
+function VendorHeader() {
   return (
     <header className="border-b border-gray-200 bg-white">
       {/* Logo + avatar alone fit at any width; everything else here
@@ -29,10 +24,7 @@ function VendorHeader({ userName = "John Doe", userAvatarSrc }: VendorHeaderProp
           <Link href="/support" className="hidden text-sm text-gray-500 hover:text-primary-600 sm:block">
             Support
           </Link>
-          <div className="flex items-center gap-2">
-            <Avatar src={userAvatarSrc} alt={userName} size="sm" />
-            <span className="hidden text-sm font-medium text-gray-900 sm:block">{userName}</span>
-          </div>
+          <AccountMenu />
         </div>
       </div>
     </header>

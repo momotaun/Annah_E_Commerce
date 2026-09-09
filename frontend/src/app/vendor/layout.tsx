@@ -6,7 +6,7 @@ import Spinner from "@/src/app/components/ui/Spinner";
 import VendorHeader from "@/src/app/components/layout/VendorHeader";
 
 export default function VendorDashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useRequireRole("VENDOR");
+  const { isLoading } = useRequireRole("VENDOR");
 
   if (isLoading) {
     return (
@@ -18,7 +18,7 @@ export default function VendorDashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-screen flex-col">
-      <VendorHeader userName={user ? `${user.firstName} ${user.lastName}` : undefined} />
+      <VendorHeader />
       {/* Same stack-then-sidebar pattern as AccountSidebar (customer
           profile): a fixed w-48 side nav had no mobile fallback at all
           here, sitting beside the content at any width and forcing
