@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Menu, Heart, LogOut, Package, Settings, ShoppingCart, User, X } from "lucide-react";
+import { Menu, Heart, LogOut, Package, Settings, ShoppingCart, Store, User, X } from "lucide-react";
 import Badge from "@/src/app/components/ui/Badge";
 import Logo from "@/src/app/components/layout/Logo";
 import SearchBar from "@/src/app/components/shared/SearchBar";
@@ -167,6 +167,19 @@ function Header({
                 >
                   {user ? (
                     <>
+                      {user.role === "VENDOR" && (
+                        <>
+                          <Link
+                            href="/vendor/products"
+                            role="menuitem"
+                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
+                          >
+                            <Store className="h-4 w-4" />
+                            My Store
+                          </Link>
+                          <div className="my-1 border-t border-gray-200" />
+                        </>
+                      )}
                       <Link
                         href="/profile"
                         role="menuitem"
@@ -348,6 +361,15 @@ function Header({
           <div className="mt-4 flex flex-col gap-1 border-t border-gray-200 pt-4">
             {user ? (
               <>
+                {user.role === "VENDOR" && (
+                  <Link
+                    href="/vendor/products"
+                    className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
+                  >
+                    <Store className="h-5 w-5" />
+                    My Store
+                  </Link>
+                )}
                 <Link
                   href="/profile"
                   className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
