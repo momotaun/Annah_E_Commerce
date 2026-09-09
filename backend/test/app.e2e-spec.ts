@@ -31,7 +31,9 @@ describe('Categories (e2e)', () => {
   });
 
   it('GET /api/products/:id returns 404 for a nonexistent product', async () => {
-    const response = await request(app.getHttpServer()).get('/api/products/does-not-exist');
+    const response = await request(app.getHttpServer()).get(
+      '/api/products/does-not-exist',
+    );
 
     expect(response.status).toBe(404);
   });

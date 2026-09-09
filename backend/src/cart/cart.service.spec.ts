@@ -10,8 +10,17 @@ describe('CartService', () => {
   beforeEach(async () => {
     prisma = {
       product: { findUnique: jest.fn() },
-      cart: { findUnique: jest.fn(), create: jest.fn(), findUniqueOrThrow: jest.fn() },
-      cartItem: { upsert: jest.fn(), findUnique: jest.fn(), update: jest.fn(), delete: jest.fn() },
+      cart: {
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        findUniqueOrThrow: jest.fn(),
+      },
+      cartItem: {
+        upsert: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -35,13 +44,20 @@ describe('CartService', () => {
       prisma.cart.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.addItem({ sessionId: 'ghost-session', productId: 'product-1', quantity: 1 }),
+        service.addItem({
+          sessionId: 'ghost-session',
+          productId: 'product-1',
+          quantity: 1,
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('creates a brand new cart when no sessionId is provided', async () => {
       prisma.product.findUnique.mockResolvedValue({ id: 'product-1' });
-      prisma.cart.create.mockResolvedValue({ id: 'cart-1', sessionId: 'generated-session-id' });
+      prisma.cart.create.mockResolvedValue({
+        id: 'cart-1',
+        sessionId: 'generated-session-id',
+      });
       prisma.cartItem.upsert.mockResolvedValue({});
       prisma.cart.findUniqueOrThrow.mockResolvedValue({
         id: 'cart-1',
@@ -62,8 +78,14 @@ describe('CartService', () => {
 
   describe('updateItemQuantity — cart isolation', () => {
     it('rejects updating an item that belongs to a different cart', async () => {
-      prisma.cart.findUnique.mockResolvedValue({ id: 'cart-1', sessionId: 'session-1' });
-      prisma.cartItem.findUnique.mockResolvedValue({ id: 'item-1', cartId: 'someone-elses-cart' });
+      prisma.cart.findUnique.mockResolvedValue({
+        id: 'cart-1',
+        sessionId: 'session-1',
+      });
+      prisma.cartItem.findUnique.mockResolvedValue({
+        id: 'item-1',
+        cartId: 'someone-elses-cart',
+      });
 
       await expect(
         service.updateItemQuantity('session-1', 'item-1', { quantity: 5 }),
