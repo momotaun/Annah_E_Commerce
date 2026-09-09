@@ -170,7 +170,7 @@ function Header({
                       {user.role === "VENDOR" && (
                         <>
                           <Link
-                            href="/vendor/products"
+                            href="/vendor/dashboard"
                             role="menuitem"
                             className="flex items-center gap-2 px-4 py-2 text-sm text-gray-900 hover:bg-gray-50"
                           >
@@ -363,7 +363,7 @@ function Header({
               <>
                 {user.role === "VENDOR" && (
                   <Link
-                    href="/vendor/products"
+                    href="/vendor/dashboard"
                     className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
                   >
                     <Store className="h-5 w-5" />

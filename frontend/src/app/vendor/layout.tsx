@@ -25,14 +25,14 @@ export default function VendorDashboardLayout({ children }: { children: React.Re
           horizontal overflow on a phone (verified live). */}
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-6 py-8 md:flex-row">
         <nav className="flex w-full shrink-0 flex-col gap-1 md:w-48">
+          <Link href="/vendor/dashboard" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
+            Dashboard
+          </Link>
           <Link href="/vendor/products" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
             Products
           </Link>
           <Link href="/vendor/orders" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
             Orders
-          </Link>
-          <Link href="/vendor/sales-report" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
-            Sales Report
           </Link>
         </nav>
         <div className="flex-1">{children}</div>

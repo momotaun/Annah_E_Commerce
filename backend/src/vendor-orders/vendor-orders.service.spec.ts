@@ -39,40 +39,82 @@ describe('VendorOrdersService', () => {
     service = module.get<VendorOrdersService>(VendorOrdersService);
   });
 
-  describe('getSalesReport', () => {
+  describe('getDashboard', () => {
     it('counts distinct orders, not line items, even when one order has multiple items', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
         status: 'APPROVED',
       });
+      const today = new Date();
       prisma.vendorOrderItem.findMany.mockResolvedValue([
         {
           orderId: 'order-1',
+          productId: 'product-1',
+          product: { name: 'Widget' },
           quantity: 2,
           lineTotal: { toNumber: () => 200 },
           commission: { amount: { toNumber: () => 20 } },
+          order: { createdAt: today, status: 'PLACED' },
         },
         {
           orderId: 'order-1', // same order, second line item
+          productId: 'product-2',
+          product: { name: 'Gadget' },
           quantity: 1,
           lineTotal: { toNumber: () => 100 },
           commission: { amount: { toNumber: () => 10 } },
+          order: { createdAt: today, status: 'PLACED' },
         },
         {
           orderId: 'order-2',
+          productId: 'product-1',
+          product: { name: 'Widget' },
           quantity: 1,
           lineTotal: { toNumber: () => 50 },
           commission: { amount: { toNumber: () => 5 } },
+          order: { createdAt: today, status: 'DELIVERED' },
         },
       ]);
 
-      const result = await service.getSalesReport('user-1');
+      const result = await service.getDashboard('user-1');
 
       expect(result.totalOrders).toBe(2); // two distinct orders, not three line items
       expect(result.totalItemsSold).toBe(4); // 2 + 1 + 1
       expect(result.totalRevenue).toBe('350.00');
       expect(result.totalCommission).toBe('35.00');
       expect(result.netEarnings).toBe('315.00');
+
+      // 30 zero-filled daily buckets, today's bucket carrying all of
+      // today's revenue and both distinct orders.
+      expect(result.revenueOverTime).toHaveLength(30);
+      const todayBucket =
+        result.revenueOverTime[result.revenueOverTime.length - 1];
+      expect(todayBucket.revenue).toBe(350);
+      expect(todayBucket.orders).toBe(2);
+      expect(result.revenueOverTime[0].revenue).toBe(0);
+
+      // Distinct orders per status, not line items.
+      expect(result.ordersByStatus).toEqual(
+        expect.arrayContaining([
+          { status: 'PLACED', count: 1 },
+          { status: 'DELIVERED', count: 1 },
+        ]),
+      );
+
+      // Widget appears on both orders (200 + 50 = 250 revenue, 3 units);
+      // sorted by revenue descending.
+      expect(result.topProducts[0]).toEqual({
+        productId: 'product-1',
+        productName: 'Widget',
+        quantitySold: 3,
+        revenue: 250,
+      });
+      expect(result.topProducts[1]).toEqual({
+        productId: 'product-2',
+        productName: 'Gadget',
+        quantitySold: 1,
+        revenue: 100,
+      });
     });
 
     it('handles a vendor with zero sales without dividing by zero or crashing', async () => {
@@ -82,11 +124,46 @@ describe('VendorOrdersService', () => {
       });
       prisma.vendorOrderItem.findMany.mockResolvedValue([]);
 
-      const result = await service.getSalesReport('user-1');
+      const result = await service.getDashboard('user-1');
 
       expect(result.totalOrders).toBe(0);
       expect(result.totalRevenue).toBe('0.00');
       expect(result.netEarnings).toBe('0.00');
+      expect(result.revenueOverTime).toHaveLength(30);
+      expect(result.revenueOverTime.every((point) => point.revenue === 0)).toBe(
+        true,
+      );
+      expect(result.ordersByStatus).toEqual([]);
+      expect(result.topProducts).toEqual([]);
+    });
+
+    it('ignores order-item activity older than the 30-day revenue window', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        status: 'APPROVED',
+      });
+      const wayInThePast = new Date();
+      wayInThePast.setDate(wayInThePast.getDate() - 90);
+      prisma.vendorOrderItem.findMany.mockResolvedValue([
+        {
+          orderId: 'order-old',
+          productId: 'product-1',
+          product: { name: 'Widget' },
+          quantity: 1,
+          lineTotal: { toNumber: () => 500 },
+          commission: { amount: { toNumber: () => 50 } },
+          order: { createdAt: wayInThePast, status: 'DELIVERED' },
+        },
+      ]);
+
+      const result = await service.getDashboard('user-1');
+
+      // Lifetime totals still include it...
+      expect(result.totalRevenue).toBe('500.00');
+      // ...but the 30-day chart has nothing to show for it.
+      expect(result.revenueOverTime.every((point) => point.revenue === 0)).toBe(
+        true,
+      );
     });
   });
 

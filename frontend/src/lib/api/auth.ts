@@ -19,7 +19,7 @@ export interface AuthResponse {
 // the URL, since nothing in the nav surfaces it for them.
 export function getHomeRouteForRole(role: AuthUser['role']): string {
   if (role === 'ADMIN') return '/admin/vendors';
-  if (role === 'VENDOR') return '/vendor/products';
+  if (role === 'VENDOR') return '/vendor/dashboard';
   return '/profile';
 }
 

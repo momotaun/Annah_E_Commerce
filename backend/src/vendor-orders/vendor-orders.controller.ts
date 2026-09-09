@@ -25,9 +25,9 @@ export class VendorOrdersController {
     return this.vendorOrdersService.findAllForVendor(user.userId);
   }
 
-  @Get('sales-report')
-  getSalesReport(@CurrentUser() user: CurrentUserPayload) {
-    return this.vendorOrdersService.getSalesReport(user.userId);
+  @Get('dashboard')
+  getDashboard(@CurrentUser() user: CurrentUserPayload) {
+    return this.vendorOrdersService.getDashboard(user.userId);
   }
 
   @Patch('orders/:orderId/ship')

@@ -14,20 +14,41 @@ export interface VendorOrderItem {
   deliveredAt: string | null;
 }
 
-export interface SalesReport {
+export interface RevenueDataPoint {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
+export interface OrderStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface TopProduct {
+  productId: string;
+  productName: string;
+  quantitySold: number;
+  revenue: number;
+}
+
+export interface VendorDashboard {
   totalOrders: number;
   totalItemsSold: number;
   totalRevenue: string;
   totalCommission: string;
   netEarnings: string;
+  revenueOverTime: RevenueDataPoint[];
+  ordersByStatus: OrderStatusCount[];
+  topProducts: TopProduct[];
 }
 
 export function getMyVendorOrders() {
   return apiClient.get<VendorOrderItem[]>('/vendors/me/orders');
 }
 
-export function getMySalesReport() {
-  return apiClient.get<SalesReport>('/vendors/me/sales-report');
+export function getMyVendorDashboard() {
+  return apiClient.get<VendorDashboard>('/vendors/me/dashboard');
 }
 
 export function markOrderShipped(orderId: string) {

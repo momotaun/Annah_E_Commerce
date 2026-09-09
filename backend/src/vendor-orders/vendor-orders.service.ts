@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { VendorOrderItemResponseDto } from './dto/vendor-order-item-response.dto';
-import { SalesReportResponseDto } from './dto/sales-report-response.dto';
+import { VendorDashboardResponseDto } from './dto/vendor-dashboard-response.dto';
 import type { Mailer } from '../mailer/mailer.interface';
 import { MAILER } from '../mailer/mailer.module';
 
@@ -77,12 +77,12 @@ export class VendorOrdersService {
     return items.map((item) => this.toResponseDto(item));
   }
 
-  async getSalesReport(userId: string): Promise<SalesReportResponseDto> {
+  async getDashboard(userId: string): Promise<VendorDashboardResponseDto> {
     const vendor = await this.requireVendor(userId);
 
     const items = await this.prisma.vendorOrderItem.findMany({
       where: { vendorId: vendor.id },
-      include: { commission: true },
+      include: { commission: true, order: true, product: true },
     });
 
     const totalRevenue = items.reduce(
@@ -102,7 +102,115 @@ export class VendorOrdersService {
       totalRevenue: totalRevenue.toFixed(2),
       totalCommission: totalCommission.toFixed(2),
       netEarnings: (totalRevenue - totalCommission).toFixed(2),
+      revenueOverTime: this.buildRevenueOverTime(items),
+      ordersByStatus: this.buildOrdersByStatus(items),
+      topProducts: this.buildTopProducts(items),
     };
+  }
+
+  // Local calendar-day key (not toISOString/UTC) — bucket boundaries are
+  // computed via setHours/setDate in local time, so keying with the UTC
+  // date string would misalign by a day for any timezone that isn't UTC.
+  private toDayKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Zero-filled daily buckets for the last 30 days (oldest first) so the
+  // chart always renders a continuous series instead of gaps on quiet
+  // days.
+  private buildRevenueOverTime(
+    items: {
+      lineTotal: { toNumber(): number };
+      orderId: string;
+      order: { createdAt: Date };
+    }[],
+  ) {
+    const DAY_COUNT = 30;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const buckets = new Map<
+      string,
+      { revenue: number; orderIds: Set<string> }
+    >();
+    for (let i = DAY_COUNT - 1; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      buckets.set(this.toDayKey(date), { revenue: 0, orderIds: new Set() });
+    }
+
+    const cutoff = new Date(today);
+    cutoff.setDate(cutoff.getDate() - (DAY_COUNT - 1));
+    for (const item of items) {
+      if (item.order.createdAt < cutoff) continue;
+      const bucket = buckets.get(this.toDayKey(item.order.createdAt));
+      if (!bucket) continue;
+      bucket.revenue += item.lineTotal.toNumber();
+      bucket.orderIds.add(item.orderId);
+    }
+
+    return [...buckets.entries()].map(([date, bucket]) => ({
+      date,
+      revenue: Number(bucket.revenue.toFixed(2)),
+      orders: bucket.orderIds.size,
+    }));
+  }
+
+  // Distinct orders (not line items) per current status — an order with
+  // items from multiple vendors is counted once per vendor, since each
+  // vendor only sees their own slice of it.
+  private buildOrdersByStatus(
+    items: { orderId: string; order: { status: string } }[],
+  ) {
+    const statusByOrderId = new Map<string, string>();
+    for (const item of items) {
+      statusByOrderId.set(item.orderId, item.order.status);
+    }
+    const counts = new Map<string, number>();
+    for (const status of statusByOrderId.values()) {
+      counts.set(status, (counts.get(status) ?? 0) + 1);
+    }
+    return [...counts.entries()].map(([status, count]) => ({
+      status,
+      count,
+    }));
+  }
+
+  private buildTopProducts(
+    items: {
+      productId: string;
+      product: { name: string };
+      quantity: number;
+      lineTotal: { toNumber(): number };
+    }[],
+  ) {
+    const totals = new Map<
+      string,
+      { productName: string; quantitySold: number; revenue: number }
+    >();
+    for (const item of items) {
+      const existing = totals.get(item.productId) ?? {
+        productName: item.product.name,
+        quantitySold: 0,
+        revenue: 0,
+      };
+      existing.quantitySold += item.quantity;
+      existing.revenue += item.lineTotal.toNumber();
+      totals.set(item.productId, existing);
+    }
+
+    return [...totals.entries()]
+      .map(([productId, data]) => ({
+        productId,
+        productName: data.productName,
+        quantitySold: data.quantitySold,
+        revenue: Number(data.revenue.toFixed(2)),
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
   }
 
   // Shipping/delivery is tracked per vendor per order — not on Order
