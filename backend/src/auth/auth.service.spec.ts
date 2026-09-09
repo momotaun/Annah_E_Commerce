@@ -11,34 +11,34 @@ describe('AuthService', () => {
   let service: AuthService;
   let prisma: {
     user: {
-      findUnique: ReturnType<typeof jest.fn>;
-      create: ReturnType<typeof jest.fn>;
-      update: ReturnType<typeof jest.fn>;
-      findUniqueOrThrow: ReturnType<typeof jest.fn>;
+      findUnique: jest.Mock;
+      create: jest.Mock;
+      update: jest.Mock;
+      findUniqueOrThrow: jest.Mock;
     };
     refreshToken: {
-      create: ReturnType<typeof jest.fn>;
-      findUnique: ReturnType<typeof jest.fn>;
-      update: ReturnType<typeof jest.fn>;
-      updateMany: ReturnType<typeof jest.fn>;
+      create: jest.Mock;
+      findUnique: jest.Mock;
+      update: jest.Mock;
+      updateMany: jest.Mock;
     };
     passwordResetToken: {
-      create: ReturnType<typeof jest.fn>;
-      findUnique: ReturnType<typeof jest.fn>;
-      update: ReturnType<typeof jest.fn>;
-      deleteMany: ReturnType<typeof jest.fn>;
+      create: jest.Mock;
+      findUnique: jest.Mock;
+      update: jest.Mock;
+      deleteMany: jest.Mock;
     };
     emailVerificationToken: {
-      create: ReturnType<typeof jest.fn>;
-      findUnique: ReturnType<typeof jest.fn>;
-      update: ReturnType<typeof jest.fn>;
-      deleteMany: ReturnType<typeof jest.fn>;
+      create: jest.Mock;
+      findUnique: jest.Mock;
+      update: jest.Mock;
+      deleteMany: jest.Mock;
     };
-    $transaction: ReturnType<typeof jest.fn>;
+    $transaction: jest.Mock;
   };
   let jwtService: {
-    signAsync: ReturnType<typeof jest.fn>;
-    verifyAsync: ReturnType<typeof jest.fn>;
+    signAsync: jest.Mock;
+    verifyAsync: jest.Mock;
   };
   let mailer: jest.Mocked<Mailer>;
 
@@ -135,7 +135,11 @@ describe('AuthService', () => {
         lastName: 'Dlamini',
       });
 
-      const createCallArgs = prisma.user.create.mock.calls[0][0];
+      const createMock = prisma.user.create as jest.Mock<
+        unknown,
+        [{ data: { passwordHash: string } }]
+      >;
+      const createCallArgs = createMock.mock.calls[0][0];
       expect(createCallArgs.data.passwordHash).not.toBe('plaintext-password');
       expect(
         await bcrypt.compare(
@@ -334,11 +338,11 @@ describe('AuthService', () => {
         where: { userId: 'user-1', usedAt: null },
       });
       expect(prisma.passwordResetToken.create).toHaveBeenCalledTimes(1);
-      const persisted = (
-        prisma.passwordResetToken.create.mock.calls[0][0] as {
-          data: { userId: string; tokenHash: string; expiresAt: Date };
-        }
-      ).data;
+      const resetCreateMock = prisma.passwordResetToken.create as jest.Mock<
+        unknown,
+        [{ data: { userId: string; tokenHash: string; expiresAt: Date } }]
+      >;
+      const persisted = resetCreateMock.mock.calls[0][0].data;
       expect(persisted.userId).toBe('user-1');
 
       // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock, no `this` binding involved
@@ -426,11 +430,11 @@ describe('AuthService', () => {
       expect(prisma.user.update).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: 'user-1' } }),
       );
-      const newHash = (
-        prisma.user.update.mock.calls[0][0] as {
-          data: { passwordHash: string };
-        }
-      ).data.passwordHash;
+      const updateMock = prisma.user.update as jest.Mock<
+        unknown,
+        [{ data: { passwordHash: string } }]
+      >;
+      const newHash = updateMock.mock.calls[0][0].data.passwordHash;
       expect(await bcrypt.compare('newPassword123', newHash)).toBe(true);
 
       expect(prisma.passwordResetToken.update).toHaveBeenCalledWith({
