@@ -342,3 +342,38 @@ model LegalPage {
   sections  Json
   updatedAt DateTime @updatedAt
 }
+
+// Singleton row (fixed id) — site-wide branding the admin can edit without a
+// deploy: name, logo, and the announcement strip shown in every Header.
+model SiteSettings {
+  id               String   @id @default("singleton")
+  siteName         String
+  logoUrl          String?
+  announcementText String?
+  updatedAt        DateTime @updatedAt
+}
+
+model HeroSlide {
+  id             String  @id @default(cuid())
+  order          Int
+  eyebrow        String
+  headlineBefore String
+  highlight      String
+  headlineAfter  String
+  subheading     String
+  imageUrl       String
+  ctaLabel       String
+  ctaHref        String
+  badgeValue     String
+  badgeCaption   String
+  // Ties this slide to a real category's colour theme (getCategoryTheme) —
+  // deliberately not a foreign key to Category.slug, since the theme lookup
+  // already tolerates any string via fallback and a real FK would complicate
+  // seed ordering for no behavior gain.
+  categorySlug String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+}

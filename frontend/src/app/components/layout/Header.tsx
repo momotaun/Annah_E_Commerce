@@ -9,6 +9,7 @@ import Logo from "@/src/app/components/layout/Logo";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
+import { useSiteSettings } from "@/src/context/SiteSettingsContext";
 import { cn } from "@/src/lib/utils";
 import { withLoginRedirect } from "@/src/lib/loginRedirect";
 
@@ -47,6 +48,8 @@ function Header({
   const router = useRouter();
   const { itemCount } = useCart();
   const { user, logout } = useAuth();
+  const { announcementText: contextAnnouncementText } = useSiteSettings();
+  const resolvedAnnouncementText = announcementText ?? contextAnnouncementText;
   const loginHref = withLoginRedirect(pathname);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -107,9 +110,9 @@ function Header({
 
   return (
     <div className="w-full border-b border-gray-200 bg-white">
-      {announcementText && (
+      {resolvedAnnouncementText && (
         <div className="bg-primary-600 py-2 text-center text-sm font-medium text-white">
-          {announcementText}
+          {resolvedAnnouncementText}
         </div>
       )}
 

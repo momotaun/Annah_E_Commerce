@@ -6,7 +6,7 @@ import { ArrowRight, Truck, Lock, Leaf } from "lucide-react";
 import Button from "@/src/app/components/ui/Button";
 import { getCategoryTheme } from "@/src/lib/categoryTheme";
 
-interface Slide {
+export interface Slide {
   eyebrow: string;
   headlineBefore: string;
   highlight: string;
@@ -22,55 +22,6 @@ interface Slide {
   categorySlug?: string;
 }
 
-const slides: Slide[] = [
-  {
-    eyebrow: "A Better Way To Shop",
-    headlineBefore: "Quality products for a",
-    highlight: "brighter",
-    headlineAfter: "everyday",
-    subheading: "Top brands. Great prices. A more sustainable tomorrow.",
-    image: "/images/hero-desk.jpg",
-    cta: { label: "Shop Now", href: "/catalogue" },
-    badgeValue: "50%",
-    badgeCaption: "Selected items",
-  },
-  {
-    eyebrow: "New Season",
-    headlineBefore: "Tailored style,",
-    highlight: "elevated",
-    headlineAfter: "everyday",
-    subheading: "Premium fashion essentials, cut for confidence.",
-    image: "/images/cat-fashion.jpg",
-    cta: { label: "Shop Fashion", href: "/categories/fashion" },
-    badgeValue: "25%",
-    badgeCaption: "New arrivals",
-    categorySlug: "fashion",
-  },
-  {
-    eyebrow: "Tech For Tomorrow",
-    headlineBefore: "Smarter tech,",
-    highlight: "greener",
-    headlineAfter: "choices",
-    subheading: "Innovation that works as hard as you do.",
-    image: "/images/cat-electronics.jpg",
-    cta: { label: "Shop Electronics", href: "/categories/electronics" },
-    badgeValue: "30%",
-    badgeCaption: "Selected items",
-    categorySlug: "electronics",
-  },
-  {
-    eyebrow: "Weekend Ready",
-    headlineBefore: "Gear up for your next",
-    highlight: "adventure",
-    headlineAfter: "",
-    subheading: "Durable essentials built to go the distance.",
-    image: "/images/cat-outdoor.jpg",
-    cta: { label: "Shop Now", href: "/catalogue" },
-    badgeValue: "20%",
-    badgeCaption: "Selected items",
-  },
-];
-
 const heroValueProps = [
   { icon: Truck, title: "Free shipping", subtitle: "on orders over R1000" },
   { icon: Lock, title: "Secure payment", subtitle: "100% safe & encrypted" },
@@ -79,18 +30,21 @@ const heroValueProps = [
 
 const SLIDE_INTERVAL_MS = 6000;
 
-export default function HeroSection() {
+export default function HeroSection({ slides }: { slides: Slide[] }) {
   const [activeSlide, setActiveSlide] = useState(0);
 
   // Auto-advance, but re-armed from whatever slide a dot click landed on —
   // otherwise a manual click would just get overwritten by the next tick of
   // an interval still counting from the old slide.
   useEffect(() => {
+    if (slides.length === 0) return;
     const timer = setInterval(() => {
       setActiveSlide((current) => (current + 1) % slides.length);
     }, SLIDE_INTERVAL_MS);
     return () => clearInterval(timer);
-  }, [activeSlide]);
+  }, [activeSlide, slides.length]);
+
+  if (slides.length === 0) return null;
 
   const slide = slides[activeSlide];
   const theme = getCategoryTheme(slide.categorySlug);

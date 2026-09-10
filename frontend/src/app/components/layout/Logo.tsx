@@ -1,5 +1,8 @@
+"use client";
+
+import Image from "next/image";
 import { cn } from "@/src/lib/utils";
-import { SITE_NAME } from "@/src/lib/siteConfig";
+import { useSiteSettings } from "@/src/context/SiteSettingsContext";
 
 export interface LogoProps {
   // "light" for a light/white background (colored badge, dark wordmark);
@@ -18,6 +21,11 @@ const badgeSizes = {
   md: "h-9 w-9 text-lg",
 };
 
+const badgePixelSizes = {
+  sm: 32,
+  md: 36,
+};
+
 const wordmarkSizes = {
   sm: "text-lg",
   md: "text-xl",
@@ -33,11 +41,10 @@ const wordmarkTheme = {
   dark: "text-white",
 };
 
-// The one place that renders the brand mark — a colored square badge with
-// the site's initial, plus the wordmark. Swap in an <Image> here instead
-// of the badge span if a real logo file is ever introduced; every header
-// (customer, vendor, admin, footer, error page) already renders through
-// this component, so nothing else needs to change.
+// The one place that renders the brand mark. Every header (customer,
+// vendor, admin, footer, error page) already renders through this
+// component, so nothing else needs to change when the admin sets a real
+// logo image — it just swaps in for the generated initial badge below.
 function Logo({
   theme = "light",
   size = "md",
@@ -46,19 +53,30 @@ function Logo({
   wordmarkClassName,
   className,
 }: LogoProps) {
+  const { siteName, logoUrl } = useSiteSettings();
+
   return (
     <span className={cn("flex items-center gap-2", className)}>
-      {showBadge && (
-        <span
-          className={cn(
-            "flex shrink-0 items-center justify-center rounded-lg font-bold",
-            badgeSizes[size],
-            badgeTheme[theme]
-          )}
-        >
-          {SITE_NAME.charAt(0).toUpperCase()}
-        </span>
-      )}
+      {showBadge &&
+        (logoUrl ? (
+          <Image
+            src={logoUrl}
+            alt={siteName}
+            width={badgePixelSizes[size]}
+            height={badgePixelSizes[size]}
+            className={cn("shrink-0 rounded-lg object-contain", badgeSizes[size])}
+          />
+        ) : (
+          <span
+            className={cn(
+              "flex shrink-0 items-center justify-center rounded-lg font-bold",
+              badgeSizes[size],
+              badgeTheme[theme]
+            )}
+          >
+            {siteName.charAt(0).toUpperCase()}
+          </span>
+        ))}
       {showWordmark && (
         <span
           className={cn(
@@ -68,7 +86,7 @@ function Logo({
             wordmarkClassName
           )}
         >
-          {SITE_NAME}
+          {siteName}
         </span>
       )}
     </span>

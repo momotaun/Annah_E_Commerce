@@ -23,6 +23,8 @@ import { VendorProductsModule } from './vendor-products/vendor-products.module';
 import { VendorOrdersModule } from './vendor-orders/vendor-orders.module';
 import { AdminModule } from './admin/admin.module';
 import { LegalPagesModule } from './legal-pages/legal-pages.module';
+import { SiteSettingsModule } from './site-settings/site-settings.module';
+import { HeroSlidesModule } from './hero-slides/hero-slides.module';
 import { isPinoPrettyAvailable } from './bootstrap/is-pino-pretty-available';
 
 @Module({
@@ -85,6 +87,8 @@ import { isPinoPrettyAvailable } from './bootstrap/is-pino-pretty-available';
     VendorOrdersModule,
     AdminModule,
     LegalPagesModule,
+    SiteSettingsModule,
+    HeroSlidesModule,
   ],
   controllers: [AppController],
   providers: [

@@ -47,6 +47,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin/legal-pages" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
             Legal Pages
           </Link>
+          <Link href="/admin/branding" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
+            Branding
+          </Link>
+          <Link href="/admin/banners" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
+            Banners
+          </Link>
         </nav>
         <div className="flex-1">{children}</div>
       </div>

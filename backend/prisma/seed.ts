@@ -891,6 +891,78 @@ async function main() {
       ],
     },
   });
+  await prisma.siteSettings.upsert({
+    where: { id: 'singleton' },
+    update: {},
+    create: {
+      id: 'singleton',
+      siteName: 'EliteCommerce',
+      logoUrl: null,
+      announcementText: 'FREE SHIPPING ON ORDERS OVER R1000!',
+    },
+  });
+
+  const heroSlides = [
+    {
+      eyebrow: 'A Better Way To Shop',
+      headlineBefore: 'Quality products for a',
+      highlight: 'brighter',
+      headlineAfter: 'everyday',
+      subheading: 'Top brands. Great prices. A more sustainable tomorrow.',
+      imageUrl: '/images/hero-desk.jpg',
+      ctaLabel: 'Shop Now',
+      ctaHref: '/catalogue',
+      badgeValue: '50%',
+      badgeCaption: 'Selected items',
+      categorySlug: null,
+    },
+    {
+      eyebrow: 'New Season',
+      headlineBefore: 'Tailored style,',
+      highlight: 'elevated',
+      headlineAfter: 'everyday',
+      subheading: 'Premium fashion essentials, cut for confidence.',
+      imageUrl: '/images/cat-fashion.jpg',
+      ctaLabel: 'Shop Fashion',
+      ctaHref: '/categories/fashion',
+      badgeValue: '25%',
+      badgeCaption: 'New arrivals',
+      categorySlug: 'fashion',
+    },
+    {
+      eyebrow: 'Tech For Tomorrow',
+      headlineBefore: 'Smarter tech,',
+      highlight: 'greener',
+      headlineAfter: 'choices',
+      subheading: 'Innovation that works as hard as you do.',
+      imageUrl: '/images/cat-electronics.jpg',
+      ctaLabel: 'Shop Electronics',
+      ctaHref: '/categories/electronics',
+      badgeValue: '30%',
+      badgeCaption: 'Selected items',
+      categorySlug: 'electronics',
+    },
+    {
+      eyebrow: 'Weekend Ready',
+      headlineBefore: 'Gear up for your next',
+      highlight: 'adventure',
+      headlineAfter: '',
+      subheading: 'Durable essentials built to go the distance.',
+      imageUrl: '/images/cat-outdoor.jpg',
+      ctaLabel: 'Shop Now',
+      ctaHref: '/catalogue',
+      badgeValue: '20%',
+      badgeCaption: 'Selected items',
+      categorySlug: null,
+    },
+  ];
+
+  for (let order = 0; order < heroSlides.length; order += 1) {
+    const existing = await prisma.heroSlide.findFirst({ where: { order } });
+    if (!existing) {
+      await prisma.heroSlide.create({ data: { ...heroSlides[order], order } });
+    }
+  }
 }
 
 main()

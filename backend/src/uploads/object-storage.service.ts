@@ -41,6 +41,20 @@ export class ObjectStorageService {
   }
 
   async uploadProductImage(file: Express.Multer.File): Promise<string> {
+    return this.uploadImage(file, 'product-images');
+  }
+
+  // Site-wide branding assets (logo, hero slide backgrounds) — same
+  // storage/validation, a different key prefix so they're easy to tell
+  // apart from vendor-owned product images in the bucket.
+  async uploadSiteAsset(file: Express.Multer.File): Promise<string> {
+    return this.uploadImage(file, 'site-assets');
+  }
+
+  private async uploadImage(
+    file: Express.Multer.File,
+    keyPrefix: string,
+  ): Promise<string> {
     const extension = ALLOWED_MIME_TYPES[file.mimetype];
     if (!extension) {
       throw new BadRequestException(
@@ -60,7 +74,7 @@ export class ObjectStorageService {
       );
     }
 
-    const key = `product-images/${randomUUID()}.${extension}`;
+    const key = `${keyPrefix}/${randomUUID()}.${extension}`;
     const url = `${publicUrlBase.replace(/\/$/, '')}/${key}`;
 
     // Fail loudly here rather than let a misconfigured public URL base

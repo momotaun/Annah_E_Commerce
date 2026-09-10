@@ -7,23 +7,38 @@ import Button from "@/src/app/components/ui/Button";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
 import { getProducts } from "@/src/lib/api/products";
 import { getCategories } from "@/src/lib/api/categories";
+import { getHeroSlides } from "@/src/lib/api/hero-slides";
 import { Category } from "@/src/lib/api-types";
 import { getCategoryTheme } from "@/src/lib/categoryTheme";
 import TopRatedEssentials from "@/src/app/TopRatedEssentials";
-import HeroSection from "@/src/app/HeroSection";
+import HeroSection, { Slide } from "@/src/app/HeroSection";
 
 export default async function LandingPage() {
-  const [essentials, categories] = await Promise.all([
+  const [essentials, categories, heroSlides] = await Promise.all([
     getProducts({ limit: 6 }),
     getCategories(),
+    getHeroSlides(),
   ]);
+
+  const slides: Slide[] = heroSlides.map((slide) => ({
+    eyebrow: slide.eyebrow,
+    headlineBefore: slide.headlineBefore,
+    highlight: slide.highlight,
+    headlineAfter: slide.headlineAfter,
+    subheading: slide.subheading,
+    image: slide.imageUrl,
+    cta: { label: slide.ctaLabel, href: slide.ctaHref },
+    badgeValue: slide.badgeValue,
+    badgeCaption: slide.badgeCaption,
+    categorySlug: slide.categorySlug ?? undefined,
+  }));
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header announcementText="FREE SHIPPING ON ORDERS OVER R1000!" showSearch />
+      <Header showSearch />
 
       <main className="flex-1">
-        <HeroSection />
+        <HeroSection slides={slides} />
         <CategoryIconRow categories={categories} />
         <TopRatedEssentials products={essentials.data} />
         <PromoBanner />
