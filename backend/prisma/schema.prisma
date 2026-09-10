@@ -29,6 +29,7 @@ model Product {
   sku         String   @unique
   description String?
   price       Decimal       @db.Decimal(10, 2)
+  quantity    Int           @default(0)
   imageUrl    String? // primary/thumbnail — mirrors images[0] once set
   images      String[]      @default([])
   status      ProductStatus @default(PUBLISHED)

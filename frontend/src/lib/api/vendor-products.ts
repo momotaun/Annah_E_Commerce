@@ -8,6 +8,7 @@ export interface VendorProduct {
   sku: string;
   description: string | null;
   price: string;
+  quantity: number;
   imageUrl: string | null;
   images: string[];
   status: ProductStatus;
@@ -24,6 +25,7 @@ export function createVendorProduct(data: {
   sku: string;
   description?: string;
   price: number;
+  quantity: number;
   imageUrl?: string;
   images?: string[];
   status?: ProductStatus;
@@ -33,7 +35,7 @@ export function createVendorProduct(data: {
 }
 
 export function updateVendorProduct(id: string, data: Partial<{
-  name: string; sku: string; description: string; price: number; imageUrl: string; images: string[]; status: ProductStatus; categoryId: string;
+  name: string; sku: string; description: string; price: number; quantity: number; imageUrl: string; images: string[]; status: ProductStatus; categoryId: string;
 }>) {
   return apiClient.patch<VendorProduct>(`/vendors/me/products/${id}`, data);
 }

@@ -2,12 +2,14 @@ import {
   ArrayMaxSize,
   IsArray,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
   Matches,
+  Min,
 } from 'class-validator';
 import { ProductStatus } from '@prisma/client';
 import { PRODUCT_IMAGE_URL_PATTERN } from '../../common/product-image-url-pattern';
@@ -27,6 +29,10 @@ export class CreateVendorProductDto {
   @IsNumber()
   @IsPositive()
   price: number;
+
+  @IsInt()
+  @Min(0)
+  quantity: number;
 
   @IsOptional()
   @IsString()

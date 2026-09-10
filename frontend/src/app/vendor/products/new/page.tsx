@@ -21,6 +21,7 @@ import { formatPrice } from "@/src/lib/utils";
 
 const STEPS = [
   { label: "Basics" },
+  { label: "Quantity & Price" },
   { label: "Category" },
   { label: "Images" },
   { label: "Preview" },
@@ -41,10 +42,12 @@ export default function NewVendorProductPage() {
   const [description, setDescription] = useState("");
   const [sku, setSku] = useState("");
   const [price, setPrice] = useState("");
+  const [quantity, setQuantity] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [images, setImages] = useState<string[]>([]);
 
   const [basicsError, setBasicsError] = useState<string | null>(null);
+  const [inventoryError, setInventoryError] = useState<string | null>(null);
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -60,14 +63,22 @@ export default function NewVendorProductPage() {
 
   function goNext() {
     if (step === 0) {
-      const parsedPrice = parseFloat(price);
-      if (!name.trim() || !sku.trim() || !price.trim() || !(parsedPrice > 0)) {
-        setBasicsError("Name, SKU, and a valid price are required to continue.");
+      if (!name.trim() || !sku.trim()) {
+        setBasicsError("Name and SKU are required to continue.");
         return;
       }
       setBasicsError(null);
     }
     if (step === 1) {
+      const parsedPrice = parseFloat(price);
+      const parsedQuantity = parseInt(quantity, 10);
+      if (!price.trim() || !(parsedPrice > 0) || !quantity.trim() || !(parsedQuantity >= 0) || !Number.isInteger(parsedQuantity)) {
+        setInventoryError("A valid quantity and price are required to continue.");
+        return;
+      }
+      setInventoryError(null);
+    }
+    if (step === 2) {
       if (!categoryId) {
         setCategoryError("Choose a category to continue.");
         return;
@@ -123,6 +134,7 @@ export default function NewVendorProductPage() {
         name: name.trim(),
         sku: sku.trim(),
         price: parseFloat(price),
+        quantity: parseInt(quantity, 10),
         description: description.trim() || undefined,
         categoryId,
         images: images.length > 0 ? images : undefined,
@@ -163,10 +175,6 @@ export default function NewVendorProductPage() {
                 <label className="mb-1.5 block text-sm font-medium text-gray-900">SKU</label>
                 <Input placeholder="e.g. APEX-SILK-POCKET-SQUARE" value={sku} onChange={(e) => setSku(e.target.value)} />
               </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-900">Price (ZAR)</label>
-                <Input placeholder="e.g. 349.00" type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} />
-              </div>
             </div>
 
             {basicsError && <p className="mt-4 text-sm text-danger-500">{basicsError}</p>}
@@ -174,6 +182,26 @@ export default function NewVendorProductPage() {
         )}
 
         {step === 1 && (
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Quantity &amp; Price</h1>
+            <p className="mt-1 text-sm text-gray-500">How many do you have, and what does it cost?</p>
+
+            <div className="mt-6 flex flex-col gap-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-900">Quantity in Stock</label>
+                <Input placeholder="e.g. 25" type="number" min="0" step="1" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-900">Price (ZAR)</label>
+                <Input placeholder="e.g. 349.00" type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} />
+              </div>
+            </div>
+
+            {inventoryError && <p className="mt-4 text-sm text-danger-500">{inventoryError}</p>}
+          </div>
+        )}
+
+        {step === 2 && (
           <div>
             <h1 className="text-xl font-bold text-gray-900">Category</h1>
             <p className="mt-1 text-sm text-gray-500">Where should this product be listed?</p>
@@ -191,7 +219,7 @@ export default function NewVendorProductPage() {
           </div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div>
             <h1 className="text-xl font-bold text-gray-900">Images</h1>
             <p className="mt-1 text-sm text-gray-500">Add up to {MAX_IMAGES} images. The first image is used as the cover photo.</p>
@@ -238,7 +266,7 @@ export default function NewVendorProductPage() {
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <div>
             <h1 className="text-xl font-bold text-gray-900">Preview</h1>
             <p className="mt-1 text-sm text-gray-500">This is roughly how your product will appear to customers.</p>
@@ -278,7 +306,7 @@ export default function NewVendorProductPage() {
           </div>
         )}
 
-        {step < 3 && (
+        {step < 4 && (
           <div className="mt-8 flex items-center justify-between">
             <Button variant="ghost" onClick={goBack} disabled={step === 0}>
               Back
@@ -286,7 +314,7 @@ export default function NewVendorProductPage() {
             <Button onClick={goNext}>Continue →</Button>
           </div>
         )}
-        {step === 3 && (
+        {step === 4 && (
           <div className="mt-4">
             <Button variant="ghost" size="sm" onClick={goBack}>
               ← Back to Images

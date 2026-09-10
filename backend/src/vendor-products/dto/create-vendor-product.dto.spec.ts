@@ -6,6 +6,7 @@ const baseProduct = {
   name: 'Apex Silk Pocket Square',
   sku: 'APEX-SILK-POCKET-SQUARE',
   price: 349,
+  quantity: 10,
   categoryId: 'cat-1',
 };
 
@@ -95,6 +96,28 @@ describe('CreateVendorProductDto price', () => {
   it('rejects a zero or negative price', async () => {
     const errors = await validateDto({ price: 0 });
     expect(errors.find((e) => e.property === 'price')).toBeDefined();
+  });
+});
+
+describe('CreateVendorProductDto quantity', () => {
+  it('rejects a missing quantity — every product must have a stock count', async () => {
+    const errors = await validateDto({ quantity: undefined });
+    expect(errors.find((e) => e.property === 'quantity')).toBeDefined();
+  });
+
+  it('allows a quantity of 0 (out of stock, but a real count)', async () => {
+    const errors = await validateDto({ quantity: 0 });
+    expect(errors.find((e) => e.property === 'quantity')).toBeUndefined();
+  });
+
+  it('rejects a negative quantity', async () => {
+    const errors = await validateDto({ quantity: -1 });
+    expect(errors.find((e) => e.property === 'quantity')).toBeDefined();
+  });
+
+  it('rejects a non-integer quantity', async () => {
+    const errors = await validateDto({ quantity: 1.5 });
+    expect(errors.find((e) => e.property === 'quantity')).toBeDefined();
   });
 });
 

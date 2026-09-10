@@ -6,6 +6,7 @@ export class VendorProductResponseDto {
   sku: string;
   description: string | null;
   price: string;
+  quantity: number;
   imageUrl: string | null;
   images: string[];
   status: ProductStatus;

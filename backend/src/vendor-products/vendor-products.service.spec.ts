@@ -151,6 +151,7 @@ describe('VendorProductsService', () => {
           name: 'New Product',
           sku: 'DUPLICATE-SKU',
           price: 100,
+          quantity: 10,
           categoryId: 'cat-1',
         }),
       ).rejects.toThrow(ConflictException);
@@ -170,6 +171,7 @@ describe('VendorProductsService', () => {
           name: 'New Product',
           sku: 'NEW-SKU',
           price: 100,
+          quantity: 10,
           categoryId: 'ghost-category',
         }),
       ).rejects.toThrow(NotFoundException);
@@ -192,6 +194,7 @@ describe('VendorProductsService', () => {
         name: 'Gallery Product',
         sku: 'GALLERY-SKU',
         price: 100,
+        quantity: 10,
         categoryId: 'cat-1',
         images: ['/images/one.jpg', '/images/two.jpg'],
       });
@@ -223,6 +226,7 @@ describe('VendorProductsService', () => {
         name: 'No Status Product',
         sku: 'NO-STATUS-SKU',
         price: 100,
+        quantity: 10,
         categoryId: 'cat-1',
       });
 
@@ -250,6 +254,7 @@ describe('VendorProductsService', () => {
         name: 'Draft Product',
         sku: 'DRAFT-SKU',
         price: 100,
+        quantity: 10,
         categoryId: 'cat-1',
         status: 'DRAFT',
       });
