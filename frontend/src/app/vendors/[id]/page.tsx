@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { BadgeCheck } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
@@ -52,9 +53,19 @@ export default async function VendorStorefrontPage({
 
         <section className="relative mt-4 overflow-hidden bg-gray-900">
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-6 py-14 text-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white/10 bg-white/10 text-2xl font-bold text-white">
-              {initials}
-            </div>
+            {vendor.logoUrl ? (
+              <Image
+                src={vendor.logoUrl}
+                alt={`${vendor.businessName} logo`}
+                width={96}
+                height={96}
+                className="h-24 w-24 rounded-full border-4 border-white/10 bg-white object-cover"
+              />
+            ) : (
+              <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white/10 bg-white/10 text-2xl font-bold text-white">
+                {initials}
+              </div>
+            )}
             <div className="flex flex-col items-center gap-2">
               <div className="flex items-center gap-2">
                 <h1 className="text-3xl font-extrabold text-white">{vendor.businessName}</h1>

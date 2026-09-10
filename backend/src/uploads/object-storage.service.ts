@@ -51,6 +51,10 @@ export class ObjectStorageService {
     return this.uploadImage(file, 'site-assets');
   }
 
+  async uploadVendorLogo(file: Express.Multer.File): Promise<string> {
+    return this.uploadImage(file, 'vendor-logos');
+  }
+
   private async uploadImage(
     file: Express.Multer.File,
     keyPrefix: string,

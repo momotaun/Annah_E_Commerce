@@ -256,6 +256,7 @@ model Vendor {
   businessName String
   contactEmail String       @unique
   bio          String?
+  logoUrl      String?
   status       VendorStatus @default(PENDING)
   approvedAt   DateTime?
 

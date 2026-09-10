@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Badge from "@/src/app/components/ui/Badge";
 import Button from "@/src/app/components/ui/Button";
 import Spinner from "@/src/app/components/ui/Spinner";
@@ -63,12 +64,27 @@ export default function AdminVendorsPage() {
               key={vendor.id}
               className="flex items-center justify-between rounded-md border border-gray-200 bg-white p-4"
             >
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-gray-900">{vendor.businessName}</p>
-                  <Badge variant={badgeVariant(vendor.status)}>{vendor.status}</Badge>
+              <div className="flex items-center gap-3">
+                {vendor.logoUrl ? (
+                  <Image
+                    src={vendor.logoUrl}
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 shrink-0 rounded-md border border-gray-200 object-cover"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-gray-100 text-sm font-bold text-gray-500">
+                    {vendor.businessName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-gray-900">{vendor.businessName}</p>
+                    <Badge variant={badgeVariant(vendor.status)}>{vendor.status}</Badge>
+                  </div>
+                  <p className="text-xs text-gray-500">{vendor.contactEmail}</p>
                 </div>
-                <p className="text-xs text-gray-500">{vendor.contactEmail}</p>
               </div>
 
               <div className="flex gap-2">

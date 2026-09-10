@@ -34,6 +34,9 @@ export default function VendorDashboardLayout({ children }: { children: React.Re
           <Link href="/vendor/orders" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
             Orders
           </Link>
+          <Link href="/vendor/settings" className="rounded-md px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
+            Settings
+          </Link>
         </nav>
         <div className="flex-1">{children}</div>
       </div>

@@ -4,14 +4,71 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ObjectStorageService } from '../uploads/object-storage.service';
 import { RegisterVendorDto } from './dto/register-vendor.dto';
 import { ApproveVendorDto } from './dto/approve-vendor.dto';
+import { UpdateVendorProfileDto } from './dto/update-vendor-profile.dto';
 import { VendorResponseDto } from './dto/vendor-response.dto';
 import { VendorListItemDto } from './dto/vendor-list-item.dto';
 
 @Injectable()
 export class VendorsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly objectStorageService: ObjectStorageService,
+  ) {}
+
+  // The caller's own vendor record, whatever its status. Deliberately not
+  // gated on APPROVED/VENDOR role: a just-registered (PENDING) vendor is
+  // still a CUSTOMER and needs this to finish the onboarding journey.
+  async findMine(userId: string): Promise<VendorResponseDto> {
+    const vendor = await this.prisma.vendor.findUnique({ where: { userId } });
+    if (!vendor) {
+      throw new NotFoundException('You have not registered as a vendor');
+    }
+    return vendor;
+  }
+
+  async updateMine(
+    userId: string,
+    dto: UpdateVendorProfileDto,
+  ): Promise<VendorResponseDto> {
+    const vendor = await this.findMine(userId);
+
+    // contactEmail is unique — surface a clean 409 instead of letting
+    // Prisma's P2002 bubble up as a 500.
+    if (dto.contactEmail && dto.contactEmail !== vendor.contactEmail) {
+      const taken = await this.prisma.vendor.findUnique({
+        where: { contactEmail: dto.contactEmail },
+      });
+      if (taken) {
+        throw new ConflictException(
+          'That contact email is already used by another vendor',
+        );
+      }
+    }
+
+    return this.prisma.vendor.update({
+      where: { id: vendor.id },
+      data: {
+        ...(dto.businessName !== undefined && {
+          businessName: dto.businessName,
+        }),
+        ...(dto.contactEmail !== undefined && {
+          contactEmail: dto.contactEmail,
+        }),
+        ...(dto.bio !== undefined && { bio: dto.bio }),
+        ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),
+      },
+    });
+  }
+
+  async uploadLogo(userId: string, file: Express.Multer.File): Promise<string> {
+    // Must already have a registration — the logo belongs to a vendor
+    // record, not to an arbitrary logged-in customer.
+    await this.findMine(userId);
+    return this.objectStorageService.uploadVendorLogo(file);
+  }
 
   async register(
     userId: string,

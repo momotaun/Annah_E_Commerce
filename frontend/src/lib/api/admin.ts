@@ -4,6 +4,7 @@ export interface VendorListItem {
   id: string;
   businessName: string;
   contactEmail: string;
+  logoUrl: string | null;
   status: 'PENDING' | 'APPROVED' | 'SUSPENDED';
   approvedAt: string | null;
 }
