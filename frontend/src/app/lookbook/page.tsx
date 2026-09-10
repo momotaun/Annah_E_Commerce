@@ -33,6 +33,7 @@ export default async function LookbookPage() {
                   href={`/products/${product.slug}`}
                   image={product.imageUrl ?? "/images/placeholder-product.jpg"}
                   title={product.name}
+                  vendor={product.vendor}
                   description={product.description ?? undefined}
                   price={formatPrice(product.price)}
                 />

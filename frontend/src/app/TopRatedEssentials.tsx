@@ -37,6 +37,7 @@ export default function TopRatedEssentials({ products }: TopRatedEssentialsProps
             href={`/products/${product.slug}`}
             image={product.imageUrl ?? "/images/placeholder-product.jpg"}
             title={product.name}
+            vendor={product.vendor}
             price={formatPrice(product.price)}
             onAddToCart={() => addItem(product.id)}
           />

@@ -47,7 +47,10 @@ export class CreateHeroSlideDto {
   @MinLength(1)
   badgeCaption: string;
 
+  // The admin UI sends an explicit null to clear a previously-set category
+  // (as opposed to omitting the field) — @IsOptional() skips validation for
+  // both null and undefined, so the type has to admit null too.
   @IsOptional()
   @IsString()
-  categorySlug?: string;
+  categorySlug?: string | null;
 }

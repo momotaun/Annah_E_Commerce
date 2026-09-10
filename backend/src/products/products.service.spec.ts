@@ -157,6 +157,15 @@ describe('ProductsService', () => {
       expect(call.orderBy).toEqual({ price: 'desc' });
     });
 
+    it('includes the vendor relation so listings can render a storefront link', async () => {
+      await service.findAll({ page: 1, limit: 20 });
+
+      const [call] = prisma.product.findMany.mock.calls[0] as [
+        { include?: { vendor?: unknown } },
+      ];
+      expect(call.include?.vendor).toBeDefined();
+    });
+
     it('paginates using skip/take derived from page and limit', async () => {
       prisma.product.count.mockResolvedValue(45);
 
@@ -195,6 +204,57 @@ describe('ProductsService', () => {
       const result = await service.findOne('apex-silk-pocket-square');
 
       expect(result.price).toBe('349.00');
+    });
+
+    it('exposes an APPROVED vendor as a storefront-linkable {id, businessName}', async () => {
+      prisma.product.findFirst.mockResolvedValue({
+        id: 'product-1',
+        price: { toString: () => '349.00' },
+        vendorId: 'vendor-1',
+        vendor: {
+          id: 'vendor-1',
+          businessName: 'Meridian Apparel Co.',
+          status: 'APPROVED',
+        },
+      });
+
+      const result = await service.findOne('product-1');
+
+      expect(result.vendor).toEqual({
+        id: 'vendor-1',
+        businessName: 'Meridian Apparel Co.',
+      });
+      // The internal status field never reaches the customer-facing DTO.
+      expect(result.vendor).not.toHaveProperty('status');
+    });
+
+    it.each(['PENDING', 'SUSPENDED'])(
+      'reports no vendor when the vendor is %s — there is no storefront to link to',
+      async (status) => {
+        prisma.product.findFirst.mockResolvedValue({
+          id: 'product-1',
+          price: { toString: () => '349.00' },
+          vendorId: 'vendor-1',
+          vendor: { id: 'vendor-1', businessName: 'Shady Co.', status },
+        });
+
+        const result = await service.findOne('product-1');
+
+        expect(result.vendor).toBeNull();
+      },
+    );
+
+    it('reports no vendor for a marketplace-owned product with no vendor at all', async () => {
+      prisma.product.findFirst.mockResolvedValue({
+        id: 'product-1',
+        price: { toString: () => '349.00' },
+        vendorId: null,
+        vendor: null,
+      });
+
+      const result = await service.findOne('product-1');
+
+      expect(result.vendor).toBeNull();
     });
 
     it('only ever looks up PUBLISHED products — a draft 404s for customers', async () => {

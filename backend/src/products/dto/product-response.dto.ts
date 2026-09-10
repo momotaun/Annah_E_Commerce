@@ -8,6 +8,9 @@ export class ProductResponseDto {
   images: string[];
   categoryId: string;
   vendorId: string | null;
+  // Only set when the vendor is APPROVED — that's the only case with a
+  // public storefront (VendorsService.findPublic) to link to.
+  vendor: { id: string; businessName: string } | null;
   createdAt: Date;
 }
 

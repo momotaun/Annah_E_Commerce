@@ -80,6 +80,23 @@ describe('ProductCard', () => {
     expect(screen.getByText('(124)')).toBeInTheDocument();
   });
 
+  it('renders a link to the vendor storefront when a vendor is provided', () => {
+    render(
+      <ProductCard {...baseProps} vendor={{ id: 'vendor-1', businessName: 'Meridian Apparel Co.' }} />
+    );
+
+    const link = screen.getByRole('link', { name: 'by Meridian Apparel Co.' });
+    expect(link).toHaveAttribute('href', '/vendors/vendor-1');
+  });
+
+  it('renders no vendor line for marketplace-owned products (vendor null or omitted)', () => {
+    const { rerender } = render(<ProductCard {...baseProps} />);
+    expect(screen.queryByText(/^by /)).not.toBeInTheDocument();
+
+    rerender(<ProductCard {...baseProps} vendor={null} />);
+    expect(screen.queryByText(/^by /)).not.toBeInTheDocument();
+  });
+
   it('renders the description when provided', () => {
     render(<ProductCard {...baseProps} description="A great laptop for professionals." />);
     expect(screen.getByText('A great laptop for professionals.')).toBeInTheDocument();

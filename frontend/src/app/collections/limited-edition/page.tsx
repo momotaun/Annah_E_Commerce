@@ -34,6 +34,7 @@ export default async function LimitedEditionCollectionPage() {
                   href={`/products/${product.slug}`}
                   image={product.imageUrl ?? "/images/placeholder-product.jpg"}
                   title={product.name}
+                  vendor={product.vendor}
                   price={formatPrice(product.price)}
                   badge={{ label: "Limited", variant: "danger" }}
                 />

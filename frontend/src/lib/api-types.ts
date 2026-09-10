@@ -17,6 +17,9 @@ export interface Product {
   images: string[];
   categoryId: string;
   vendorId: string | null;
+  /** Present only for products sold by an approved vendor — the only case
+      with a public storefront (`/vendors/[id]`) to link to. */
+  vendor: { id: string; businessName: string } | null;
 }
 
 export interface PaginatedProducts {

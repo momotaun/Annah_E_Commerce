@@ -6,17 +6,14 @@ import {
   ProductResponseDto,
 } from './dto/product-response.dto';
 import { getProductOrderBy } from '../common/product-sort';
+import {
+  PRODUCT_VENDOR_INCLUDE,
+  toProductResponseDto,
+} from '../common/product-response';
 
 @Injectable()
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
-
-  private toResponseDto(product: any): ProductResponseDto {
-    return {
-      ...product,
-      price: product.price.toString(),
-    };
-  }
 
   async findAll(
     query: QueryProductsDto,
@@ -50,12 +47,13 @@ export class ProductsService {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: getProductOrderBy(query.sort),
+        include: PRODUCT_VENDOR_INCLUDE,
       }),
       this.prisma.product.count({ where }),
     ]);
 
     return {
-      data: products.map((p) => this.toResponseDto(p)),
+      data: products.map(toProductResponseDto),
       meta: {
         page,
         limit,
@@ -71,12 +69,13 @@ export class ProductsService {
         status: 'PUBLISHED',
         OR: [{ id: idOrSlug }, { slug: idOrSlug }],
       },
+      include: PRODUCT_VENDOR_INCLUDE,
     });
 
     if (!product) {
       throw new NotFoundException(`Product "${idOrSlug}" not found`);
     }
 
-    return this.toResponseDto(product);
+    return toProductResponseDto(product);
   }
 }

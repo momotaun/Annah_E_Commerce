@@ -13,6 +13,8 @@ export interface ProductCardProps {
   title: string;
   price: string;
   category?: string;
+  /** Renders a "by <name>" link to the vendor's storefront under the title. */
+  vendor?: { id: string; businessName: string } | null;
   description?: string;
   badge?: { label: string; variant?: "primary" | "warning" | "danger" };
   rating?: number;
@@ -30,6 +32,7 @@ function ProductCard({
   title,
   price,
   category,
+  vendor,
   description,
   badge,
   rating,
@@ -89,6 +92,15 @@ function ProductCard({
         <Link href={href} className="text-base font-semibold text-gray-900 hover:text-primary-600">
           {title}
         </Link>
+
+        {vendor && (
+          <Link
+            href={`/vendors/${vendor.id}`}
+            className="w-fit text-xs text-gray-500 hover:text-primary-600 hover:underline"
+          >
+            by {vendor.businessName}
+          </Link>
+        )}
 
         {description && (
           <p className="text-sm text-gray-500 line-clamp-2">{description}</p>

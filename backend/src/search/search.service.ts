@@ -3,6 +3,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SearchQueryDto } from './dto/search-query.dto';
 import { PaginatedProductsResponseDto } from '../products/dto/product-response.dto';
 import { getProductOrderBy } from '../common/product-sort';
+import {
+  PRODUCT_VENDOR_INCLUDE,
+  toProductResponseDto,
+} from '../common/product-response';
 
 @Injectable()
 export class SearchService {
@@ -26,12 +30,13 @@ export class SearchService {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: getProductOrderBy(query.sort),
+        include: PRODUCT_VENDOR_INCLUDE,
       }),
       this.prisma.product.count({ where }),
     ]);
 
     return {
-      data: products.map((p) => ({ ...p, price: p.price.toString() })),
+      data: products.map(toProductResponseDto),
       meta: {
         page,
         limit,

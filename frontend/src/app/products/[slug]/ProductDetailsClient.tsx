@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, Lock } from "lucide-react";
+import Link from "next/link";
+import { Heart, Lock, Store } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Breadcrumb from "@/src/app/components/shared/Breadcrumb";
@@ -81,6 +82,21 @@ export default function ProductDetailsClient({
           <div>
             <Badge variant="primary">Premium Hardware</Badge>
             <h1 className="mt-3 text-3xl font-bold text-gray-900">{product.name}</h1>
+
+            {product.vendor && (
+              <Link
+                href={`/vendors/${product.vendor.id}`}
+                className="group mt-2 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-600"
+              >
+                <Store className="h-4 w-4" />
+                <span>
+                  Sold by{" "}
+                  <span className="font-semibold text-gray-900 group-hover:text-primary-600 group-hover:underline">
+                    {product.vendor.businessName}
+                  </span>
+                </span>
+              </Link>
+            )}
 
             {/* No rating/review data exists in our schema yet — Product has
                 no relation to reviews anywhere in the SDD. Hidden rather
@@ -187,6 +203,7 @@ export default function ProductDetailsClient({
                   href={`/products/${p.slug}`}
                   image={p.imageUrl ?? "/images/placeholder-product.jpg"}
                   title={p.name}
+                  vendor={p.vendor}
                   price={formatPrice(p.price)}
                 />
               ))}
