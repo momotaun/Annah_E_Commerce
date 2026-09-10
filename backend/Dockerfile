@@ -38,4 +38,10 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
 # Compiles to dist/src/main.js, not dist/main.js — prisma/ lives outside
 # src/, so TypeScript's inferred rootDir spans both directories and the
 # output preserves the src/ prefix. Matches package.json's start:prod.
-CMD ["node", "dist/src/main"]
+#
+# Applies any pending migrations before every boot — Render's free plan has
+# no separate pre-deploy/release-phase step, so this is the only place a
+# schema change reliably reaches production before the new code runs
+# against it. `migrate deploy` is idempotent: already-applied migrations
+# are skipped, so this is safe on every restart, not just fresh deploys.
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main"]
