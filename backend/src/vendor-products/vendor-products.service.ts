@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVendorProductDto } from './dto/create-vendor-product.dto';
 import { UpdateVendorProductDto } from './dto/update-vendor-product.dto';
+import { ArchiveVendorProductDto } from './dto/archive-vendor-product.dto';
 import { VendorProductResponseDto } from './dto/vendor-product-response.dto';
 import { ProductResponseDto } from 'src/products/dto/product-response.dto';
 import { ObjectStorageService } from '../uploads/object-storage.service';
@@ -98,28 +99,53 @@ export class VendorProductsService {
     return this.toResponseDto(product);
   }
 
-  async update(
-    userId: string,
-    productId: string,
-    dto: UpdateVendorProductDto,
-  ): Promise<VendorProductResponseDto> {
-    const vendor = await this.requireVendor(userId);
-
+  private async requireOwnedProduct(vendorId: string, productId: string) {
     const product = await this.prisma.product.findUnique({
       where: { id: productId },
     });
     if (!product) {
       throw new NotFoundException(`Product "${productId}" not found`);
     }
-    if (product.vendorId !== vendor.id) {
+    if (product.vendorId !== vendorId) {
       throw new ForbiddenException(
         'You do not have permission to modify this product',
       );
     }
+    return product;
+  }
+
+  async update(
+    userId: string,
+    productId: string,
+    dto: UpdateVendorProductDto,
+  ): Promise<VendorProductResponseDto> {
+    const vendor = await this.requireVendor(userId);
+    await this.requireOwnedProduct(vendor.id, productId);
 
     const updated = await this.prisma.product.update({
       where: { id: productId },
       data: dto,
+    });
+
+    return this.toResponseDto(updated);
+  }
+
+  async archive(
+    userId: string,
+    productId: string,
+    dto: ArchiveVendorProductDto,
+  ): Promise<VendorProductResponseDto> {
+    const vendor = await this.requireVendor(userId);
+    await this.requireOwnedProduct(vendor.id, productId);
+
+    const updated = await this.prisma.product.update({
+      where: { id: productId },
+      data: {
+        status: 'ARCHIVED',
+        archivedReason: dto.reason,
+        archivedDescription: dto.description ?? null,
+        archivedAt: new Date(),
+      },
     });
 
     return this.toResponseDto(updated);

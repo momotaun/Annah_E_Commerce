@@ -1,6 +1,7 @@
 import { apiClient } from '../api-client';
 
-export type ProductStatus = 'DRAFT' | 'PUBLISHED';
+export type ProductStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+export type ArchiveReason = 'TEMPORARY' | 'OUT_OF_STOCK' | 'PRODUCT_PROBLEM' | 'DAMAGES';
 
 export interface VendorProduct {
   id: string;
@@ -12,6 +13,8 @@ export interface VendorProduct {
   imageUrl: string | null;
   images: string[];
   status: ProductStatus;
+  archivedReason: ArchiveReason | null;
+  archivedDescription: string | null;
   categoryId: string;
   createdAt: string;
 }
@@ -38,6 +41,10 @@ export function updateVendorProduct(id: string, data: Partial<{
   name: string; sku: string; description: string; price: number; quantity: number; imageUrl: string; images: string[]; status: ProductStatus; categoryId: string;
 }>) {
   return apiClient.patch<VendorProduct>(`/vendors/me/products/${id}`, data);
+}
+
+export function archiveVendorProduct(id: string, data: { reason: ArchiveReason; description?: string }) {
+  return apiClient.post<VendorProduct>(`/vendors/me/products/${id}/archive`, data);
 }
 
 export function uploadVendorProductImage(file: File) {

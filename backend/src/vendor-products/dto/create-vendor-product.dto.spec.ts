@@ -155,15 +155,15 @@ describe('CreateVendorProductDto status', () => {
     expect(errors.find((e) => e.property === 'status')).toBeUndefined();
   });
 
-  it('allows DRAFT and PUBLISHED', async () => {
-    for (const status of ['DRAFT', 'PUBLISHED']) {
+  it('allows DRAFT, PUBLISHED, and ARCHIVED', async () => {
+    for (const status of ['DRAFT', 'PUBLISHED', 'ARCHIVED']) {
       const errors = await validateDto({ status });
       expect(errors.find((e) => e.property === 'status')).toBeUndefined();
     }
   });
 
   it('rejects an unrecognized status', async () => {
-    const errors = await validateDto({ status: 'ARCHIVED' });
+    const errors = await validateDto({ status: 'DELISTED' });
     expect(errors.find((e) => e.property === 'status')).toBeDefined();
   });
 });

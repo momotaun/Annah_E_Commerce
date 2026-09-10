@@ -33,6 +33,12 @@ model Product {
   imageUrl    String? // primary/thumbnail — mirrors images[0] once set
   images      String[]      @default([])
   status      ProductStatus @default(PUBLISHED)
+  // Set together, only when status transitions to ARCHIVED (see
+  // VendorProductsService.archive) — the vendor's own record of why they
+  // pulled this product from sale.
+  archivedReason      ArchiveReason?
+  archivedDescription String?
+  archivedAt          DateTime?
   categoryId String
   category   Category      @relation(fields: [categoryId], references: [id])
 
@@ -53,6 +59,14 @@ model Product {
 enum ProductStatus {
   DRAFT
   PUBLISHED
+  ARCHIVED
+}
+
+enum ArchiveReason {
+  TEMPORARY
+  OUT_OF_STOCK
+  PRODUCT_PROBLEM
+  DAMAGES
 }
 
 model Cart {

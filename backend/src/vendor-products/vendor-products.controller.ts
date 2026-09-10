@@ -20,6 +20,7 @@ import type { CurrentUserPayload } from '../auth/decorators/current-user.decorat
 import { VendorProductsService } from './vendor-products.service';
 import { CreateVendorProductDto } from './dto/create-vendor-product.dto';
 import { UpdateVendorProductDto } from './dto/update-vendor-product.dto';
+import { ArchiveVendorProductDto } from './dto/archive-vendor-product.dto';
 import { MAX_PRODUCT_IMAGE_SIZE_BYTES } from '../uploads/object-storage.service';
 
 @Controller('vendors/me/products')
@@ -69,5 +70,14 @@ export class VendorProductsController {
     @Body() dto: UpdateVendorProductDto,
   ) {
     return this.vendorProductsService.update(user.userId, id, dto);
+  }
+
+  @Post(':id/archive')
+  archive(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('id') id: string,
+    @Body() dto: ArchiveVendorProductDto,
+  ) {
+    return this.vendorProductsService.archive(user.userId, id, dto);
   }
 }

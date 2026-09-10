@@ -134,6 +134,85 @@ describe('VendorProductsService', () => {
     });
   });
 
+  describe('archive', () => {
+    it('rejects archiving a product owned by a different vendor', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'user-1',
+        status: 'APPROVED',
+      });
+      prisma.product.findUnique.mockResolvedValue({
+        id: 'product-1',
+        vendorId: 'some-other-vendor',
+      });
+
+      await expect(
+        service.archive('user-1', 'product-1', { reason: 'OUT_OF_STOCK' }),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(prisma.product.update).not.toHaveBeenCalled();
+    });
+
+    it('archives a product this vendor owns, recording the reason and description', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'user-1',
+        status: 'APPROVED',
+      });
+      prisma.product.findUnique.mockResolvedValue({
+        id: 'product-1',
+        vendorId: 'vendor-1',
+      });
+      prisma.product.update.mockResolvedValue({
+        id: 'product-1',
+        vendorId: 'vendor-1',
+        status: 'ARCHIVED',
+        price: { toString: () => '99.00' },
+      });
+
+      await service.archive('user-1', 'product-1', {
+        reason: 'DAMAGES',
+        description: 'Water damage discovered during a stock check.',
+      });
+
+      expect(prisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'product-1' },
+        data: {
+          status: 'ARCHIVED',
+          archivedReason: 'DAMAGES',
+          archivedDescription: 'Water damage discovered during a stock check.',
+          archivedAt: expect.any(Date),
+        },
+      });
+    });
+
+    it('stores a null description when none is given', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'user-1',
+        status: 'APPROVED',
+      });
+      prisma.product.findUnique.mockResolvedValue({
+        id: 'product-1',
+        vendorId: 'vendor-1',
+      });
+      prisma.product.update.mockResolvedValue({
+        id: 'product-1',
+        vendorId: 'vendor-1',
+        status: 'ARCHIVED',
+        price: { toString: () => '99.00' },
+      });
+
+      await service.archive('user-1', 'product-1', { reason: 'TEMPORARY' });
+
+      expect(prisma.product.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ archivedDescription: null }),
+        }),
+      );
+    });
+  });
+
   describe('create', () => {
     it('rejects a duplicate SKU', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
