@@ -19,7 +19,9 @@ export interface AuthResponse {
 // the URL, since nothing in the nav surfaces it for them.
 export function getHomeRouteForRole(role: AuthUser['role']): string {
   if (role === 'ADMIN') return '/admin/vendors';
-  if (role === 'VENDOR') return '/vendor/dashboard';
+  // Not a fixed destination — a vendor may own more than one store. /vendor
+  // itself decides: straight to the one store's dashboard, or a picker.
+  if (role === 'VENDOR') return '/vendor';
   return '/profile';
 }
 

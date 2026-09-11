@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import Spinner from "@/src/app/components/ui/Spinner";
 import Input from "@/src/app/components/ui/Input";
@@ -16,6 +17,7 @@ import {
 import { ApiError } from "@/src/lib/api-client";
 
 export default function VendorSettingsPage() {
+  const { vendorId } = useParams<{ vendorId: string }>();
   const [vendor, setVendor] = useState<VendorProfile | null>(null);
   const [businessName, setBusinessName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -27,7 +29,7 @@ export default function VendorSettingsPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    getMyVendorProfile()
+    getMyVendorProfile(vendorId)
       .then((profile) => {
         setVendor(profile);
         setBusinessName(profile.businessName);
@@ -36,7 +38,7 @@ export default function VendorSettingsPage() {
         setLogoUrl(profile.logoUrl);
       })
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [vendorId]);
 
   async function handleSave() {
     setStatus("idle");
@@ -49,7 +51,7 @@ export default function VendorSettingsPage() {
 
     setIsSaving(true);
     try {
-      const updated = await updateMyVendorProfile({
+      const updated = await updateMyVendorProfile(vendorId, {
         businessName: businessName.trim(),
         contactEmail: contactEmail.trim(),
         bio: bio.trim() === "" ? null : bio.trim(),
@@ -103,7 +105,11 @@ export default function VendorSettingsPage() {
             Square images work best. Without one, your store shows its initials instead.
           </p>
           <div className="mt-2">
-            <SingleImageUpload imageUrl={logoUrl} onChange={setLogoUrl} uploadFn={uploadVendorLogo} />
+            <SingleImageUpload
+              imageUrl={logoUrl}
+              onChange={setLogoUrl}
+              uploadFn={(file) => uploadVendorLogo(vendorId, file)}
+            />
           </div>
         </div>
 

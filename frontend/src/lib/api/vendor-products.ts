@@ -19,11 +19,11 @@ export interface VendorProduct {
   createdAt: string;
 }
 
-export function getMyVendorProducts() {
-  return apiClient.get<VendorProduct[]>('/vendors/me/products');
+export function getMyVendorProducts(vendorId: string) {
+  return apiClient.get<VendorProduct[]>(`/vendors/mine/${vendorId}/products`);
 }
 
-export function createVendorProduct(data: {
+export function createVendorProduct(vendorId: string, data: {
   name: string;
   sku: string;
   description?: string;
@@ -34,21 +34,21 @@ export function createVendorProduct(data: {
   status?: ProductStatus;
   categoryId: string;
 }) {
-  return apiClient.post<VendorProduct>('/vendors/me/products', data);
+  return apiClient.post<VendorProduct>(`/vendors/mine/${vendorId}/products`, data);
 }
 
-export function updateVendorProduct(id: string, data: Partial<{
+export function updateVendorProduct(vendorId: string, id: string, data: Partial<{
   name: string; sku: string; description: string; price: number; quantity: number; imageUrl: string; images: string[]; status: ProductStatus; categoryId: string;
 }>) {
-  return apiClient.patch<VendorProduct>(`/vendors/me/products/${id}`, data);
+  return apiClient.patch<VendorProduct>(`/vendors/mine/${vendorId}/products/${id}`, data);
 }
 
-export function archiveVendorProduct(id: string, data: { reason: ArchiveReason; description?: string }) {
-  return apiClient.post<VendorProduct>(`/vendors/me/products/${id}/archive`, data);
+export function archiveVendorProduct(vendorId: string, id: string, data: { reason: ArchiveReason; description?: string }) {
+  return apiClient.post<VendorProduct>(`/vendors/mine/${vendorId}/products/${id}/archive`, data);
 }
 
-export function uploadVendorProductImage(file: File) {
+export function uploadVendorProductImage(vendorId: string, file: File) {
   const formData = new FormData();
   formData.append('file', file);
-  return apiClient.postForm<{ url: string }>('/vendors/me/products/images', formData);
+  return apiClient.postForm<{ url: string }>(`/vendors/mine/${vendorId}/products/images`, formData);
 }

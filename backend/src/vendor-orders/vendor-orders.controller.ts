@@ -14,37 +14,49 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../auth/decorators/current-user.decorator';
 import { VendorOrdersService } from './vendor-orders.service';
 
-@Controller('vendors/me')
+@Controller('vendors/mine/:vendorId')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('VENDOR')
 export class VendorOrdersController {
   constructor(private readonly vendorOrdersService: VendorOrdersService) {}
 
   @Get('orders')
-  findAll(@CurrentUser() user: CurrentUserPayload) {
-    return this.vendorOrdersService.findAllForVendor(user.userId);
+  findAll(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
+  ) {
+    return this.vendorOrdersService.findAllForVendor(user.userId, vendorId);
   }
 
   @Get('dashboard')
-  getDashboard(@CurrentUser() user: CurrentUserPayload) {
-    return this.vendorOrdersService.getDashboard(user.userId);
+  getDashboard(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
+  ) {
+    return this.vendorOrdersService.getDashboard(user.userId, vendorId);
   }
 
   @Patch('orders/:orderId/ship')
   @HttpCode(HttpStatus.OK)
   markShipped(
     @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
     @Param('orderId') orderId: string,
   ) {
-    return this.vendorOrdersService.markShipped(user.userId, orderId);
+    return this.vendorOrdersService.markShipped(user.userId, vendorId, orderId);
   }
 
   @Patch('orders/:orderId/deliver')
   @HttpCode(HttpStatus.OK)
   markDelivered(
     @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
     @Param('orderId') orderId: string,
   ) {
-    return this.vendorOrdersService.markDelivered(user.userId, orderId);
+    return this.vendorOrdersService.markDelivered(
+      user.userId,
+      vendorId,
+      orderId,
+    );
   }
 }

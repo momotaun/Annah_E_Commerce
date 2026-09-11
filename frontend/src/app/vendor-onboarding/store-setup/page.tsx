@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Store } from "lucide-react";
 import WizardSteps from "@/src/app/components/shared/WizardSteps";
 import SingleImageUpload from "@/src/app/components/shared/SingleImageUpload";
@@ -15,11 +15,12 @@ import {
   updateMyVendorProfile,
   uploadVendorLogo,
 } from "@/src/lib/api/vendors";
-import { ApiError } from "@/src/lib/api-client";
 
-export default function VendorStoreSetupPage() {
+function StoreSetupForm() {
   const { isLoading: authLoading, user } = useRequireAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const vendorId = searchParams.get("vendorId");
 
   const [businessName, setBusinessName] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -28,35 +29,37 @@ export default function VendorStoreSetupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // The vendor record is created on the previous step, so anyone landing
-  // here without one is sent back to start rather than shown a dead form.
+  // The vendor record — and its id — is created on the previous step, so
+  // anyone landing here without a valid vendorId is sent back to start
+  // rather than shown a dead form (there's no vendor to guess at).
   useEffect(() => {
     if (authLoading || !user) return;
-    getMyVendorProfile()
+    if (!vendorId) {
+      router.replace("/vendor-onboarding/business-info");
+      return;
+    }
+    getMyVendorProfile(vendorId)
       .then((profile) => {
         setBusinessName(profile.businessName);
         setLogoUrl(profile.logoUrl);
         setBio(profile.bio ?? "");
       })
-      .catch((err) => {
-        if (err instanceof ApiError && err.status === 404) {
-          router.replace("/vendor-onboarding/business-info");
-          return;
-        }
-        setError("Couldn't load your registration. Please try again.");
+      .catch(() => {
+        router.replace("/vendor-onboarding/business-info");
       })
       .finally(() => setIsLoading(false));
-  }, [authLoading, user, router]);
+  }, [authLoading, user, vendorId, router]);
 
   async function handleContinue() {
+    if (!vendorId) return;
     setError(null);
     setIsSubmitting(true);
     try {
-      await updateMyVendorProfile({
+      await updateMyVendorProfile(vendorId, {
         logoUrl,
         bio: bio.trim() === "" ? null : bio.trim(),
       });
-      router.push("/vendor-onboarding/verification");
+      router.push(`/vendor-onboarding/verification?vendorId=${vendorId}`);
     } catch (err) {
       console.error("Failed to save store setup", err);
       setError("Something went wrong saving your store details. Please try again.");
@@ -65,7 +68,7 @@ export default function VendorStoreSetupPage() {
     }
   }
 
-  if (authLoading || !user) return null;
+  if (authLoading || !user || !vendorId) return null;
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
@@ -108,7 +111,7 @@ export default function VendorStoreSetupPage() {
                 <SingleImageUpload
                   imageUrl={logoUrl}
                   onChange={setLogoUrl}
-                  uploadFn={uploadVendorLogo}
+                  uploadFn={(file) => uploadVendorLogo(vendorId, file)}
                 />
               </div>
             </div>
@@ -144,5 +147,14 @@ export default function VendorStoreSetupPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function VendorStoreSetupPage() {
+  // useSearchParams requires a Suspense boundary in the App Router
+  return (
+    <Suspense fallback={null}>
+      <StoreSetupForm />
+    </Suspense>
   );
 }

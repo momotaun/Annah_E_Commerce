@@ -2,13 +2,13 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Get,
   Param,
   Patch,
   Post,
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  Get,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -23,23 +23,27 @@ import { UpdateVendorProductDto } from './dto/update-vendor-product.dto';
 import { ArchiveVendorProductDto } from './dto/archive-vendor-product.dto';
 import { MAX_PRODUCT_IMAGE_SIZE_BYTES } from '../uploads/object-storage.service';
 
-@Controller('vendors/me/products')
+@Controller('vendors/mine/:vendorId/products')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('VENDOR')
 export class VendorProductsController {
   constructor(private readonly vendorProductsService: VendorProductsService) {}
 
   @Get()
-  findAll(@CurrentUser() user: CurrentUserPayload) {
-    return this.vendorProductsService.findAllForVendor(user.userId);
+  findAll(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
+  ) {
+    return this.vendorProductsService.findAllForVendor(user.userId, vendorId);
   }
 
   @Post()
   create(
     @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
     @Body() dto: CreateVendorProductDto,
   ) {
-    return this.vendorProductsService.create(user.userId, dto);
+    return this.vendorProductsService.create(user.userId, vendorId, dto);
   }
 
   @Post('images')
@@ -51,6 +55,7 @@ export class VendorProductsController {
   )
   async uploadImage(
     @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
     @UploadedFile() file?: Express.Multer.File,
   ): Promise<{ url: string }> {
     if (!file) {
@@ -58,6 +63,7 @@ export class VendorProductsController {
     }
     const url = await this.vendorProductsService.uploadProductImage(
       user.userId,
+      vendorId,
       file,
     );
     return { url };
@@ -66,18 +72,20 @@ export class VendorProductsController {
   @Patch(':id')
   update(
     @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
     @Param('id') id: string,
     @Body() dto: UpdateVendorProductDto,
   ) {
-    return this.vendorProductsService.update(user.userId, id, dto);
+    return this.vendorProductsService.update(user.userId, vendorId, id, dto);
   }
 
   @Post(':id/archive')
   archive(
     @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
     @Param('id') id: string,
     @Body() dto: ArchiveVendorProductDto,
   ) {
-    return this.vendorProductsService.archive(user.userId, id, dto);
+    return this.vendorProductsService.archive(user.userId, vendorId, id, dto);
   }
 }

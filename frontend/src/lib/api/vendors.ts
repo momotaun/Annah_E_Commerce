@@ -22,23 +22,32 @@ export function getVendor(id: string) {
   return apiClient.get<PublicVendorProfile>(`/vendors/${id}`);
 }
 
-// The caller's own vendor record, in any status — works during onboarding
+// Every store the caller owns, any status — powers the "My Stores" picker
+// and the post-login redirect decision (one store vs. several).
+export function listMyVendorProfiles() {
+  return apiClient.get<VendorProfile[]>('/vendors/mine');
+}
+
+// A specific store the caller owns, in any status — works during onboarding
 // (still PENDING) as well as after approval.
-export function getMyVendorProfile() {
-  return apiClient.get<VendorProfile>('/vendors/me');
+export function getMyVendorProfile(vendorId: string) {
+  return apiClient.get<VendorProfile>(`/vendors/mine/${vendorId}`);
 }
 
-export function updateMyVendorProfile(data: {
-  businessName?: string;
-  contactEmail?: string;
-  bio?: string | null;
-  logoUrl?: string | null;
-}) {
-  return apiClient.patch<VendorProfile>('/vendors/me', data);
+export function updateMyVendorProfile(
+  vendorId: string,
+  data: {
+    businessName?: string;
+    contactEmail?: string;
+    bio?: string | null;
+    logoUrl?: string | null;
+  }
+) {
+  return apiClient.patch<VendorProfile>(`/vendors/mine/${vendorId}`, data);
 }
 
-export function uploadVendorLogo(file: File) {
+export function uploadVendorLogo(vendorId: string, file: File) {
   const formData = new FormData();
   formData.append('file', file);
-  return apiClient.postForm<{ url: string }>('/vendors/me/logo', formData);
+  return apiClient.postForm<{ url: string }>(`/vendors/mine/${vendorId}/logo`, formData);
 }

@@ -8,12 +8,13 @@ const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = "image/jpeg,image/png,image/webp,image/gif";
 
 export interface ImageUploadGridProps {
+  vendorId: string;
   images: string[];
   onChange: (images: string[]) => void;
   maxImages?: number;
 }
 
-export default function ImageUploadGrid({ images, onChange, maxImages = 10 }: ImageUploadGridProps) {
+export default function ImageUploadGrid({ vendorId, images, onChange, maxImages = 10 }: ImageUploadGridProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -38,7 +39,7 @@ export default function ImageUploadGrid({ images, onChange, maxImages = 10 }: Im
     try {
       const accumulated = [...images];
       for (const file of files) {
-        const { url } = await uploadVendorProductImage(file);
+        const { url } = await uploadVendorProductImage(vendorId, file);
         accumulated.push(url);
         onChange([...accumulated]);
       }

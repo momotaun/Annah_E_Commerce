@@ -43,18 +43,18 @@ export interface VendorDashboard {
   topProducts: TopProduct[];
 }
 
-export function getMyVendorOrders() {
-  return apiClient.get<VendorOrderItem[]>('/vendors/me/orders');
+export function getMyVendorOrders(vendorId: string) {
+  return apiClient.get<VendorOrderItem[]>(`/vendors/mine/${vendorId}/orders`);
 }
 
-export function getMyVendorDashboard() {
-  return apiClient.get<VendorDashboard>('/vendors/me/dashboard');
+export function getMyVendorDashboard(vendorId: string) {
+  return apiClient.get<VendorDashboard>(`/vendors/mine/${vendorId}/dashboard`);
 }
 
-export function markOrderShipped(orderId: string) {
-  return apiClient.patch<VendorOrderItem[]>(`/vendors/me/orders/${orderId}/ship`);
+export function markOrderShipped(vendorId: string, orderId: string) {
+  return apiClient.patch<VendorOrderItem[]>(`/vendors/mine/${vendorId}/orders/${orderId}/ship`);
 }
 
-export function markOrderDelivered(orderId: string) {
-  return apiClient.patch<VendorOrderItem[]>(`/vendors/me/orders/${orderId}/deliver`);
+export function markOrderDelivered(vendorId: string, orderId: string) {
+  return apiClient.patch<VendorOrderItem[]>(`/vendors/mine/${vendorId}/orders/${orderId}/deliver`);
 }

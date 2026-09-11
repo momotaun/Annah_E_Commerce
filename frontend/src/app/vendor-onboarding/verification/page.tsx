@@ -1,13 +1,16 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import WizardSteps from "@/src/app/components/shared/WizardSteps";
 import Button from "@/src/app/components/ui/Button";
 import { vendorSteps } from "@/src/lib/vendorOnboardingSteps";
 
-export default function VendorVerificationPage() {
+function VerificationStep() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const vendorId = searchParams.get("vendorId");
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
@@ -30,14 +33,31 @@ export default function VendorVerificationPage() {
         </p>
 
         <div className="mt-8 flex items-center justify-between">
-          <Button variant="ghost" size="sm" href="/vendor-onboarding/store-setup">
+          <Button
+            variant="ghost"
+            size="sm"
+            href={vendorId ? `/vendor-onboarding/store-setup?vendorId=${vendorId}` : "/vendor-onboarding/business-info"}
+          >
             ← Back
           </Button>
-          <Button onClick={() => router.push("/vendor-onboarding/review")}>
+          <Button
+            onClick={() =>
+              router.push(vendorId ? `/vendor-onboarding/review?vendorId=${vendorId}` : "/vendor-onboarding/review")
+            }
+          >
             Continue →
           </Button>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VendorVerificationPage() {
+  // useSearchParams requires a Suspense boundary in the App Router
+  return (
+    <Suspense fallback={null}>
+      <VerificationStep />
+    </Suspense>
   );
 }

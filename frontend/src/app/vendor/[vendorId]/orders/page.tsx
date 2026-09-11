@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import Badge from "@/src/app/components/ui/Badge";
 import Button from "@/src/app/components/ui/Button";
 import Spinner from "@/src/app/components/ui/Spinner";
@@ -46,14 +47,15 @@ function groupByOrder(items: VendorOrderItem[]): OrderGroup[] {
 }
 
 export default function VendorOrdersPage() {
+  const { vendorId } = useParams<{ vendorId: string }>();
   const [items, setItems] = useState<VendorOrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actioningOrderId, setActioningOrderId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getMyVendorOrders().then(setItems).finally(() => setIsLoading(false));
-  }, []);
+    getMyVendorOrders(vendorId).then(setItems).finally(() => setIsLoading(false));
+  }, [vendorId]);
 
   const groups = useMemo(() => groupByOrder(items), [items]);
 
@@ -68,7 +70,7 @@ export default function VendorOrdersPage() {
     setActioningOrderId(orderId);
     setError(null);
     try {
-      applyUpdate(await markOrderShipped(orderId));
+      applyUpdate(await markOrderShipped(vendorId, orderId));
     } catch (err) {
       setError(
         err instanceof ApiError
@@ -84,7 +86,7 @@ export default function VendorOrdersPage() {
     setActioningOrderId(orderId);
     setError(null);
     try {
-      applyUpdate(await markOrderDelivered(orderId));
+      applyUpdate(await markOrderDelivered(vendorId, orderId));
     } catch (err) {
       setError(
         err instanceof ApiError

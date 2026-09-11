@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { requireOwnedVendor } from '../vendors/require-owned-vendor';
 import { CreateVendorProductDto } from './dto/create-vendor-product.dto';
 import { UpdateVendorProductDto } from './dto/update-vendor-product.dto';
 import { ArchiveVendorProductDto } from './dto/archive-vendor-product.dto';
@@ -27,19 +28,21 @@ export class VendorProductsService {
     return { ...product, price: product.price.toString() };
   }
 
-  private async requireVendor(userId: string) {
-    const vendor = await this.prisma.vendor.findUnique({ where: { userId } });
-    if (!vendor) {
-      throw new NotFoundException('No vendor account found for this user');
-    }
+  // Ownership + this specific store being APPROVED — managing products
+  // requires an approved store, not just "the user is a VENDOR somewhere."
+  private async requireApprovedVendor(userId: string, vendorId: string) {
+    const vendor = await requireOwnedVendor(this.prisma, userId, vendorId);
     if (vendor.status !== 'APPROVED') {
       throw new ForbiddenException('Your vendor account is not approved');
     }
     return vendor;
   }
 
-  async findAllForVendor(userId: string): Promise<VendorProductResponseDto[]> {
-    const vendor = await this.requireVendor(userId);
+  async findAllForVendor(
+    userId: string,
+    vendorId: string,
+  ): Promise<VendorProductResponseDto[]> {
+    const vendor = await this.requireApprovedVendor(userId, vendorId);
     const products = await this.prisma.product.findMany({
       where: { vendorId: vendor.id },
       orderBy: { createdAt: 'desc' },
@@ -63,9 +66,10 @@ export class VendorProductsService {
 
   async create(
     userId: string,
+    vendorId: string,
     dto: CreateVendorProductDto,
   ): Promise<VendorProductResponseDto> {
-    const vendor = await this.requireVendor(userId);
+    const vendor = await this.requireApprovedVendor(userId, vendorId);
 
     const existingSku = await this.prisma.product.findUnique({
       where: { sku: dto.sku },
@@ -116,10 +120,11 @@ export class VendorProductsService {
 
   async update(
     userId: string,
+    vendorId: string,
     productId: string,
     dto: UpdateVendorProductDto,
   ): Promise<VendorProductResponseDto> {
-    const vendor = await this.requireVendor(userId);
+    const vendor = await this.requireApprovedVendor(userId, vendorId);
     await this.requireOwnedProduct(vendor.id, productId);
 
     const updated = await this.prisma.product.update({
@@ -132,10 +137,11 @@ export class VendorProductsService {
 
   async archive(
     userId: string,
+    vendorId: string,
     productId: string,
     dto: ArchiveVendorProductDto,
   ): Promise<VendorProductResponseDto> {
-    const vendor = await this.requireVendor(userId);
+    const vendor = await this.requireApprovedVendor(userId, vendorId);
     await this.requireOwnedProduct(vendor.id, productId);
 
     const updated = await this.prisma.product.update({
@@ -153,9 +159,10 @@ export class VendorProductsService {
 
   async uploadProductImage(
     userId: string,
+    vendorId: string,
     file: Express.Multer.File,
   ): Promise<string> {
-    await this.requireVendor(userId);
+    await this.requireApprovedVendor(userId, vendorId);
     return this.objectStorageService.uploadProductImage(file);
   }
 

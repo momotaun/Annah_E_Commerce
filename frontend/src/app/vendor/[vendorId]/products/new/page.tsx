@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import WizardSteps from "@/src/app/components/shared/WizardSteps";
 import ProductGallery from "@/src/app/components/shared/ProductGallery";
 import ImageUploadGrid from "@/src/app/components/shared/ImageUploadGrid";
@@ -27,6 +27,7 @@ const STEPS = [
 const MAX_IMAGES = 10;
 
 export default function NewVendorProductPage() {
+  const { vendorId } = useParams<{ vendorId: string }>();
   const router = useRouter();
 
   const [step, setStep] = useState(0);
@@ -88,7 +89,7 @@ export default function NewVendorProductPage() {
     setIsSaving(true);
     setSaveError(null);
     try {
-      await createVendorProduct({
+      await createVendorProduct(vendorId, {
         name: name.trim(),
         sku: sku.trim(),
         price: parseFloat(price),
@@ -98,7 +99,7 @@ export default function NewVendorProductPage() {
         images: images.length > 0 ? images : undefined,
         status,
       });
-      router.push("/vendor/products");
+      router.push(`/vendor/${vendorId}/products`);
     } catch {
       setSaveError("Couldn't save this product. Please check the details and try again.");
     } finally {
@@ -183,7 +184,7 @@ export default function NewVendorProductPage() {
             <p className="mt-1 text-sm text-gray-500">Add up to {MAX_IMAGES} images. The first image is used as the cover photo.</p>
 
             <div className="mt-6">
-              <ImageUploadGrid images={images} onChange={setImages} maxImages={MAX_IMAGES} />
+              <ImageUploadGrid vendorId={vendorId} images={images} onChange={setImages} maxImages={MAX_IMAGES} />
             </div>
           </div>
         )}

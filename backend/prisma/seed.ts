@@ -115,7 +115,10 @@ async function main() {
     'Premium tailoring and timeless essentials, crafted for everyday elegance.';
 
   const meridian = await prisma.vendor.upsert({
-    where: { userId: meridianUser.id },
+    // contactEmail, not userId, since Vendor.userId is no longer unique
+    // (a user can own multiple stores) — this still identifies the same
+    // seeded row.
+    where: { contactEmail: 'hello@meridianapparel.co.za' },
     update: { bio: meridianBio },
     create: {
       userId: meridianUser.id,

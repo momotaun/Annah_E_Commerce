@@ -29,7 +29,8 @@ const ARCHIVE_REASON_LABELS: Record<ArchiveReason, string> = {
 };
 
 export default function EditVendorProductPage() {
-  const params = useParams<{ id: string }>();
+  const params = useParams<{ vendorId: string; id: string }>();
+  const { vendorId, id } = params;
   const router = useRouter();
 
   const [product, setProduct] = useState<VendorProduct | null>(null);
@@ -50,10 +51,10 @@ export default function EditVendorProductPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([getMyVendorProducts(), getCategories()])
+    Promise.all([getMyVendorProducts(vendorId), getCategories()])
       .then(([products, cats]) => {
         setCategories(cats);
-        const match = products.find((p) => p.id === params.id);
+        const match = products.find((p) => p.id === id);
         if (!match) {
           setNotFound(true);
           return;
@@ -70,7 +71,7 @@ export default function EditVendorProductPage() {
       })
       .catch(() => setNotFound(true))
       .finally(() => setIsLoading(false));
-  }, [params.id]);
+  }, [vendorId, id]);
 
   const flatCategories = categories.flatMap((c) => [c, ...c.children]);
 
@@ -87,7 +88,7 @@ export default function EditVendorProductPage() {
 
     setIsSaving(true);
     try {
-      await updateVendorProduct(product.id, {
+      await updateVendorProduct(vendorId, product.id, {
         name: name.trim(),
         description: description.trim(),
         sku: sku.trim(),
@@ -98,7 +99,7 @@ export default function EditVendorProductPage() {
         imageUrl: images[0],
         status,
       });
-      router.push("/vendor/products");
+      router.push(`/vendor/${vendorId}/products`);
     } catch {
       setError("Couldn't save these changes. Please check the details and try again.");
     } finally {
@@ -118,7 +119,7 @@ export default function EditVendorProductPage() {
     return (
       <div>
         <p className="text-sm text-gray-500">That product couldn&apos;t be found.</p>
-        <Link href="/vendor/products" className="mt-4 inline-block text-sm font-medium text-primary-600">
+        <Link href={`/vendor/${vendorId}/products`} className="mt-4 inline-block text-sm font-medium text-primary-600">
           ← Back to Your Products
         </Link>
       </div>
@@ -127,7 +128,7 @@ export default function EditVendorProductPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/vendor/products" className="text-sm font-medium text-gray-500 hover:text-gray-900">
+      <Link href={`/vendor/${vendorId}/products`} className="text-sm font-medium text-gray-500 hover:text-gray-900">
         ← Back to Your Products
       </Link>
 
@@ -198,7 +199,7 @@ export default function EditVendorProductPage() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-900">Images</label>
-            <ImageUploadGrid images={images} onChange={setImages} maxImages={MAX_IMAGES} />
+            <ImageUploadGrid vendorId={vendorId} images={images} onChange={setImages} maxImages={MAX_IMAGES} />
           </div>
         </div>
 

@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { requireOwnedVendor } from '../vendors/require-owned-vendor';
 import { VendorOrderItemResponseDto } from './dto/vendor-order-item-response.dto';
 import { VendorDashboardResponseDto } from './dto/vendor-dashboard-response.dto';
 import type { Mailer } from '../mailer/mailer.interface';
@@ -21,11 +22,10 @@ export class VendorOrdersService {
     @Inject(MAILER) private readonly mailer: Mailer,
   ) {}
 
-  private async requireVendor(userId: string) {
-    const vendor = await this.prisma.vendor.findUnique({ where: { userId } });
-    if (!vendor) {
-      throw new NotFoundException('No vendor account found for this user');
-    }
+  // Ownership + this specific store being APPROVED — fulfilling orders
+  // requires an approved store, not just "the user is a VENDOR somewhere."
+  private async requireApprovedVendor(userId: string, vendorId: string) {
+    const vendor = await requireOwnedVendor(this.prisma, userId, vendorId);
     if (vendor.status !== 'APPROVED') {
       throw new ForbiddenException('Your vendor account is not approved');
     }
@@ -61,8 +61,9 @@ export class VendorOrdersService {
 
   async findAllForVendor(
     userId: string,
+    vendorId: string,
   ): Promise<VendorOrderItemResponseDto[]> {
-    const vendor = await this.requireVendor(userId);
+    const vendor = await this.requireApprovedVendor(userId, vendorId);
 
     const items = await this.prisma.vendorOrderItem.findMany({
       where: { vendorId: vendor.id },
@@ -77,8 +78,11 @@ export class VendorOrdersService {
     return items.map((item) => this.toResponseDto(item));
   }
 
-  async getDashboard(userId: string): Promise<VendorDashboardResponseDto> {
-    const vendor = await this.requireVendor(userId);
+  async getDashboard(
+    userId: string,
+    vendorId: string,
+  ): Promise<VendorDashboardResponseDto> {
+    const vendor = await this.requireApprovedVendor(userId, vendorId);
 
     const items = await this.prisma.vendorOrderItem.findMany({
       where: { vendorId: vendor.id },
@@ -219,10 +223,11 @@ export class VendorOrdersService {
   // another vendor's still-unshipped items on the same order.
   private async markFulfillment(
     userId: string,
+    vendorId: string,
     orderId: string,
     stage: 'shippedAt' | 'deliveredAt',
   ): Promise<VendorOrderItemResponseDto[]> {
-    const vendor = await this.requireVendor(userId);
+    const vendor = await this.requireApprovedVendor(userId, vendorId);
 
     const items = await this.prisma.vendorOrderItem.findMany({
       where: { vendorId: vendor.id, orderId },
@@ -270,16 +275,18 @@ export class VendorOrdersService {
 
   async markShipped(
     userId: string,
+    vendorId: string,
     orderId: string,
   ): Promise<VendorOrderItemResponseDto[]> {
-    return this.markFulfillment(userId, orderId, 'shippedAt');
+    return this.markFulfillment(userId, vendorId, orderId, 'shippedAt');
   }
 
   async markDelivered(
     userId: string,
+    vendorId: string,
     orderId: string,
   ): Promise<VendorOrderItemResponseDto[]> {
-    return this.markFulfillment(userId, orderId, 'deliveredAt');
+    return this.markFulfillment(userId, vendorId, orderId, 'deliveredAt');
   }
 
   // An order's overall status only advances once every vendor covering

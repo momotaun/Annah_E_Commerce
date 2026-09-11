@@ -22,7 +22,7 @@ export default function VendorReviewPage() {
           once an administrator approves your account — approved vendors
           gain access to their product and order dashboard.
         </p>
-        <Button href="/profile" className="mt-8">Back to Profile</Button>
+        <Button href="/vendor" className="mt-8">Back to My Stores</Button>
       </div>
     </div>
   );

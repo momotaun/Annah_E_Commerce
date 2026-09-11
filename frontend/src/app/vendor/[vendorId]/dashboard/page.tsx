@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import {
   Area,
   AreaChart,
@@ -19,7 +20,7 @@ import {
 import Spinner from "@/src/app/components/ui/Spinner";
 import { getMyVendorDashboard, VendorDashboard } from "@/src/lib/api/vendor-orders";
 
-// Mirrors the STATUS_VARIANT convention already used on /vendor/orders and
+// Mirrors the STATUS_VARIANT convention already used on the vendor orders page and
 // /orders (PAID/SHIPPED/DELIVERED = success, PLACED = warning, CANCELLED =
 // danger) — pulled from the brand palette in globals.css since recharts
 // needs literal colour values, not Tailwind classes.
@@ -62,14 +63,15 @@ function tooltipDateLabelFormatter(label: unknown): string {
 }
 
 export default function VendorDashboardPage() {
+  const { vendorId } = useParams<{ vendorId: string }>();
   const [dashboard, setDashboard] = useState<VendorDashboard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getMyVendorDashboard()
+    getMyVendorDashboard(vendorId)
       .then(setDashboard)
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [vendorId]);
 
   if (isLoading) {
     return (

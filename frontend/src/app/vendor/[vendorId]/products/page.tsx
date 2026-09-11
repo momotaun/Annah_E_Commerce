@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import { Search, X } from "lucide-react";
 import Button from "@/src/app/components/ui/Button";
@@ -89,6 +90,7 @@ function sortProducts(products: VendorProduct[], key: SortKey): VendorProduct[] 
 }
 
 export default function VendorProductsPage() {
+  const { vendorId } = useParams<{ vendorId: string }>();
   const [products, setProducts] = useState<VendorProduct[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,7 +102,7 @@ export default function VendorProductsPage() {
   const [sortKey, setSortKey] = useState<SortKey>("newest");
 
   useEffect(() => {
-    Promise.all([getMyVendorProducts(), getCategories()])
+    Promise.all([getMyVendorProducts(vendorId), getCategories()])
       .then(([p, c]) => {
         setProducts(p);
         setCategories(c);
@@ -111,7 +113,7 @@ export default function VendorProductsPage() {
         }
       })
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [vendorId]);
 
   const categoryNameById = new Map(
     categories.flatMap((c) => [c, ...c.children]).map((c) => [c.id, c.name]),
@@ -154,7 +156,7 @@ export default function VendorProductsPage() {
     <div>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Your Products</h1>
-        <Button size="sm" href="/vendor/products/new">
+        <Button size="sm" href={`/vendor/${vendorId}/products/new`}>
           + Add Product
         </Button>
       </div>
@@ -279,7 +281,7 @@ export default function VendorProductsPage() {
               <span className="shrink-0 text-sm font-bold text-primary-600">{formatPrice(p.price)}</span>
 
               <div className="flex shrink-0 items-center gap-2">
-                <Button size="sm" variant="outline" href={`/vendor/products/${p.id}/edit`}>
+                <Button size="sm" variant="outline" href={`/vendor/${vendorId}/products/${p.id}/edit`}>
                   Edit
                 </Button>
                 {p.status !== "ARCHIVED" && (
@@ -295,6 +297,7 @@ export default function VendorProductsPage() {
 
       {removeTarget && (
         <RemoveProductDialog
+          vendorId={vendorId}
           product={removeTarget}
           onCancel={() => setRemoveTarget(null)}
           onArchived={handleArchived}
@@ -305,10 +308,12 @@ export default function VendorProductsPage() {
 }
 
 function RemoveProductDialog({
+  vendorId,
   product,
   onCancel,
   onArchived,
 }: {
+  vendorId: string;
   product: VendorProduct;
   onCancel: () => void;
   onArchived: (updated: VendorProduct) => void;
@@ -322,7 +327,7 @@ function RemoveProductDialog({
     setIsSubmitting(true);
     setError(null);
     try {
-      const updated = await archiveVendorProduct(product.id, {
+      const updated = await archiveVendorProduct(vendorId, product.id, {
         reason,
         description: description.trim() || undefined,
       });

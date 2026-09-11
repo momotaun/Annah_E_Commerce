@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ObjectStorageService } from '../uploads/object-storage.service';
+import { requireOwnedVendor } from './require-owned-vendor';
 import { RegisterVendorDto } from './dto/register-vendor.dto';
 import { ApproveVendorDto } from './dto/approve-vendor.dto';
 import { UpdateVendorProfileDto } from './dto/update-vendor-profile.dto';
@@ -18,22 +19,27 @@ export class VendorsService {
     private readonly objectStorageService: ObjectStorageService,
   ) {}
 
-  // The caller's own vendor record, whatever its status. Deliberately not
-  // gated on APPROVED/VENDOR role: a just-registered (PENDING) vendor is
-  // still a CUSTOMER and needs this to finish the onboarding journey.
-  async findMine(userId: string): Promise<VendorResponseDto> {
-    const vendor = await this.prisma.vendor.findUnique({ where: { userId } });
-    if (!vendor) {
-      throw new NotFoundException('You have not registered as a vendor');
-    }
-    return vendor;
+  // Every store this user owns, any status — powers the "My Stores" picker
+  // and the post-login redirect decision (one store vs. several).
+  async findAllMine(userId: string): Promise<VendorResponseDto[]> {
+    return this.prisma.vendor.findMany({
+      where: { userId },
+      orderBy: { businessName: 'asc' },
+    });
+  }
+
+  // A specific store, only if the caller owns it — whatever its status. A
+  // just-registered (PENDING) vendor still needs this to finish onboarding.
+  async findMine(userId: string, vendorId: string): Promise<VendorResponseDto> {
+    return requireOwnedVendor(this.prisma, userId, vendorId);
   }
 
   async updateMine(
     userId: string,
+    vendorId: string,
     dto: UpdateVendorProfileDto,
   ): Promise<VendorResponseDto> {
-    const vendor = await this.findMine(userId);
+    const vendor = await requireOwnedVendor(this.prisma, userId, vendorId);
 
     // contactEmail is unique — surface a clean 409 instead of letting
     // Prisma's P2002 bubble up as a 500.
@@ -63,10 +69,14 @@ export class VendorsService {
     });
   }
 
-  async uploadLogo(userId: string, file: Express.Multer.File): Promise<string> {
-    // Must already have a registration — the logo belongs to a vendor
-    // record, not to an arbitrary logged-in customer.
-    await this.findMine(userId);
+  async uploadLogo(
+    userId: string,
+    vendorId: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
+    // Must own this specific store — the logo belongs to one vendor record,
+    // not to the user in general.
+    await requireOwnedVendor(this.prisma, userId, vendorId);
     return this.objectStorageService.uploadVendorLogo(file);
   }
 
@@ -74,16 +84,11 @@ export class VendorsService {
     userId: string,
     dto: RegisterVendorDto,
   ): Promise<VendorResponseDto> {
-    const existing = await this.prisma.vendor.findUnique({ where: { userId } });
-    if (existing) {
-      throw new ConflictException(
-        'You have already submitted a vendor registration',
-      );
-    }
-
-    // Business role remains CUSTOMER until an admin approves this
-    // registration (Section 9.3 Admin Approval Gate) — registering alone
-    // does not grant vendor access.
+    // No limit on how many stores (or concurrent PENDING applications) a
+    // user can have — VendorStatus has no REJECTED state, so blocking a
+    // second registration while an earlier one sits un-actioned would
+    // permanently trap that user. contactEmail's own uniqueness constraint
+    // still stops two stores from sharing a contact address.
     return this.prisma.vendor.create({
       data: {
         userId,
@@ -113,15 +118,17 @@ export class VendorsService {
         },
       });
 
-      // Role and Vendor.status move together deliberately: only an
-      // APPROVED vendor's underlying user gains the VENDOR role and
-      // therefore access to vendor-only routes. SUSPENDED reverts them
-      // to CUSTOMER, immediately revoking vendor route access (RolesGuard
-      // re-checks role fresh on every request, so this takes effect
-      // without the user needing to log in again).
+      // Role tracks "owns at least one APPROVED store," not this one
+      // store's status — a user with two stores must not be demoted to
+      // CUSTOMER just because one of them was suspended while the other
+      // stays approved. Recompute from the full set, including the row
+      // just updated, rather than trusting the single before/after status.
+      const hasApprovedVendor = await tx.vendor.count({
+        where: { userId: vendor.userId, status: 'APPROVED' },
+      });
       await tx.user.update({
         where: { id: vendor.userId },
-        data: { role: dto.status === 'APPROVED' ? 'VENDOR' : 'CUSTOMER' },
+        data: { role: hasApprovedVendor > 0 ? 'VENDOR' : 'CUSTOMER' },
       });
 
       return updated;

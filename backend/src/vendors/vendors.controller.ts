@@ -37,27 +37,37 @@ export class VendorsController {
     return this.vendorsService.register(user.userId, dto);
   }
 
-  // The `me` routes are declared before `:id` — Nest matches in declaration
-  // order, so `GET /vendors/me` would otherwise be swallowed by
-  // `GET /vendors/:id` with id="me". Guarded by login only (not the VENDOR
-  // role): a PENDING vendor is still a CUSTOMER and needs these to finish
-  // onboarding.
-  @Get('me')
+  // The `mine` routes are declared before `:id` — Nest matches in
+  // declaration order, so `GET /vendors/mine` would otherwise be swallowed
+  // by `GET /vendors/:id` with id="mine". Guarded by login only (not the
+  // VENDOR role): a PENDING-only vendor is still a CUSTOMER and needs these
+  // to finish onboarding.
+  @Get('mine')
   @UseGuards(JwtAuthGuard)
-  findMine(@CurrentUser() user: CurrentUserPayload) {
-    return this.vendorsService.findMine(user.userId);
+  findAllMine(@CurrentUser() user: CurrentUserPayload) {
+    return this.vendorsService.findAllMine(user.userId);
   }
 
-  @Patch('me')
+  @Get('mine/:vendorId')
+  @UseGuards(JwtAuthGuard)
+  findMine(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
+  ) {
+    return this.vendorsService.findMine(user.userId, vendorId);
+  }
+
+  @Patch('mine/:vendorId')
   @UseGuards(JwtAuthGuard)
   updateMine(
     @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
     @Body() dto: UpdateVendorProfileDto,
   ) {
-    return this.vendorsService.updateMine(user.userId, dto);
+    return this.vendorsService.updateMine(user.userId, vendorId, dto);
   }
 
-  @Post('me/logo')
+  @Post('mine/:vendorId/logo')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
@@ -67,12 +77,17 @@ export class VendorsController {
   )
   async uploadLogo(
     @CurrentUser() user: CurrentUserPayload,
+    @Param('vendorId') vendorId: string,
     @UploadedFile() file?: Express.Multer.File,
   ): Promise<{ url: string }> {
     if (!file) {
       throw new BadRequestException('No file was uploaded');
     }
-    const url = await this.vendorsService.uploadLogo(user.userId, file);
+    const url = await this.vendorsService.uploadLogo(
+      user.userId,
+      vendorId,
+      file,
+    );
     return { url };
   }
 

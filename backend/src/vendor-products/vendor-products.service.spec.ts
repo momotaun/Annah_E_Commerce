@@ -41,40 +41,52 @@ describe('VendorProductsService', () => {
     service = module.get<VendorProductsService>(VendorProductsService);
   });
 
-  describe('requireVendor gate (exercised via findAllForVendor)', () => {
-    it('throws NotFoundException if the user has no vendor account at all', async () => {
+  describe('requireApprovedVendor gate (exercised via findAllForVendor)', () => {
+    it('throws NotFoundException if the store does not exist', async () => {
       prisma.vendor.findUnique.mockResolvedValue(null);
 
-      await expect(service.findAllForVendor('user-1')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.findAllForVendor('user-1', 'vendor-1'),
+      ).rejects.toThrow(NotFoundException);
     });
 
-    it('throws ForbiddenException if the vendor account is still PENDING', async () => {
+    it('throws ForbiddenException if the store belongs to a different user', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'someone-else',
+        status: 'APPROVED',
+      });
+
+      await expect(
+        service.findAllForVendor('user-1', 'vendor-1'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('throws ForbiddenException if the store is still PENDING', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
         userId: 'user-1',
         status: 'PENDING',
       });
 
-      await expect(service.findAllForVendor('user-1')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.findAllForVendor('user-1', 'vendor-1'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
-    it('throws ForbiddenException if the vendor account is SUSPENDED', async () => {
+    it('throws ForbiddenException if the store is SUSPENDED', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
         userId: 'user-1',
         status: 'SUSPENDED',
       });
 
-      await expect(service.findAllForVendor('user-1')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.findAllForVendor('user-1', 'vendor-1'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
-    it('succeeds and scopes the query to only this vendor’s products when APPROVED', async () => {
+    it('succeeds and scopes the query to only this store’s products when APPROVED', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
         userId: 'user-1',
@@ -82,11 +94,27 @@ describe('VendorProductsService', () => {
       });
       prisma.product.findMany.mockResolvedValue([]);
 
-      await service.findAllForVendor('user-1');
+      await service.findAllForVendor('user-1', 'vendor-1');
 
       expect(prisma.product.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ where: { vendorId: 'vendor-1' } }),
       );
+    });
+
+    it("a user with two stores cannot reach store B's products through store A's vendorId", async () => {
+      // The caller owns vendor-A, but passes vendor-B's id — vendor-B
+      // belongs to someone else, so this must 403 regardless of what the
+      // caller's own stores look like.
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-B',
+        userId: 'someone-else',
+        status: 'APPROVED',
+      });
+
+      await expect(
+        service.findAllForVendor('user-1', 'vendor-B'),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.product.findMany).not.toHaveBeenCalled();
     });
   });
 
@@ -103,7 +131,7 @@ describe('VendorProductsService', () => {
       });
 
       await expect(
-        service.update('user-1', 'product-1', { price: 99 }),
+        service.update('user-1', 'vendor-1', 'product-1', { price: 99 }),
       ).rejects.toThrow(ForbiddenException);
 
       expect(prisma.product.update).not.toHaveBeenCalled();
@@ -125,7 +153,7 @@ describe('VendorProductsService', () => {
         price: { toString: () => '99.00' },
       });
 
-      await service.update('user-1', 'product-1', { price: 99 });
+      await service.update('user-1', 'vendor-1', 'product-1', { price: 99 });
 
       expect(prisma.product.update).toHaveBeenCalledWith({
         where: { id: 'product-1' },
@@ -147,7 +175,9 @@ describe('VendorProductsService', () => {
       });
 
       await expect(
-        service.archive('user-1', 'product-1', { reason: 'OUT_OF_STOCK' }),
+        service.archive('user-1', 'vendor-1', 'product-1', {
+          reason: 'OUT_OF_STOCK',
+        }),
       ).rejects.toThrow(ForbiddenException);
 
       expect(prisma.product.update).not.toHaveBeenCalled();
@@ -170,7 +200,7 @@ describe('VendorProductsService', () => {
         price: { toString: () => '99.00' },
       });
 
-      await service.archive('user-1', 'product-1', {
+      await service.archive('user-1', 'vendor-1', 'product-1', {
         reason: 'DAMAGES',
         description: 'Water damage discovered during a stock check.',
       });
@@ -203,7 +233,9 @@ describe('VendorProductsService', () => {
         price: { toString: () => '99.00' },
       });
 
-      await service.archive('user-1', 'product-1', { reason: 'TEMPORARY' });
+      await service.archive('user-1', 'vendor-1', 'product-1', {
+        reason: 'TEMPORARY',
+      });
 
       expect(prisma.product.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -226,7 +258,7 @@ describe('VendorProductsService', () => {
       });
 
       await expect(
-        service.create('user-1', {
+        service.create('user-1', 'vendor-1', {
           name: 'New Product',
           sku: 'DUPLICATE-SKU',
           price: 100,
@@ -246,7 +278,7 @@ describe('VendorProductsService', () => {
       prisma.category.findUnique.mockResolvedValue(null); // category doesn't exist
 
       await expect(
-        service.create('user-1', {
+        service.create('user-1', 'vendor-1', {
           name: 'New Product',
           sku: 'NEW-SKU',
           price: 100,
@@ -254,6 +286,25 @@ describe('VendorProductsService', () => {
           categoryId: 'ghost-category',
         }),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('rejects creating a product under a store the caller does not own', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-B',
+        userId: 'someone-else',
+        status: 'APPROVED',
+      });
+
+      await expect(
+        service.create('user-1', 'vendor-B', {
+          name: 'New Product',
+          sku: 'NEW-SKU',
+          price: 100,
+          quantity: 10,
+          categoryId: 'cat-1',
+        }),
+      ).rejects.toThrow(ForbiddenException);
+      expect(prisma.product.create).not.toHaveBeenCalled();
     });
 
     it('derives imageUrl from the first uploaded image when not set explicitly', async () => {
@@ -269,7 +320,7 @@ describe('VendorProductsService', () => {
         price: { toString: () => '100.00' },
       });
 
-      await service.create('user-1', {
+      await service.create('user-1', 'vendor-1', {
         name: 'Gallery Product',
         sku: 'GALLERY-SKU',
         price: 100,
@@ -301,7 +352,7 @@ describe('VendorProductsService', () => {
         price: { toString: () => '100.00' },
       });
 
-      await service.create('user-1', {
+      await service.create('user-1', 'vendor-1', {
         name: 'No Status Product',
         sku: 'NO-STATUS-SKU',
         price: 100,
@@ -329,7 +380,7 @@ describe('VendorProductsService', () => {
         price: { toString: () => '100.00' },
       });
 
-      const result = await service.create('user-1', {
+      const result = await service.create('user-1', 'vendor-1', {
         name: 'Draft Product',
         sku: 'DRAFT-SKU',
         price: 100,
@@ -359,7 +410,11 @@ describe('VendorProductsService', () => {
       });
 
       await expect(
-        service.uploadProductImage('user-1', {} as Express.Multer.File),
+        service.uploadProductImage(
+          'user-1',
+          'vendor-1',
+          {} as Express.Multer.File,
+        ),
       ).rejects.toThrow(ForbiddenException);
       expect(objectStorageService.uploadProductImage).not.toHaveBeenCalled();
     });
@@ -375,7 +430,7 @@ describe('VendorProductsService', () => {
       );
       const file = { originalname: 'photo.jpg' } as Express.Multer.File;
 
-      const url = await service.uploadProductImage('user-1', file);
+      const url = await service.uploadProductImage('user-1', 'vendor-1', file);
 
       expect(url).toBe('/images/uploaded.jpg');
       expect(objectStorageService.uploadProductImage).toHaveBeenCalledWith(

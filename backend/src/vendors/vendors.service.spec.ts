@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { VendorsService } from './vendors.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ObjectStorageService } from '../uploads/object-storage.service';
@@ -12,12 +16,18 @@ describe('VendorsService', () => {
 
   beforeEach(async () => {
     tx = {
-      vendor: { update: jest.fn() },
+      vendor: { update: jest.fn(), count: jest.fn().mockResolvedValue(0) },
       user: { update: jest.fn() },
     };
 
     prisma = {
-      vendor: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
+      vendor: {
+        findUnique: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+      user: { update: jest.fn() },
       $transaction: jest.fn((callback) => callback(tx)),
     };
 
@@ -37,21 +47,32 @@ describe('VendorsService', () => {
   });
 
   describe('register', () => {
-    it('rejects a second vendor registration for the same user', async () => {
-      prisma.vendor.findUnique.mockResolvedValue({ id: 'existing-vendor' });
+    it('allows a second (or further) vendor registration for the same user — no cap on concurrent stores/applications', async () => {
+      prisma.vendor.create.mockResolvedValue({
+        id: 'vendor-2',
+        businessName: 'Second Co',
+        contactEmail: 'second@co.com',
+        status: 'PENDING',
+        approvedAt: null,
+      });
 
-      await expect(
-        service.register('user-1', {
-          businessName: 'Test Co',
-          contactEmail: 'test@co.com',
-        }),
-      ).rejects.toThrow(ConflictException);
+      await service.register('user-1', {
+        businessName: 'Second Co',
+        contactEmail: 'second@co.com',
+      });
 
-      expect(prisma.vendor.create).not.toHaveBeenCalled();
+      expect(prisma.vendor.create).toHaveBeenCalledWith({
+        data: {
+          userId: 'user-1',
+          businessName: 'Second Co',
+          contactEmail: 'second@co.com',
+        },
+      });
+      // Registering never itself checks for an existing vendor row.
+      expect(prisma.vendor.findUnique).not.toHaveBeenCalled();
     });
 
     it('creates a vendor in PENDING status by default (does not grant VENDOR role directly)', async () => {
-      prisma.vendor.findUnique.mockResolvedValue(null);
       prisma.vendor.create.mockResolvedValue({
         id: 'vendor-1',
         businessName: 'Test Co',
@@ -67,6 +88,7 @@ describe('VendorsService', () => {
 
       // Registering alone must never touch User.role — only approve() does.
       expect(prisma.vendor.create).toHaveBeenCalled();
+      expect(prisma.user.update).not.toHaveBeenCalled();
     });
   });
 
@@ -90,6 +112,7 @@ describe('VendorsService', () => {
         status: 'APPROVED',
         approvedAt: new Date(),
       });
+      tx.vendor.count.mockResolvedValue(1); // this store, now APPROVED
 
       await service.approve('vendor-1', { status: 'APPROVED' });
 
@@ -103,7 +126,7 @@ describe('VendorsService', () => {
       });
     });
 
-    it('sets Vendor.status to SUSPENDED and demotes the User back to CUSTOMER role', async () => {
+    it('sets Vendor.status to SUSPENDED and demotes the User to CUSTOMER when that was their only approved store', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
         userId: 'user-1',
@@ -114,6 +137,7 @@ describe('VendorsService', () => {
         status: 'SUSPENDED',
         approvedAt: null,
       });
+      tx.vendor.count.mockResolvedValue(0); // no approved stores left
 
       await service.approve('vendor-1', { status: 'SUSPENDED' });
 
@@ -126,29 +150,81 @@ describe('VendorsService', () => {
         data: { role: 'CUSTOMER' },
       });
     });
+
+    it('keeps the User at VENDOR role when suspending one of two stores while the other stays APPROVED', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'user-1',
+        status: 'APPROVED',
+      });
+      tx.vendor.update.mockResolvedValue({
+        id: 'vendor-1',
+        status: 'SUSPENDED',
+        approvedAt: null,
+      });
+      // A second, still-APPROVED store for the same user.
+      tx.vendor.count.mockResolvedValue(1);
+
+      await service.approve('vendor-1', { status: 'SUSPENDED' });
+
+      expect(tx.vendor.count).toHaveBeenCalledWith({
+        where: { userId: 'user-1', status: 'APPROVED' },
+      });
+      expect(tx.user.update).toHaveBeenCalledWith({
+        where: { id: 'user-1' },
+        data: { role: 'VENDOR' },
+      });
+    });
+  });
+
+  describe('findAllMine', () => {
+    it('lists every vendor row for the user, any status', async () => {
+      prisma.vendor.findMany.mockResolvedValue([
+        { id: 'vendor-1', status: 'APPROVED' },
+        { id: 'vendor-2', status: 'PENDING' },
+      ]);
+
+      const result = await service.findAllMine('user-1');
+
+      expect(result).toHaveLength(2);
+      expect(prisma.vendor.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { userId: 'user-1' } }),
+      );
+    });
   });
 
   describe('findMine', () => {
-    it('throws NotFoundException when the user has no vendor registration', async () => {
+    it('throws NotFoundException when the store does not exist', async () => {
       prisma.vendor.findUnique.mockResolvedValue(null);
 
-      await expect(service.findMine('user-1')).rejects.toThrow(
+      await expect(service.findMine('user-1', 'vendor-1')).rejects.toThrow(
         NotFoundException,
       );
     });
 
-    it('returns the vendor regardless of status — a PENDING vendor still needs it to finish onboarding', async () => {
+    it('throws ForbiddenException when the store exists but belongs to someone else', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'someone-else',
+      });
+
+      await expect(service.findMine('user-1', 'vendor-1')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('returns the store regardless of status — a PENDING store still needs it to finish onboarding', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
         userId: 'user-1',
         status: 'PENDING',
       });
 
-      const result = await service.findMine('user-1');
+      const result = await service.findMine('user-1', 'vendor-1');
 
       expect(result.id).toBe('vendor-1');
       expect(prisma.vendor.findUnique).toHaveBeenCalledWith({
-        where: { userId: 'user-1' },
+        where: { id: 'vendor-1' },
       });
     });
   });
@@ -164,12 +240,26 @@ describe('VendorsService', () => {
       status: 'PENDING',
     };
 
-    it('throws NotFoundException when the user has no vendor registration', async () => {
+    it('throws NotFoundException when the store does not exist', async () => {
       prisma.vendor.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.updateMine('user-1', { logoUrl: '/images/logo.png' }),
+        service.updateMine('user-1', 'vendor-1', {
+          logoUrl: '/images/logo.png',
+        }),
       ).rejects.toThrow(NotFoundException);
+      expect(prisma.vendor.update).not.toHaveBeenCalled();
+    });
+
+    it('throws ForbiddenException when the store belongs to another user', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        ...existing,
+        userId: 'someone-else',
+      });
+
+      await expect(
+        service.updateMine('user-1', 'vendor-1', { businessName: 'Nope' }),
+      ).rejects.toThrow(ForbiddenException);
       expect(prisma.vendor.update).not.toHaveBeenCalled();
     });
 
@@ -180,7 +270,9 @@ describe('VendorsService', () => {
         logoUrl: '/images/logo.png',
       });
 
-      await service.updateMine('user-1', { logoUrl: '/images/logo.png' });
+      await service.updateMine('user-1', 'vendor-1', {
+        logoUrl: '/images/logo.png',
+      });
 
       expect(prisma.vendor.update).toHaveBeenCalledWith({
         where: { id: 'vendor-1' },
@@ -196,7 +288,10 @@ describe('VendorsService', () => {
       });
       prisma.vendor.update.mockResolvedValue({ ...existing });
 
-      await service.updateMine('user-1', { logoUrl: null, bio: null });
+      await service.updateMine('user-1', 'vendor-1', {
+        logoUrl: null,
+        bio: null,
+      });
 
       expect(prisma.vendor.update).toHaveBeenCalledWith({
         where: { id: 'vendor-1' },
@@ -210,7 +305,9 @@ describe('VendorsService', () => {
         .mockResolvedValueOnce({ id: 'other-vendor' }); // the email lookup
 
       await expect(
-        service.updateMine('user-1', { contactEmail: 'taken@co.com' }),
+        service.updateMine('user-1', 'vendor-1', {
+          contactEmail: 'taken@co.com',
+        }),
       ).rejects.toThrow(ConflictException);
       expect(prisma.vendor.update).not.toHaveBeenCalled();
     });
@@ -219,7 +316,9 @@ describe('VendorsService', () => {
       prisma.vendor.findUnique.mockResolvedValue(existing);
       prisma.vendor.update.mockResolvedValue(existing);
 
-      await service.updateMine('user-1', { contactEmail: 'test@co.com' });
+      await service.updateMine('user-1', 'vendor-1', {
+        contactEmail: 'test@co.com',
+      });
 
       // One lookup for the caller's record, none for the email.
       expect(prisma.vendor.findUnique).toHaveBeenCalledTimes(1);
@@ -228,16 +327,28 @@ describe('VendorsService', () => {
   });
 
   describe('uploadLogo', () => {
-    it('rejects a user with no vendor registration before touching object storage', async () => {
+    it('rejects a user with no matching store before touching object storage', async () => {
       prisma.vendor.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.uploadLogo('user-1', {} as Express.Multer.File),
+        service.uploadLogo('user-1', 'vendor-1', {} as Express.Multer.File),
       ).rejects.toThrow(NotFoundException);
       expect(objectStorageService.uploadVendorLogo).not.toHaveBeenCalled();
     });
 
-    it('delegates to ObjectStorageService once the registration is confirmed', async () => {
+    it('rejects a store that belongs to a different user', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'someone-else',
+      });
+
+      await expect(
+        service.uploadLogo('user-1', 'vendor-1', {} as Express.Multer.File),
+      ).rejects.toThrow(ForbiddenException);
+      expect(objectStorageService.uploadVendorLogo).not.toHaveBeenCalled();
+    });
+
+    it('delegates to ObjectStorageService once ownership is confirmed', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
         userId: 'user-1',
@@ -248,7 +359,7 @@ describe('VendorsService', () => {
       );
       const file = { originalname: 'logo.png' } as Express.Multer.File;
 
-      const url = await service.uploadLogo('user-1', file);
+      const url = await service.uploadLogo('user-1', 'vendor-1', file);
 
       expect(url).toBe('/images/logo.png');
       expect(objectStorageService.uploadVendorLogo).toHaveBeenCalledWith(file);

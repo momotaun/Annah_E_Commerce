@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { VendorOrdersService } from './vendor-orders.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MAILER } from '../mailer/mailer.module';
@@ -39,10 +43,34 @@ describe('VendorOrdersService', () => {
     service = module.get<VendorOrdersService>(VendorOrdersService);
   });
 
+  describe('ownership gate (exercised via getDashboard)', () => {
+    it('throws NotFoundException when the store does not exist', async () => {
+      prisma.vendor.findUnique.mockResolvedValue(null);
+
+      await expect(service.getDashboard('user-1', 'vendor-1')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it("throws ForbiddenException when the store belongs to a different user — a user with two stores can't reach store B's data through store A's vendorId", async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-B',
+        userId: 'someone-else',
+        status: 'APPROVED',
+      });
+
+      await expect(service.getDashboard('user-1', 'vendor-B')).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(prisma.vendorOrderItem.findMany).not.toHaveBeenCalled();
+    });
+  });
+
   describe('getDashboard', () => {
     it('counts distinct orders, not line items, even when one order has multiple items', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
+        userId: 'user-1',
         status: 'APPROVED',
       });
       const today = new Date();
@@ -76,7 +104,7 @@ describe('VendorOrdersService', () => {
         },
       ]);
 
-      const result = await service.getDashboard('user-1');
+      const result = await service.getDashboard('user-1', 'vendor-1');
 
       expect(result.totalOrders).toBe(2); // two distinct orders, not three line items
       expect(result.totalItemsSold).toBe(4); // 2 + 1 + 1
@@ -120,11 +148,12 @@ describe('VendorOrdersService', () => {
     it('handles a vendor with zero sales without dividing by zero or crashing', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
+        userId: 'user-1',
         status: 'APPROVED',
       });
       prisma.vendorOrderItem.findMany.mockResolvedValue([]);
 
-      const result = await service.getDashboard('user-1');
+      const result = await service.getDashboard('user-1', 'vendor-1');
 
       expect(result.totalOrders).toBe(0);
       expect(result.totalRevenue).toBe('0.00');
@@ -140,6 +169,7 @@ describe('VendorOrdersService', () => {
     it('ignores order-item activity older than the 30-day revenue window', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
+        userId: 'user-1',
         status: 'APPROVED',
       });
       const wayInThePast = new Date();
@@ -156,7 +186,7 @@ describe('VendorOrdersService', () => {
         },
       ]);
 
-      const result = await service.getDashboard('user-1');
+      const result = await service.getDashboard('user-1', 'vendor-1');
 
       // Lifetime totals still include it...
       expect(result.totalRevenue).toBe('500.00');
@@ -183,6 +213,7 @@ describe('VendorOrdersService', () => {
     beforeEach(() => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
+        userId: 'user-1',
         status: 'APPROVED',
       });
     });
@@ -190,9 +221,9 @@ describe('VendorOrdersService', () => {
     it('throws NotFoundException if the vendor has no items on that order', async () => {
       prisma.vendorOrderItem.findMany.mockResolvedValue([]);
 
-      await expect(service.markShipped('user-1', 'order-1')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.markShipped('user-1', 'vendor-1', 'order-1'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('rejects marking a cancelled order shipped', async () => {
@@ -200,9 +231,9 @@ describe('VendorOrdersService', () => {
         { ...baseItem, order: { status: 'CANCELLED' } },
       ]);
 
-      await expect(service.markShipped('user-1', 'order-1')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.markShipped('user-1', 'vendor-1', 'order-1'),
+      ).rejects.toThrow(BadRequestException);
       expect(prisma.vendorOrderItem.updateMany).not.toHaveBeenCalled();
     });
 
@@ -211,9 +242,9 @@ describe('VendorOrdersService', () => {
         { ...baseItem, order: { status: 'PLACED' } },
       ]);
 
-      await expect(service.markShipped('user-1', 'order-1')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.markShipped('user-1', 'vendor-1', 'order-1'),
+      ).rejects.toThrow(BadRequestException);
       expect(prisma.vendorOrderItem.updateMany).not.toHaveBeenCalled();
     });
 
@@ -222,9 +253,9 @@ describe('VendorOrdersService', () => {
         { ...baseItem, order: { status: 'PAID' }, shippedAt: new Date() },
       ]);
 
-      await expect(service.markShipped('user-1', 'order-1')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.markShipped('user-1', 'vendor-1', 'order-1'),
+      ).rejects.toThrow(BadRequestException);
       expect(prisma.vendorOrderItem.updateMany).not.toHaveBeenCalled();
     });
 
@@ -241,7 +272,7 @@ describe('VendorOrdersService', () => {
         user: { email: 'jane@example.co.za', firstName: 'Jane' },
       });
 
-      const result = await service.markShipped('user-1', 'order-1');
+      const result = await service.markShipped('user-1', 'vendor-1', 'order-1');
 
       const [updateManyCall] = prisma.vendorOrderItem.updateMany.mock
         .calls[0] as [
@@ -290,7 +321,7 @@ describe('VendorOrdersService', () => {
         status: 'PAID',
       });
 
-      await service.markShipped('user-1', 'order-1');
+      await service.markShipped('user-1', 'vendor-1', 'order-1');
 
       expect(prisma.order.update).not.toHaveBeenCalled();
       // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mock, no `this` binding involved
@@ -313,6 +344,7 @@ describe('VendorOrdersService', () => {
     beforeEach(() => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-1',
+        userId: 'user-1',
         status: 'APPROVED',
       });
     });
@@ -322,9 +354,9 @@ describe('VendorOrdersService', () => {
         { ...baseItem, order: { status: 'PAID' }, shippedAt: null },
       ]);
 
-      await expect(service.markDelivered('user-1', 'order-1')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.markDelivered('user-1', 'vendor-1', 'order-1'),
+      ).rejects.toThrow(BadRequestException);
       expect(prisma.vendorOrderItem.updateMany).not.toHaveBeenCalled();
     });
 
@@ -351,7 +383,11 @@ describe('VendorOrdersService', () => {
         user: { email: 'jane@example.co.za', firstName: 'Jane' },
       });
 
-      const result = await service.markDelivered('user-1', 'order-1');
+      const result = await service.markDelivered(
+        'user-1',
+        'vendor-1',
+        'order-1',
+      );
 
       expect(prisma.order.update).toHaveBeenCalledWith({
         where: { id: 'order-1' },

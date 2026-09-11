@@ -10,7 +10,6 @@ import Button from "@/src/app/components/ui/Button";
 import { vendorSteps } from "@/src/lib/vendorOnboardingSteps";
 import { useRequireAuth } from "@/src/hooks/useRequireAuth";
 import { registerVendor } from "@/src/lib/api/vendors";
-import { ApiError } from "@/src/lib/api-client";
 
 export default function VendorBusinessInfoPage() {
   const { isLoading: authLoading, user } = useRequireAuth();
@@ -29,14 +28,12 @@ export default function VendorBusinessInfoPage() {
     }
     setIsSubmitting(true);
     try {
-      await registerVendor({ businessName: companyName, contactEmail: businessEmail });
-      router.push("/vendor-onboarding/store-setup");
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 409) {
-        setError("You've already submitted a vendor registration.");
-      } else {
-        setError("Something went wrong submitting your registration. Please try again.");
-      }
+      const vendor = await registerVendor({ businessName: companyName, contactEmail: businessEmail });
+      router.push(`/vendor-onboarding/store-setup?vendorId=${vendor.id}`);
+    } catch {
+      // A vendor can now submit any number of applications/stores — the
+      // only real failure left here is a request-level error.
+      setError("Something went wrong submitting your registration. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
