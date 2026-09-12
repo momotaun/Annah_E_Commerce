@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 
 import { PrismaModule } from '../prisma/prisma.module';
 import { MailerModule } from './mailer/mailer.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
 import { SearchModule } from './search/search.module';
@@ -72,6 +73,7 @@ import { isPinoPrettyAvailable } from './bootstrap/is-pino-pretty-available';
     }),
     PrismaModule,
     MailerModule,
+    NotificationsModule,
     CategoriesModule,
     ProductsModule,
     SearchModule,

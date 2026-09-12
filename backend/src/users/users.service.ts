@@ -8,6 +8,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { RegisterPushTokenDto } from './dto/register-push-token.dto';
 import { UserResponseDto, AddressResponseDto } from './dto/user-response.dto';
 
 const SALT_ROUNDS = 12;
@@ -97,5 +98,20 @@ export class UsersService {
     });
 
     return { message: 'Your password has been updated.' };
+  }
+
+  async registerPushToken(
+    userId: string,
+    dto: RegisterPushTokenDto,
+  ): Promise<{ message: string }> {
+    // Upsert on the token, not (userId, token): the same device can end up
+    // logged in as a different user later (shared device, or a re-login
+    // after logout), and the token should follow whoever is current.
+    await this.prisma.pushToken.upsert({
+      where: { token: dto.token },
+      create: { userId, token: dto.token },
+      update: { userId },
+    });
+    return { message: 'Push token registered.' };
   }
 }

@@ -140,10 +140,23 @@ model User {
   refreshTokens           RefreshToken[]
   passwordResetTokens     PasswordResetToken[]
   emailVerificationTokens EmailVerificationToken[]
+  pushTokens              PushToken[]
 
   role Role @default(CUSTOMER)
 
   vendors Vendor[]
+}
+
+// One row per device the user has registered for push notifications (e.g.
+// a phone's FCM token). A user can have several — one per installed device.
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Address {

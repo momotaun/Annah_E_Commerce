@@ -12,6 +12,8 @@ import { VendorOrderItemResponseDto } from './dto/vendor-order-item-response.dto
 import { VendorDashboardResponseDto } from './dto/vendor-dashboard-response.dto';
 import type { Mailer } from '../mailer/mailer.interface';
 import { MAILER } from '../mailer/mailer.module';
+import type { PushNotifier } from '../notifications/push-notifier.interface';
+import { PUSH_NOTIFIER } from '../notifications/notifications.module';
 
 @Injectable()
 export class VendorOrdersService {
@@ -20,6 +22,7 @@ export class VendorOrdersService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(MAILER) private readonly mailer: Mailer,
+    @Inject(PUSH_NOTIFIER) private readonly pushNotifier: PushNotifier,
   ) {}
 
   // Ownership + this specific store being APPROVED — fulfilling orders
@@ -331,7 +334,9 @@ export class VendorOrdersService {
   ): Promise<void> {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      select: { user: { select: { email: true, firstName: true } } },
+      select: {
+        user: { select: { id: true, email: true, firstName: true } },
+      },
     });
     if (!order) return;
 
@@ -345,6 +350,20 @@ export class VendorOrdersService {
     } catch (err) {
       this.logger.error(
         `Failed to send ${status} email for order ${orderId}`,
+        err instanceof Error ? err.stack : err,
+      );
+    }
+
+    try {
+      const verb = status === 'SHIPPED' ? 'shipped' : 'delivered';
+      await this.pushNotifier.sendToUser(order.user.id, {
+        title: `Order ${verb}`,
+        body: `Your order #${orderId.slice(-8)} has been ${verb}.`,
+        data: { orderId, type: 'order-status', status },
+      });
+    } catch (err) {
+      this.logger.error(
+        `Failed to send ${status} push notification for order ${orderId}`,
         err instanceof Error ? err.stack : err,
       );
     }

@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -13,11 +14,15 @@ import { PaymentResponseDto } from './dto/payment-response.dto';
 import type { PaymentGateway } from './gateways/payment-gateway.interface';
 import { OzowPaymentGateway } from './gateways/ozow-payment.gateway';
 import { PayfastPaymentGateway } from './gateways/payfast-payment.gateway';
+import { PUSH_NOTIFIER } from '../notifications/notifications.module';
+import type { PushNotifier } from '../notifications/push-notifier.interface';
 
 export const PAYMENT_GATEWAY = 'PAYMENT_GATEWAY';
 
 @Injectable()
 export class PaymentsService {
+  private readonly logger = new Logger(PaymentsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     // Used for initiate() — whichever gateway PAYMENT_PROVIDER selects.
@@ -27,6 +32,7 @@ export class PaymentsService {
     // currently active for new payments — see handleWebhook/handlePayfastWebhook.
     private readonly ozowGateway: OzowPaymentGateway,
     private readonly payfastGateway: PayfastPaymentGateway,
+    @Inject(PUSH_NOTIFIER) private readonly pushNotifier: PushNotifier,
   ) {}
 
   async initiate(
@@ -178,6 +184,34 @@ export class PaymentsService {
       }
     });
 
+    if (mappedStatus === 'SUCCEEDED') {
+      await this.notifyPaid(payment.orderId);
+    }
+
     return { received: true, alreadyProcessed: false };
+  }
+
+  // Never let a push-send failure fail the webhook response — the gateway
+  // will retry delivery if we 5xx, which would just re-attempt a payment
+  // update that idempotency already guards against.
+  private async notifyPaid(orderId: string): Promise<void> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { userId: true },
+    });
+    if (!order) return;
+
+    try {
+      await this.pushNotifier.sendToUser(order.userId, {
+        title: 'Payment received',
+        body: `Your payment for order #${orderId.slice(-8)} was successful.`,
+        data: { orderId, type: 'order-status', status: 'PAID' },
+      });
+    } catch (err) {
+      this.logger.error(
+        `Failed to send PAID push notification for order ${orderId}`,
+        err instanceof Error ? err.stack : err,
+      );
+    }
   }
 }

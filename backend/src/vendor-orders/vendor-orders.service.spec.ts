@@ -8,6 +8,8 @@ import { VendorOrdersService } from './vendor-orders.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MAILER } from '../mailer/mailer.module';
 import { Mailer } from '../mailer/mailer.interface';
+import { PUSH_NOTIFIER } from '../notifications/notifications.module';
+import { PushNotifier } from '../notifications/push-notifier.interface';
 
 describe('VendorOrdersService', () => {
   let service: VendorOrdersService;
@@ -17,6 +19,7 @@ describe('VendorOrdersService', () => {
     order: { findUnique: jest.Mock; update: jest.Mock };
   };
   let mailer: jest.Mocked<Mailer>;
+  let pushNotifier: jest.Mocked<PushNotifier>;
 
   beforeEach(async () => {
     prisma = {
@@ -32,11 +35,16 @@ describe('VendorOrdersService', () => {
       sendOrderStatusEmail: jest.fn().mockResolvedValue(undefined),
     };
 
+    pushNotifier = {
+      sendToUser: jest.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         VendorOrdersService,
         { provide: PrismaService, useValue: prisma },
         { provide: MAILER, useValue: mailer },
+        { provide: PUSH_NOTIFIER, useValue: pushNotifier },
       ],
     }).compile();
 
@@ -269,7 +277,11 @@ describe('VendorOrdersService', () => {
       prisma.order.findUnique.mockResolvedValue({
         id: 'order-1',
         status: 'PAID',
-        user: { email: 'jane@example.co.za', firstName: 'Jane' },
+        user: {
+          id: 'customer-1',
+          email: 'jane@example.co.za',
+          firstName: 'Jane',
+        },
       });
 
       const result = await service.markShipped('user-1', 'vendor-1', 'order-1');
@@ -299,6 +311,17 @@ describe('VendorOrdersService', () => {
         orderId: 'order-1',
         status: 'SHIPPED',
       });
+      /* eslint-disable @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment -- jest.fn() mock; expect.objectContaining() is untyped in @types/jest */
+      expect(pushNotifier.sendToUser).toHaveBeenCalledWith(
+        'customer-1',
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderId: 'order-1',
+            status: 'SHIPPED',
+          }),
+        }),
+      );
+      /* eslint-enable @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment */
     });
 
     it('does not flip Order.status when a different vendor on the same order has not shipped yet', async () => {
@@ -380,7 +403,11 @@ describe('VendorOrdersService', () => {
       prisma.order.findUnique.mockResolvedValue({
         id: 'order-1',
         status: 'SHIPPED',
-        user: { email: 'jane@example.co.za', firstName: 'Jane' },
+        user: {
+          id: 'customer-1',
+          email: 'jane@example.co.za',
+          firstName: 'Jane',
+        },
       });
 
       const result = await service.markDelivered(
@@ -402,6 +429,17 @@ describe('VendorOrdersService', () => {
         orderId: 'order-1',
         status: 'DELIVERED',
       });
+      /* eslint-disable @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment -- jest.fn() mock; expect.objectContaining() is untyped in @types/jest */
+      expect(pushNotifier.sendToUser).toHaveBeenCalledWith(
+        'customer-1',
+        expect.objectContaining({
+          data: expect.objectContaining({
+            orderId: 'order-1',
+            status: 'DELIVERED',
+          }),
+        }),
+      );
+      /* eslint-enable @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment */
     });
   });
 });

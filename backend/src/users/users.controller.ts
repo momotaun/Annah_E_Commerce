@@ -15,6 +15,7 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { RegisterPushTokenDto } from './dto/register-push-token.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -54,5 +55,13 @@ export class UsersController {
     @Body() dto: ChangePasswordDto,
   ) {
     return this.usersService.changePassword(user.userId, dto);
+  }
+
+  @Post('me/push-tokens')
+  registerPushToken(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() dto: RegisterPushTokenDto,
+  ) {
+    return this.usersService.registerPushToken(user.userId, dto);
   }
 }

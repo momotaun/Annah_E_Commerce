@@ -11,6 +11,8 @@ import { OzowPaymentGateway } from './gateways/ozow-payment.gateway';
 import { PayfastPaymentGateway } from './gateways/payfast-payment.gateway';
 import { PaymentWebhookDto } from './dto/payment-webhook.dto';
 import { PayfastWebhookDto } from './dto/payfast-webhook.dto';
+import { PUSH_NOTIFIER } from '../notifications/notifications.module';
+import { PushNotifier } from '../notifications/push-notifier.interface';
 
 function webhookDto(
   overrides: Partial<PaymentWebhookDto> = {},
@@ -49,6 +51,7 @@ describe('PaymentsService', () => {
   let gateway: jest.Mocked<PaymentGateway>;
   let ozowGateway: jest.Mocked<OzowPaymentGateway>;
   let payfastGateway: jest.Mocked<PayfastPaymentGateway>;
+  let pushNotifier: jest.Mocked<PushNotifier>;
   let tx: any;
 
   beforeEach(async () => {
@@ -61,6 +64,10 @@ describe('PaymentsService', () => {
       order: { findUnique: jest.fn() },
       payment: { create: jest.fn(), findUnique: jest.fn() },
       $transaction: jest.fn((callback) => callback(tx)),
+    };
+
+    pushNotifier = {
+      sendToUser: jest.fn().mockResolvedValue(undefined),
     };
 
     gateway = {
@@ -88,6 +95,7 @@ describe('PaymentsService', () => {
         { provide: PAYMENT_GATEWAY, useValue: gateway },
         { provide: OzowPaymentGateway, useValue: ozowGateway },
         { provide: PayfastPaymentGateway, useValue: payfastGateway },
+        { provide: PUSH_NOTIFIER, useValue: pushNotifier },
       ],
     }).compile();
 
@@ -206,6 +214,7 @@ describe('PaymentsService', () => {
         orderId: 'order-1',
         status: 'INITIATED',
       });
+      prisma.order.findUnique.mockResolvedValue({ userId: 'customer-1' });
 
       const result = await service.handleWebhook(
         webhookDto({ Status: 'Complete' }),
@@ -220,6 +229,14 @@ describe('PaymentsService', () => {
         data: { status: 'PAID' },
       });
       expect(result).toEqual({ received: true, alreadyProcessed: false });
+      /* eslint-disable @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment -- jest.fn() mock; expect.objectContaining() is untyped in @types/jest */
+      expect(pushNotifier.sendToUser).toHaveBeenCalledWith(
+        'customer-1',
+        expect.objectContaining({
+          data: expect.objectContaining({ orderId: 'order-1', status: 'PAID' }),
+        }),
+      );
+      /* eslint-enable @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment */
     });
 
     it.each(['Cancelled', 'Error', 'Abandoned'])(
@@ -322,6 +339,7 @@ describe('PaymentsService', () => {
         status: 'INITIATED',
         amount: '500.00',
       });
+      prisma.order.findUnique.mockResolvedValue({ userId: 'customer-1' });
 
       const result = await service.handlePayfastWebhook(
         payfastWebhookDto({ payment_status: 'COMPLETE' }),
@@ -336,6 +354,14 @@ describe('PaymentsService', () => {
         data: { status: 'PAID' },
       });
       expect(result).toEqual({ received: true, alreadyProcessed: false });
+      /* eslint-disable @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment -- jest.fn() mock; expect.objectContaining() is untyped in @types/jest */
+      expect(pushNotifier.sendToUser).toHaveBeenCalledWith(
+        'customer-1',
+        expect.objectContaining({
+          data: expect.objectContaining({ orderId: 'order-1', status: 'PAID' }),
+        }),
+      );
+      /* eslint-enable @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment */
     });
 
     it('does not flip the order to PAID on a CANCELLED webhook', async () => {
