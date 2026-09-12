@@ -114,4 +114,17 @@ export class UsersService {
     });
     return { message: 'Push token registered.' };
   }
+
+  async unregisterPushToken(
+    userId: string,
+    dto: RegisterPushTokenDto,
+  ): Promise<{ message: string }> {
+    // Scoped to this user too, not just the token, so one user can't
+    // unregister a token that has since started following another user
+    // (see the shared-device note above).
+    await this.prisma.pushToken.deleteMany({
+      where: { userId, token: dto.token },
+    });
+    return { message: 'Push token unregistered.' };
+  }
 }

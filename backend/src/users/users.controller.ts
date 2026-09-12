@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -63,5 +64,14 @@ export class UsersController {
     @Body() dto: RegisterPushTokenDto,
   ) {
     return this.usersService.registerPushToken(user.userId, dto);
+  }
+
+  @Delete('me/push-tokens')
+  @HttpCode(HttpStatus.OK)
+  unregisterPushToken(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() dto: RegisterPushTokenDto,
+  ) {
+    return this.usersService.unregisterPushToken(user.userId, dto);
   }
 }

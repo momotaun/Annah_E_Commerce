@@ -9,6 +9,7 @@ describe('UsersService', () => {
   let prisma: {
     user: { findUnique: jest.Mock; update: jest.Mock };
     address: { findMany: jest.Mock; updateMany: jest.Mock; create: jest.Mock };
+    pushToken: { upsert: jest.Mock; deleteMany: jest.Mock };
     $transaction: jest.Mock;
   };
   let tx: {
@@ -29,6 +30,7 @@ describe('UsersService', () => {
         updateMany: jest.fn(),
         create: jest.fn(),
       },
+      pushToken: { upsert: jest.fn(), deleteMany: jest.fn() },
       $transaction: jest.fn((callback: (tx: unknown) => unknown) =>
         callback(tx),
       ),
@@ -144,6 +146,19 @@ describe('UsersService', () => {
       expect(revokeCall.where).toEqual({ userId: 'user-1', revokedAt: null });
       expect(revokeCall.data.revokedAt).toBeInstanceOf(Date);
       expect(result).toEqual({ message: 'Your password has been updated.' });
+    });
+  });
+
+  describe('unregisterPushToken', () => {
+    it('scopes the delete to both the user and the token', async () => {
+      const result = await service.unregisterPushToken('user-1', {
+        token: 'device-token-abc',
+      });
+
+      expect(prisma.pushToken.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1', token: 'device-token-abc' },
+      });
+      expect(result).toEqual({ message: 'Push token unregistered.' });
     });
   });
 });
