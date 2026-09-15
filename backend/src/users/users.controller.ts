@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Patch,
   Post,
   UseGuards,
@@ -17,6 +18,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RegisterPushTokenDto } from './dto/register-push-token.dto';
+import { AddWishlistItemDto } from './dto/add-wishlist-item.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -56,6 +58,28 @@ export class UsersController {
     @Body() dto: ChangePasswordDto,
   ) {
     return this.usersService.changePassword(user.userId, dto);
+  }
+
+  @Get('me/wishlist')
+  listWishlist(@CurrentUser() user: CurrentUserPayload) {
+    return this.usersService.listWishlist(user.userId);
+  }
+
+  @Post('me/wishlist')
+  addWishlistItem(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() dto: AddWishlistItemDto,
+  ) {
+    return this.usersService.addWishlistItem(user.userId, dto);
+  }
+
+  @Delete('me/wishlist/:productId')
+  @HttpCode(HttpStatus.OK)
+  removeWishlistItem(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('productId') productId: string,
+  ) {
+    return this.usersService.removeWishlistItem(user.userId, productId);
   }
 
   @Post('me/push-tokens')

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
+import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from './users.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -10,6 +10,12 @@ describe('UsersService', () => {
     user: { findUnique: jest.Mock; update: jest.Mock };
     address: { findMany: jest.Mock; updateMany: jest.Mock; create: jest.Mock };
     pushToken: { upsert: jest.Mock; deleteMany: jest.Mock };
+    product: { findUnique: jest.Mock };
+    wishlistItem: {
+      findMany: jest.Mock;
+      upsert: jest.Mock;
+      deleteMany: jest.Mock;
+    };
     $transaction: jest.Mock;
   };
   let tx: {
@@ -31,6 +37,12 @@ describe('UsersService', () => {
         create: jest.fn(),
       },
       pushToken: { upsert: jest.fn(), deleteMany: jest.fn() },
+      product: { findUnique: jest.fn() },
+      wishlistItem: {
+        findMany: jest.fn(),
+        upsert: jest.fn(),
+        deleteMany: jest.fn(),
+      },
       $transaction: jest.fn((callback: (tx: unknown) => unknown) =>
         callback(tx),
       ),
@@ -146,6 +158,47 @@ describe('UsersService', () => {
       expect(revokeCall.where).toEqual({ userId: 'user-1', revokedAt: null });
       expect(revokeCall.data.revokedAt).toBeInstanceOf(Date);
       expect(result).toEqual({ message: 'Your password has been updated.' });
+    });
+  });
+
+  describe('addWishlistItem', () => {
+    it('rejects a product that does not exist', async () => {
+      prisma.product.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.addWishlistItem('user-1', { productId: 'missing-product' }),
+      ).rejects.toThrow(NotFoundException);
+      expect(prisma.wishlistItem.upsert).not.toHaveBeenCalled();
+    });
+
+    it('upserts on (userId, productId) so saving an already-saved product is idempotent', async () => {
+      prisma.product.findUnique.mockResolvedValue({ id: 'product-1' });
+      prisma.wishlistItem.upsert.mockResolvedValue({
+        id: 'wish-1',
+        productId: 'product-1',
+        createdAt: new Date(),
+      });
+
+      await service.addWishlistItem('user-1', { productId: 'product-1' });
+
+      expect(prisma.wishlistItem.upsert).toHaveBeenCalledWith({
+        where: {
+          userId_productId: { userId: 'user-1', productId: 'product-1' },
+        },
+        create: { userId: 'user-1', productId: 'product-1' },
+        update: {},
+        select: { id: true, productId: true, createdAt: true },
+      });
+    });
+  });
+
+  describe('removeWishlistItem', () => {
+    it('scopes the delete to both the user and the product', async () => {
+      await service.removeWishlistItem('user-1', 'product-1');
+
+      expect(prisma.wishlistItem.deleteMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1', productId: 'product-1' },
+      });
     });
   });
 

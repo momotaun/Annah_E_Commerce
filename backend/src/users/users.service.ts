@@ -5,11 +5,17 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  PRODUCT_VENDOR_INCLUDE,
+  toProductResponseDto,
+} from '../common/product-response';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { RegisterPushTokenDto } from './dto/register-push-token.dto';
+import { AddWishlistItemDto } from './dto/add-wishlist-item.dto';
 import { UserResponseDto, AddressResponseDto } from './dto/user-response.dto';
+import { WishlistItemResponseDto } from './dto/wishlist-item-response.dto';
 
 const SALT_ROUNDS = 12;
 
@@ -113,6 +119,49 @@ export class UsersService {
       update: { userId },
     });
     return { message: 'Push token registered.' };
+  }
+
+  async listWishlist(userId: string): Promise<WishlistItemResponseDto[]> {
+    const items = await this.prisma.wishlistItem.findMany({
+      where: { userId },
+      include: { product: { include: PRODUCT_VENDOR_INCLUDE } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return items.map((item) => ({
+      id: item.id,
+      productId: item.productId,
+      product: toProductResponseDto(item.product),
+      createdAt: item.createdAt,
+    }));
+  }
+
+  async addWishlistItem(
+    userId: string,
+    dto: AddWishlistItemDto,
+  ): Promise<{ id: string; productId: string; createdAt: Date }> {
+    const product = await this.prisma.product.findUnique({
+      where: { id: dto.productId },
+    });
+    if (!product) {
+      throw new NotFoundException(`Product "${dto.productId}" not found`);
+    }
+
+    // Idempotent: saving an already-saved product just returns the
+    // existing row instead of erroring, since the client can't always
+    // know in advance whether it's already there.
+    return this.prisma.wishlistItem.upsert({
+      where: { userId_productId: { userId, productId: dto.productId } },
+      create: { userId, productId: dto.productId },
+      update: {},
+      select: { id: true, productId: true, createdAt: true },
+    });
+  }
+
+  async removeWishlistItem(userId: string, productId: string): Promise<void> {
+    await this.prisma.wishlistItem.deleteMany({
+      where: { userId, productId },
+    });
   }
 
   async unregisterPushToken(

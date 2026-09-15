@@ -49,6 +49,7 @@ model Product {
   orderRequestItems OrderRequestItem[]
   vendorOrderItems  VendorOrderItem[]
   orderItems        OrderItem[]
+  wishlistItems     WishlistItem[]
 
   createdAt DateTime @default(now())
 
@@ -132,10 +133,11 @@ model User {
   lastName        String
   emailVerifiedAt DateTime?
 
-  carts     Cart[]
-  addresses Address[]
-  orders    Order[]
-  createdAt DateTime  @default(now())
+  carts         Cart[]
+  addresses     Address[]
+  orders        Order[]
+  wishlistItems WishlistItem[]
+  createdAt     DateTime       @default(now())
 
   refreshTokens           RefreshToken[]
   passwordResetTokens     PasswordResetToken[]
@@ -170,6 +172,20 @@ model Address {
   isDefault  Boolean @default(false)
 
   orders Order[]
+}
+
+// A customer's saved-for-later list. Unlike Cart, this is always tied to a
+// signed-in user (there's no session-based/guest wishlist).
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
 }
 
 enum OrderStatus {
