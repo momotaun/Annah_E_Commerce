@@ -8,6 +8,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { seedSiteContent } from '../bootstrap/seed-site-content';
+import { backfillSeedImages } from '../bootstrap/backfill-seed-images';
 
 const prisma = new PrismaClient();
 
@@ -18,6 +19,7 @@ seedSiteContent(prisma)
         ? 'Site content: created default site settings and hero slides.'
         : 'Site content: already present, nothing to do.',
     );
+    return backfillSeedImages(prisma);
   })
   .catch((error) => {
     console.error('Site content seeding failed:', error);
