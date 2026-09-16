@@ -3,10 +3,25 @@ import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { assertSafeToSeed } from '../src/bootstrap/assert-safe-to-seed';
 import { seedSiteContent } from '../src/bootstrap/seed-site-content';
+import {
+  uploadSeedProductImage,
+  uploadSeedSiteAsset,
+} from './seed-image-upload';
 
 assertSafeToSeed();
 
 const prisma = new PrismaClient();
+
+// Swaps each item's local "/images/<file>" path for a real, absolute
+// object-storage URL — see seed-image-upload.ts for why.
+async function withUploadedImages<T extends { imageUrl: string }>(
+  items: T[],
+): Promise<T[]> {
+  for (const item of items) {
+    item.imageUrl = await uploadSeedProductImage(item.imageUrl);
+  }
+  return items;
+}
 
 async function main() {
   const electronics = await prisma.category.upsert({
@@ -41,9 +56,10 @@ async function main() {
 
   console.log({ electronics, computing, fashion });
 
+  const probookImageUrl = await uploadSeedProductImage('/images/probook.jpg');
   const laptop = await prisma.product.upsert({
     where: { sku: 'APEX-PROBOOK-M3MAX' },
-    update: {},
+    update: { imageUrl: probookImageUrl },
     create: {
       name: 'Apex ProBook M3 Max',
       slug: 'apex-probook-m3-max',
@@ -51,21 +67,24 @@ async function main() {
       description:
         'M3 Max Silicon with 16-core CPU, 40-core GPU, up to 22 hours of battery life.',
       price: 45999.0,
-      imageUrl: '/images/probook.jpg',
+      imageUrl: probookImageUrl,
       categoryId: computing.id,
     },
   });
 
+  const headphonesImageUrl = await uploadSeedProductImage(
+    '/images/headphones.jpg',
+  );
   await prisma.product.upsert({
     where: { sku: 'SONICMASTER-ELITE-G2' },
-    update: {},
+    update: { imageUrl: headphonesImageUrl },
     create: {
       name: 'SonicMaster Elite G2',
       slug: 'sonicmaster-elite-g2',
       sku: 'SONICMASTER-ELITE-G2',
       description: 'Active Noise Cancellation, 40h battery life.',
       price: 349.0,
-      imageUrl: '/images/headphones.jpg',
+      imageUrl: headphonesImageUrl,
       categoryId: computing.id,
     },
   });
@@ -130,7 +149,7 @@ async function main() {
     },
   });
 
-  const clothingProducts = [
+  const clothingProducts = await withUploadedImages([
     {
       name: 'Apex Merino Wool Overcoat',
       sku: 'MERIDIAN-MERINO-OVERCOAT',
@@ -258,7 +277,7 @@ async function main() {
       price: 349.0,
       imageUrl: '/images/apex-silk-pocket-square.jpg',
     },
-  ];
+  ]);
 
   for (const item of clothingProducts) {
     await prisma.product.upsert({
@@ -278,7 +297,7 @@ async function main() {
   }
 
   // electronics (15 items)
-  const electronicsProducts = [
+  const electronicsProducts = await withUploadedImages([
     {
       name: 'Apex Chrono Smartwatch',
       sku: 'APEX-CHRONO-SMARTWATCH',
@@ -412,10 +431,10 @@ async function main() {
       price: 599.0,
       imageUrl: '/images/halo-wireless-charging-pad.jpg',
     },
-  ];
+  ]);
 
   // audio (15 items)
-  const audioProducts = [
+  const audioProducts = await withUploadedImages([
     {
       name: 'Aero-Pulse Earbuds',
       sku: 'AERO-PULSE-EARBUDS',
@@ -545,10 +564,10 @@ async function main() {
       price: 3799.0,
       imageUrl: '/images/apex-elite-wireless-headphones.jpg',
     },
-  ];
+  ]);
 
   // computing (13 items)
-  const computingProducts = [
+  const computingProducts = await withUploadedImages([
     {
       name: 'Vertex Ultrawide Monitor',
       sku: 'VERTEX-ULTRAWIDE-MONITOR',
@@ -664,10 +683,10 @@ async function main() {
       price: 899.0,
       imageUrl: '/images/aurora-desk-monitor-light.jpg',
     },
-  ];
+  ]);
 
   // home-living (15 items)
-  const homeLivingProducts = [
+  const homeLivingProducts = await withUploadedImages([
     {
       name: 'Hearth Ceramic Vase Set',
       sku: 'HEARTH-CERAMIC-VASE-SET',
@@ -791,7 +810,7 @@ async function main() {
       price: 549.0,
       imageUrl: '/images/haven-bamboo-cutting-board-set.jpg',
     },
-  ];
+  ]);
 
   const unbrandedGroups: Array<{
     categoryId: string;
@@ -896,8 +915,31 @@ async function main() {
     },
   });
   // Default branding content lives in src/bootstrap so production can seed
-  // it too (this file never runs there — see assertSafeToSeed above).
+  // it too (this file never runs there — see assertSafeToSeed above). That
+  // file's own DEFAULT_HERO_SLIDES intentionally keeps local "/images/..."
+  // paths rather than uploading on every boot — it has no dev-only guard
+  // and its own tests call it directly with no network available. Backfill
+  // those same 4 default images to real URLs here instead, matched by
+  // their known default path so an admin's own edits are never touched.
   await seedSiteContent(prisma);
+  const defaultHeroImages: Record<string, string> = {
+    '/images/hero-desk.jpg': await uploadSeedSiteAsset('/images/hero-desk.jpg'),
+    '/images/cat-fashion.jpg': await uploadSeedSiteAsset(
+      '/images/cat-fashion.jpg',
+    ),
+    '/images/cat-electronics.jpg': await uploadSeedSiteAsset(
+      '/images/cat-electronics.jpg',
+    ),
+    '/images/cat-outdoor.jpg': await uploadSeedSiteAsset(
+      '/images/cat-outdoor.jpg',
+    ),
+  };
+  for (const [relativePath, absoluteUrl] of Object.entries(defaultHeroImages)) {
+    await prisma.heroSlide.updateMany({
+      where: { imageUrl: relativePath },
+      data: { imageUrl: absoluteUrl },
+    });
+  }
 }
 
 main()
