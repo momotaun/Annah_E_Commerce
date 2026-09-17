@@ -67,11 +67,17 @@ async function uploadSeedImage(
 
   const bucket = process.env.OBJECT_STORAGE_BUCKET;
   const publicUrlBase = process.env.OBJECT_STORAGE_PUBLIC_URL_BASE;
+  // Same graceful fallback as backfillSeedImages (src/bootstrap/): object
+  // storage is genuinely optional for a database this seed script is
+  // allowed to touch at all (it refuses to run against NODE_ENV=production
+  // without ALLOW_SEED_IN_PRODUCTION, so this path is dev/CI/preview only).
+  // CI's ephemeral Postgres has no object storage configured and doesn't
+  // need working image URLs — only that the seed completes so the e2e
+  // suite has data to exercise. Falls back to the same bare "/images/..."
+  // path this whole mechanism exists to upgrade away from.
   if (!bucket || !publicUrlBase) {
-    throw new Error(
-      'Seeding demo content requires OBJECT_STORAGE_BUCKET and ' +
-        'OBJECT_STORAGE_PUBLIC_URL_BASE to be set in backend/.env.',
-    );
+    uploadedUrls.set(cacheKey, relativePath);
+    return relativePath;
   }
 
   const extension = filename.slice(filename.lastIndexOf('.'));
