@@ -7,22 +7,31 @@ import {
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { InvoicePdfService } from './invoice-pdf.service';
 
 describe('OrdersService', () => {
   let service: OrdersService;
   let prisma: {
     order: { findMany: jest.Mock; findUnique: jest.Mock; update: jest.Mock };
     returnRequest: { create: jest.Mock };
+    siteSettings: { findUnique: jest.Mock };
   };
+  let invoicePdfService: { generate: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
       order: { findMany: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
       returnRequest: { create: jest.fn() },
+      siteSettings: { findUnique: jest.fn() },
     };
+    invoicePdfService = { generate: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OrdersService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        OrdersService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: InvoicePdfService, useValue: invoicePdfService },
+      ],
     }).compile();
 
     service = module.get<OrdersService>(OrdersService);
@@ -45,6 +54,126 @@ describe('OrdersService', () => {
 
       await expect(service.findOneForUser('user-1', 'order-1')).rejects.toThrow(
         ForbiddenException,
+      );
+    });
+  });
+
+  describe('getInvoicePdf', () => {
+    const baseOrder = {
+      id: 'order-1',
+      userId: 'user-1',
+      totalAmount: { toString: () => '649.00' },
+      user: {
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'jane@example.co.za',
+      },
+      address: {
+        line1: '1 Main Rd',
+        city: 'Cape Town',
+        province: 'Western Cape',
+        postalCode: '8001',
+      },
+      items: [
+        {
+          product: { name: 'Meridian Leather Gloves' },
+          quantity: 1,
+          priceAtOrder: { toString: () => '649.00' },
+        },
+      ],
+      payments: [
+        {
+          provider: 'PayFast',
+          status: 'SUCCEEDED',
+          amount: { toString: () => '649.00' },
+        },
+      ],
+      invoice: {
+        invoiceNumber: 'INV-2026-0001',
+        issuedAt: new Date('2026-01-01'),
+      },
+    };
+
+    it('throws NotFoundException if the order does not exist', async () => {
+      prisma.order.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.getInvoicePdf('user-1', 'ghost-order'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws ForbiddenException if the order belongs to a different user', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        ...baseOrder,
+        userId: 'someone-else',
+      });
+
+      await expect(service.getInvoicePdf('user-1', 'order-1')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('throws NotFoundException if the order has no invoice', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        ...baseOrder,
+        invoice: null,
+      });
+
+      await expect(service.getInvoicePdf('user-1', 'order-1')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('generates the PDF from the real order, address and site name', async () => {
+      prisma.order.findUnique.mockResolvedValue(baseOrder);
+      prisma.siteSettings.findUnique.mockResolvedValue({
+        siteName: 'EliteCommerce',
+      });
+      const pdfBuffer = Buffer.from('%PDF-1.4');
+      invoicePdfService.generate.mockResolvedValue(pdfBuffer);
+
+      const result = await service.getInvoicePdf('user-1', 'order-1');
+
+      expect(invoicePdfService.generate).toHaveBeenCalledWith(
+        {
+          id: 'order-1',
+          invoiceNumber: 'INV-2026-0001',
+          issuedAt: baseOrder.invoice.issuedAt,
+          totalAmount: '649.00',
+          customerName: 'Jane Doe',
+          customerEmail: 'jane@example.co.za',
+          address: {
+            line1: '1 Main Rd',
+            city: 'Cape Town',
+            province: 'Western Cape',
+            postalCode: '8001',
+          },
+          items: [
+            {
+              productName: 'Meridian Leather Gloves',
+              quantity: 1,
+              priceAtOrder: '649.00',
+            },
+          ],
+          payments: [
+            { provider: 'PayFast', status: 'SUCCEEDED', amount: '649.00' },
+          ],
+        },
+        'EliteCommerce',
+      );
+      expect(result).toBe(pdfBuffer);
+    });
+
+    it('falls back to "EliteCommerce" if site settings have not been seeded', async () => {
+      prisma.order.findUnique.mockResolvedValue(baseOrder);
+      prisma.siteSettings.findUnique.mockResolvedValue(null);
+      invoicePdfService.generate.mockResolvedValue(Buffer.from('%PDF-1.4'));
+
+      await service.getInvoicePdf('user-1', 'order-1');
+
+      expect(invoicePdfService.generate).toHaveBeenCalledWith(
+        expect.anything(),
+        'EliteCommerce',
       );
     });
   });

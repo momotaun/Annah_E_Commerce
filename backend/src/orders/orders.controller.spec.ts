@@ -1,3 +1,4 @@
+import { StreamableFile } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
@@ -9,6 +10,7 @@ describe('OrdersController', () => {
     findOneForUser: jest.Mock;
     cancelOrder: jest.Mock;
     requestReturn: jest.Mock;
+    getInvoicePdf: jest.Mock;
   };
   const user = { userId: 'user-1', email: 'jane@example.co.za' };
 
@@ -18,6 +20,7 @@ describe('OrdersController', () => {
       findOneForUser: jest.fn(),
       cancelOrder: jest.fn(),
       requestReturn: jest.fn(),
+      getInvoicePdf: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -75,5 +78,18 @@ describe('OrdersController', () => {
       'Wrong size',
     );
     expect(result).toBe(updated);
+  });
+
+  it('streams the invoice PDF for an order scoped to the current user', async () => {
+    const pdfBuffer = Buffer.from('%PDF-1.4 fake pdf content');
+    ordersService.getInvoicePdf.mockResolvedValue(pdfBuffer);
+
+    const result = await controller.downloadInvoice(user, 'order-1');
+
+    expect(ordersService.getInvoicePdf).toHaveBeenCalledWith(
+      'user-1',
+      'order-1',
+    );
+    expect(result).toBeInstanceOf(StreamableFile);
   });
 });

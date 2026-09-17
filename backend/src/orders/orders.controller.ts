@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -27,6 +28,18 @@ export class OrdersController {
   @Get(':id')
   findOne(@CurrentUser() user: CurrentUserPayload, @Param('id') id: string) {
     return this.ordersService.findOneForUser(user.userId, id);
+  }
+
+  @Get(':id/invoice.pdf')
+  async downloadInvoice(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('id') id: string,
+  ): Promise<StreamableFile> {
+    const pdf = await this.ordersService.getInvoicePdf(user.userId, id);
+    return new StreamableFile(pdf, {
+      type: 'application/pdf',
+      disposition: `attachment; filename="invoice-${id}.pdf"`,
+    });
   }
 
   @Post(':id/cancel')

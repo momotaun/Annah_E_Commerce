@@ -8,10 +8,14 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { OrderListItemDto } from './dto/order-list-item.dto';
 import { OrderDetailDto } from './dto/order-detail.dto';
+import { InvoicePdfService } from './invoice-pdf.service';
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly invoicePdfService: InvoicePdfService,
+  ) {}
 
   async findAllForUser(userId: string): Promise<OrderListItemDto[]> {
     const orders = await this.prisma.order.findMany({
@@ -97,6 +101,66 @@ export class OrdersService {
         : null,
       createdAt: order.createdAt,
     };
+  }
+
+  // Every order gets an Invoice row in the same transaction as checkout
+  // (see CheckoutService.checkout) — this is defensive, not a real "no
+  // invoice yet" state this app ever produces.
+  async getInvoicePdf(userId: string, orderId: string): Promise<Buffer> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+        address: true,
+        items: { include: { product: true } },
+        payments: true,
+        invoice: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order "${orderId}" not found`);
+    }
+    if (order.userId !== userId) {
+      throw new ForbiddenException('This order does not belong to you');
+    }
+    if (!order.invoice) {
+      throw new NotFoundException(
+        `Order "${orderId}" does not have an invoice yet`,
+      );
+    }
+
+    const siteSettings = await this.prisma.siteSettings.findUnique({
+      where: { id: 'singleton' },
+    });
+
+    return this.invoicePdfService.generate(
+      {
+        id: order.id,
+        invoiceNumber: order.invoice.invoiceNumber,
+        issuedAt: order.invoice.issuedAt,
+        totalAmount: order.totalAmount.toString(),
+        customerName: `${order.user.firstName} ${order.user.lastName}`,
+        customerEmail: order.user.email,
+        address: {
+          line1: order.address.line1,
+          city: order.address.city,
+          province: order.address.province,
+          postalCode: order.address.postalCode,
+        },
+        items: order.items.map((item) => ({
+          productName: item.product.name,
+          quantity: item.quantity,
+          priceAtOrder: item.priceAtOrder.toString(),
+        })),
+        payments: order.payments.map((p) => ({
+          provider: p.provider,
+          status: p.status,
+          amount: p.amount.toString(),
+        })),
+      },
+      siteSettings?.siteName ?? 'EliteCommerce',
+    );
   }
 
   private async findOwnedOrder(userId: string, orderId: string) {
