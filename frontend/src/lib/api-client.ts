@@ -101,6 +101,30 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return res.json();
 }
 
+// Separate from request<T>() because that always parses the response as
+// JSON — file downloads (e.g. the invoice PDF) need the raw Blob instead.
+// Mirrors the same auth-header-plus-one-silent-refresh behavior.
+async function requestBlob(path: string, accessToken?: string): Promise<Blob> {
+  const token = accessToken ?? tokenStore.getAccessToken();
+
+  const res = await fetch(`${API_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    cache: 'no-store',
+  });
+
+  if (res.status === 401 && !accessToken) {
+    const newToken = await tryRefresh();
+    if (newToken) return requestBlob(path, newToken);
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(res.status, body.message ?? 'Request failed');
+  }
+
+  return res.blob();
+}
+
 export const apiClient = {
   get: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'GET' }),
   post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
@@ -110,4 +134,5 @@ export const apiClient = {
   patch: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'DELETE' }),
+  getBlob: (path: string) => requestBlob(path),
 };

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Download } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Breadcrumb from "@/src/app/components/shared/Breadcrumb";
@@ -10,7 +11,7 @@ import Button from "@/src/app/components/ui/Button";
 import Textarea from "@/src/app/components/ui/Textarea";
 import Spinner from "@/src/app/components/ui/Spinner";
 import { useRequireAuth } from "@/src/hooks/useRequireAuth";
-import { getMyOrder, cancelOrder, requestReturn, OrderDetail } from "@/src/lib/api/orders";
+import { getMyOrder, cancelOrder, requestReturn, downloadInvoice, OrderDetail } from "@/src/lib/api/orders";
 import { ApiError } from "@/src/lib/api-client";
 
 const STATUS_VARIANT: Record<string, "success" | "warning" | "danger" | "default"> = {
@@ -55,6 +56,7 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
   const [showReturnForm, setShowReturnForm] = useState(false);
   const [returnReason, setReturnReason] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isDownloadingInvoice, setIsDownloadingInvoice] = useState(false);
 
   useEffect(() => {
     if (authLoading || !user) return;
@@ -104,6 +106,31 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
       );
     } finally {
       setIsActioning(false);
+    }
+  }
+
+  async function handleDownloadInvoice() {
+    if (!order?.invoice) return;
+    setIsDownloadingInvoice(true);
+    setError(null);
+    try {
+      const blob = await downloadInvoice(order.id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invoice-${order.invoice.invoiceNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Couldn't download the invoice. Please try again.",
+      );
+    } finally {
+      setIsDownloadingInvoice(false);
     }
   }
 
@@ -223,6 +250,22 @@ export default function OrderDetailClient({ orderId }: { orderId: string }) {
                   </div>
                 ))}
               </div>
+              {order.invoice && (
+                <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-sm">
+                  <span className="text-gray-500">
+                    Invoice {order.invoice.invoiceNumber} · issued {formatDate(order.invoice.issuedAt)}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon={<Download className="h-4 w-4" />}
+                    isLoading={isDownloadingInvoice}
+                    onClick={handleDownloadInvoice}
+                  >
+                    Download
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 

@@ -49,3 +49,7 @@ export function cancelOrder(id: string) {
 export function requestReturn(id: string, reason: string) {
   return apiClient.post<OrderListItem>(`/orders/${id}/return-request`, { reason });
 }
+
+export function downloadInvoice(id: string) {
+  return apiClient.getBlob(`/orders/${id}/invoice.pdf`);
+}
