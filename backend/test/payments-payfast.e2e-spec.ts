@@ -225,6 +225,16 @@ describe('PayFast payments (e2e)', () => {
   });
 
   afterAll(async () => {
+    // Deepest dependency first — Order's children default to onDelete:
+    // Restrict (not Cascade), so this order matters: deleting Order before
+    // its VendorOrderItem rows would fail outright (every seeded product
+    // now belongs to a vendor, so checkout always creates one).
+    await prisma.commission.deleteMany({
+      where: { orderItem: { orderId: { in: orderIds } } },
+    });
+    await prisma.vendorOrderItem.deleteMany({
+      where: { orderId: { in: orderIds } },
+    });
     await prisma.payment.deleteMany({ where: { orderId: { in: orderIds } } });
     await prisma.invoice.deleteMany({ where: { orderId: { in: orderIds } } });
     await prisma.order.deleteMany({ where: { id: { in: orderIds } } });
