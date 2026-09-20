@@ -8,7 +8,12 @@ describe('UsersService', () => {
   let service: UsersService;
   let prisma: {
     user: { findUnique: jest.Mock; update: jest.Mock };
-    address: { findMany: jest.Mock; updateMany: jest.Mock; create: jest.Mock };
+    address: {
+      findMany: jest.Mock;
+      findFirst: jest.Mock;
+      updateMany: jest.Mock;
+      create: jest.Mock;
+    };
     pushToken: { upsert: jest.Mock; deleteMany: jest.Mock };
     product: { findUnique: jest.Mock };
     wishlistItem: {
@@ -21,18 +26,21 @@ describe('UsersService', () => {
   let tx: {
     user: { update: jest.Mock };
     refreshToken: { updateMany: jest.Mock };
+    address: { updateMany: jest.Mock; update: jest.Mock };
   };
 
   beforeEach(async () => {
     tx = {
       user: { update: jest.fn() },
       refreshToken: { updateMany: jest.fn() },
+      address: { updateMany: jest.fn(), update: jest.fn() },
     };
 
     prisma = {
       user: { findUnique: jest.fn(), update: jest.fn() },
       address: {
         findMany: jest.fn(),
+        findFirst: jest.fn(),
         updateMany: jest.fn(),
         create: jest.fn(),
       },
@@ -109,6 +117,48 @@ describe('UsersService', () => {
       });
 
       expect(prisma.address.updateMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('setDefaultAddress', () => {
+    it('rejects an address that does not exist or belongs to another user', async () => {
+      prisma.address.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.setDefaultAddress('user-1', 'someone-elses-addr'),
+      ).rejects.toThrow(NotFoundException);
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('is a no-op when the address is already the default', async () => {
+      const address = { id: 'addr-1', userId: 'user-1', isDefault: true };
+      prisma.address.findFirst.mockResolvedValue(address);
+
+      const result = await service.setDefaultAddress('user-1', 'addr-1');
+
+      expect(result).toBe(address);
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('unsets the previous default and sets the chosen address as default', async () => {
+      prisma.address.findFirst.mockResolvedValue({
+        id: 'addr-2',
+        userId: 'user-1',
+        isDefault: false,
+      });
+      tx.address.update.mockResolvedValue({ id: 'addr-2', isDefault: true });
+
+      const result = await service.setDefaultAddress('user-1', 'addr-2');
+
+      expect(tx.address.updateMany).toHaveBeenCalledWith({
+        where: { userId: 'user-1', isDefault: true },
+        data: { isDefault: false },
+      });
+      expect(tx.address.update).toHaveBeenCalledWith({
+        where: { id: 'addr-2' },
+        data: { isDefault: true },
+      });
+      expect(result).toEqual({ id: 'addr-2', isDefault: true });
     });
   });
 

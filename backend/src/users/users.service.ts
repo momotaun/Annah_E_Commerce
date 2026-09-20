@@ -69,6 +69,32 @@ export class UsersService {
     });
   }
 
+  async setDefaultAddress(
+    userId: string,
+    addressId: string,
+  ): Promise<AddressResponseDto> {
+    const address = await this.prisma.address.findFirst({
+      where: { id: addressId, userId },
+    });
+    if (!address) {
+      throw new NotFoundException('Address not found');
+    }
+    if (address.isDefault) {
+      return address;
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.address.updateMany({
+        where: { userId, isDefault: true },
+        data: { isDefault: false },
+      });
+      return tx.address.update({
+        where: { id: addressId },
+        data: { isDefault: true },
+      });
+    });
+  }
+
   async changePassword(
     userId: string,
     dto: ChangePasswordDto,

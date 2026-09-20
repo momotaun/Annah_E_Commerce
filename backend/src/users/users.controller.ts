@@ -51,6 +51,14 @@ export class UsersController {
     return this.usersService.addAddress(user.userId, dto);
   }
 
+  @Patch('me/addresses/:id/default')
+  setDefaultAddress(
+    @CurrentUser() user: CurrentUserPayload,
+    @Param('id') id: string,
+  ) {
+    return this.usersService.setDefaultAddress(user.userId, id);
+  }
+
   @Patch('me/password')
   @HttpCode(HttpStatus.OK)
   changePassword(
