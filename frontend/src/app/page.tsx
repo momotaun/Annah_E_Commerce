@@ -1,22 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Armchair, Laptop, Percent, Shirt, Tag, Truck, Leaf, ShieldCheck, Star } from "lucide-react";
+import { ArrowRight, Truck, Leaf, ShieldCheck, Star } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
 import AppDownloadBadges from "@/src/app/components/shared/AppDownloadBadges";
+import CategoryCarousel from "@/src/app/components/shared/CategoryCarousel";
 import { getProducts } from "@/src/lib/api/products";
 import { getCategories } from "@/src/lib/api/categories";
 import { getHeroSlides } from "@/src/lib/api/hero-slides";
-import { Category } from "@/src/lib/api-types";
 import { getCategoryTheme } from "@/src/lib/categoryTheme";
 import TopRatedEssentials from "@/src/app/TopRatedEssentials";
 import HeroSection, { Slide } from "@/src/app/HeroSection";
 
 export default async function LandingPage() {
   const [essentials, categories, heroSlides] = await Promise.all([
-    getProducts({ limit: 6 }),
+    getProducts({ limit: 12 }),
     getCategories(),
     getHeroSlides(),
   ]);
@@ -41,7 +41,7 @@ export default async function LandingPage() {
       <main className="flex-1">
         <HeroSection slides={slides} />
         <AppDownloadBadges />
-        <CategoryIconRow categories={categories} />
+        <CategoryCarousel categories={categories} />
         <TopRatedEssentials products={essentials.data} />
         <PromoBanner />
         <TrustBadges />
@@ -50,51 +50,6 @@ export default async function LandingPage() {
 
       <Footer />
     </div>
-  );
-}
-
-// Icons for the real, seeded top-level categories — anything without an
-// entry here falls back to a generic tag icon rather than breaking.
-const CATEGORY_ICONS: Record<string, typeof Laptop> = {
-  electronics: Laptop,
-  "home-living": Armchair,
-  fashion: Shirt,
-};
-
-function CategoryIconRow({ categories }: { categories: Category[] }) {
-  if (categories.length === 0) {
-    return null;
-  }
-
-  return (
-    <section className="mx-auto max-w-7xl px-6 py-10">
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {categories.map((category) => {
-          const Icon = CATEGORY_ICONS[category.slug] ?? Tag;
-          const theme = getCategoryTheme(category.slug);
-          return (
-            <Link
-              key={category.id}
-              href={`/categories/${category.slug}`}
-              className="group flex flex-col items-center gap-3"
-            >
-              <span
-                className={`flex h-8 w-8 items-center justify-center rounded-md transition-transform group-hover:scale-[1.03] ${theme.bgSoft} ${theme.text}`}
-              >
-                <Icon className="h-4 w-4" />
-              </span>
-              <span className="text-sm font-medium text-gray-900">{category.name}</span>
-            </Link>
-          );
-        })}
-        <Link href="/collections/limited-edition" className="group flex flex-col items-center gap-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-danger-50 text-danger-500 transition-transform group-hover:scale-[1.03]">
-            <Percent className="h-4 w-4" />
-          </span>
-          <span className="text-sm font-medium text-danger-500">Special Offers</span>
-        </Link>
-      </div>
-    </section>
   );
 }
 
