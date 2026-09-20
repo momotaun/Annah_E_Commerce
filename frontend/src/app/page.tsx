@@ -5,6 +5,7 @@ import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
+import AppDownloadBadges from "@/src/app/components/shared/AppDownloadBadges";
 import { getProducts } from "@/src/lib/api/products";
 import { getCategories } from "@/src/lib/api/categories";
 import { getHeroSlides } from "@/src/lib/api/hero-slides";
@@ -39,6 +40,7 @@ export default async function LandingPage() {
 
       <main className="flex-1">
         <HeroSection slides={slides} />
+        <AppDownloadBadges />
         <CategoryIconRow categories={categories} />
         <TopRatedEssentials products={essentials.data} />
         <PromoBanner />
@@ -157,11 +159,11 @@ function PromoBanner() {
               </div>
 
               <div
-                className={`absolute right-6 top-6 flex h-20 w-20 flex-col items-center justify-center rounded-full text-center leading-none ${theme.bgSoft} ${theme.text}`}
+                className={`absolute right-6 top-6 flex h-32 w-32 flex-col items-center justify-center rounded-full text-center leading-none ${theme.bgSoft} ${theme.text}`}
               >
-                <span className="text-[10px] font-bold uppercase">Up to</span>
-                <span className="text-xl font-extrabold">{card.discount}</span>
-                <span className="text-[10px] font-bold uppercase">Off</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">Up to</span>
+                <span className="text-3xl font-extrabold">{card.discount}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">Off</span>
               </div>
             </div>
           );
