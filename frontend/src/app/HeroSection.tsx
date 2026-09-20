@@ -48,6 +48,8 @@ export default function HeroSection({ slides }: { slides: Slide[] }) {
 
   const slide = slides[activeSlide];
   const theme = getCategoryTheme(slide.categorySlug);
+  const hasPercentSign = slide.badgeValue.endsWith("%");
+  const badgeNumber = hasPercentSign ? slide.badgeValue.slice(0, -1) : slide.badgeValue;
 
   return (
     <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
@@ -104,11 +106,16 @@ export default function HeroSection({ slides }: { slides: Slide[] }) {
           </div>
         </div>
 
-        <div className="absolute right-8 top-8 z-10 hidden h-32 w-32 flex-col items-center justify-center rounded-full border border-primary-100/40 text-center md:flex">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-primary-100">Up to</span>
-          <span className="text-3xl font-extrabold leading-tight text-white">{slide.badgeValue}</span>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-primary-100">Off</span>
-          <span className="mt-1 text-[10px] text-primary-100/80">{slide.badgeCaption}</span>
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-2/5 items-center justify-center md:flex">
+          <div className="flex h-64 w-64 flex-col items-center justify-center rounded-full text-center lg:h-80 lg:w-80 xl:h-96 xl:w-96">
+            <span className="text-xs font-bold uppercase tracking-widest text-primary-100">Up to</span>
+            <span className="text-[120px] leading-none text-white lg:text-[144px] xl:text-[192px]">
+              <span className="font-extrabold">{badgeNumber}</span>
+              {hasPercentSign && <span className="ml-2 font-light">%</span>}
+            </span>
+            <span className="text-xs font-bold uppercase tracking-widest text-primary-100">Off</span>
+            <span className="mt-2 text-xs text-primary-100/80">{slide.badgeCaption}</span>
+          </div>
         </div>
 
         <div className="absolute bottom-6 right-8 z-10 hidden gap-2 md:flex">
