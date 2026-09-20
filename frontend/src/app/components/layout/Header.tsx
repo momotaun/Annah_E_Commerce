@@ -6,10 +6,10 @@ import { useEffect, useRef, useState } from "react";
 import { Menu, Heart, LogOut, Package, Settings, ShoppingCart, Store, User, X } from "lucide-react";
 import Badge from "@/src/app/components/ui/Badge";
 import Logo from "@/src/app/components/layout/Logo";
+import LocationIndicator from "@/src/app/components/layout/LocationIndicator";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
-import { useSiteSettings } from "@/src/context/SiteSettingsContext";
 import { cn } from "@/src/lib/utils";
 import { withLoginRedirect } from "@/src/lib/loginRedirect";
 
@@ -21,7 +21,6 @@ export interface NavLink {
 export interface HeaderProps {
   showSearch?: boolean;
   showCart?: boolean;
-  announcementText?: string;
   variant?: "full" | "minimal";
   minimalRightLink?: NavLink;
 }
@@ -40,7 +39,6 @@ const dealsLink: NavLink = { label: "Deals", href: "/collections/limited-edition
 function Header({
   showSearch = false,
   showCart = true,
-  announcementText,
   variant = "full",
   minimalRightLink,
 }: HeaderProps) {
@@ -48,8 +46,6 @@ function Header({
   const router = useRouter();
   const { itemCount } = useCart();
   const { user, logout } = useAuth();
-  const { announcementText: contextAnnouncementText } = useSiteSettings();
-  const resolvedAnnouncementText = announcementText ?? contextAnnouncementText;
   const loginHref = withLoginRedirect(pathname);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -110,11 +106,11 @@ function Header({
 
   return (
     <div className="w-full border-b border-gray-200 bg-white">
-      {resolvedAnnouncementText && (
-        <div className="bg-primary-600 py-2 text-center text-sm font-medium text-white">
-          {resolvedAnnouncementText}
+      <div className="hidden bg-primary-600 py-2 text-sm font-medium text-white sm:block">
+        <div className="mx-auto flex max-w-7xl items-center px-4 sm:px-6">
+          <LocationIndicator />
         </div>
-      )}
+      </div>
 
       <header className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-4 sm:px-6 md:gap-8">
         <Link href="/" className="shrink-0">

@@ -22,3 +22,7 @@ export function addMyAddress(data: {
 }) {
   return apiClient.post<Address>('/users/me/addresses', data);
 }
+
+export function setDefaultAddress(addressId: string) {
+  return apiClient.patch<Address>(`/users/me/addresses/${addressId}/default`);
+}

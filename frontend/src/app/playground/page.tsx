@@ -187,7 +187,6 @@ export default function PlaygroundPage() {
         </div>
 
         <div className="flex flex-col gap-8 -m-10 mb-0">
-            <Header showSearch announcementText="FREE SHIPPING ON ORDERS OVER R1000!" />
             <Header showSearch />
             <Header variant="minimal" minimalRightLink={{ label: "Help Center", href: "/help" }} />
         </div>
