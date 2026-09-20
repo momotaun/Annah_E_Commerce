@@ -107,8 +107,16 @@ function Header({
   return (
     <div className="w-full border-b border-gray-200 bg-white">
       <div className="hidden bg-primary-600 py-2 text-sm font-medium text-white sm:block">
-        <div className="mx-auto flex max-w-7xl items-center px-4 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 sm:px-6">
           <LocationIndicator />
+          <span className="h-3.5 w-px bg-primary-300/50" aria-hidden="true" />
+          <Link href="/help" className="text-primary-100 hover:text-white hover:underline">
+            Help
+          </Link>
+          <span className="h-3.5 w-px bg-primary-300/50" aria-hidden="true" />
+          <Link href="/orders" className="text-primary-100 hover:text-white hover:underline">
+            Track Order
+          </Link>
         </div>
       </div>
 
