@@ -117,11 +117,11 @@ function PromoBanner() {
               </div>
 
               <div
-                className={`absolute right-6 top-1/2 flex h-44 w-44 -translate-y-1/2 flex-col items-center justify-center rounded-full text-center leading-none ${theme.bgSoft} ${theme.text}`}
+                className={`absolute right-6 top-1/2 flex h-44 w-44 -translate-y-1/2 flex-col items-center justify-center rounded-full text-center leading-none ${theme.text}`}
               >
-                <span className="text-xs font-bold uppercase tracking-widest">Up to</span>
-                <span className="text-5xl font-extrabold">{card.discount}</span>
-                <span className="text-xs font-bold uppercase tracking-widest">Off</span>
+                <span className="text-base font-bold uppercase tracking-widest">Up to</span>
+                <span className="text-8xl font-extrabold">{card.discount}</span>
+                <span className="text-base font-bold uppercase tracking-widest">Off</span>
               </div>
             </div>
           );
