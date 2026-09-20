@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { join } from 'path';
 import PDFDocument from 'pdfkit';
 
-// The real "EliteCommerce - Monochrome Black Logo" brand-kit asset (see the
+// The real "Nhundzu - Monochrome Black Logo" brand-kit asset (see the
 // mobile app's assets/brand/monochrome_black_logo.svg — this is the same
 // kit, rasterized once at build time since pdfkit embeds raster images,
 // not SVG) — the intended print/single-color use case for that asset.

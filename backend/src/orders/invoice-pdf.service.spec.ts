@@ -31,7 +31,7 @@ describe('InvoicePdfService', () => {
   });
 
   it('produces a real PDF document', async () => {
-    const buffer = await service.generate(order, 'EliteCommerce');
+    const buffer = await service.generate(order, 'Nhundzu');
 
     expect(Buffer.isBuffer(buffer)).toBe(true);
     // Every valid PDF file starts with this signature.
@@ -42,7 +42,7 @@ describe('InvoicePdfService', () => {
   it('handles an order with no payments yet', async () => {
     const buffer = await service.generate(
       { ...order, payments: [] },
-      'EliteCommerce',
+      'Nhundzu',
     );
 
     expect(buffer.subarray(0, 5).toString('latin1')).toBe('%PDF-');
@@ -66,7 +66,7 @@ describe('InvoicePdfService', () => {
           },
         ],
       },
-      'EliteCommerce',
+      'Nhundzu',
     );
 
     expect(buffer.subarray(0, 5).toString('latin1')).toBe('%PDF-');

@@ -14,7 +14,7 @@ import type { PrismaClient } from '@prisma/client';
 
 export const DEFAULT_SITE_SETTINGS = {
   id: 'singleton',
-  siteName: 'EliteCommerce',
+  siteName: 'Nhundzu',
   logoUrl: null,
   announcementText: 'FREE SHIPPING ON ORDERS OVER R1000!',
 } as const;

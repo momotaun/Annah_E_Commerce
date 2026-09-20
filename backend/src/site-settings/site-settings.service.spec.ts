@@ -43,7 +43,7 @@ describe('SiteSettingsService', () => {
       const updatedAt = new Date();
       prisma.siteSettings.findUnique.mockResolvedValue({
         id: 'singleton',
-        siteName: 'EliteCommerce',
+        siteName: 'Nhundzu',
         logoUrl: null,
         announcementText: 'FREE SHIPPING ON ORDERS OVER R1000!',
         updatedAt,
@@ -52,7 +52,7 @@ describe('SiteSettingsService', () => {
       const result = await service.get();
 
       expect(result).toEqual({
-        siteName: 'EliteCommerce',
+        siteName: 'Nhundzu',
         logoUrl: null,
         announcementText: 'FREE SHIPPING ON ORDERS OVER R1000!',
         updatedAt,
@@ -107,21 +107,21 @@ describe('SiteSettingsService', () => {
     it('passes through an explicit null to clear a nullable field', async () => {
       prisma.siteSettings.findUnique.mockResolvedValue({
         id: 'singleton',
-        siteName: 'EliteCommerce',
+        siteName: 'Nhundzu',
         logoUrl: '/site-assets/logo.png',
         announcementText: 'Sale now on!',
         updatedAt: new Date(),
       });
       prisma.siteSettings.update.mockResolvedValue({
         id: 'singleton',
-        siteName: 'EliteCommerce',
+        siteName: 'Nhundzu',
         logoUrl: null,
         announcementText: null,
         updatedAt: new Date(),
       });
 
       await service.update({
-        siteName: 'EliteCommerce',
+        siteName: 'Nhundzu',
         logoUrl: null,
         announcementText: null,
       });

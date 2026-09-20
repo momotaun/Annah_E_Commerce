@@ -127,7 +127,7 @@ describe('OrdersService', () => {
     it('generates the PDF from the real order, address and site name', async () => {
       prisma.order.findUnique.mockResolvedValue(baseOrder);
       prisma.siteSettings.findUnique.mockResolvedValue({
-        siteName: 'EliteCommerce',
+        siteName: 'Nhundzu',
       });
       const pdfBuffer = Buffer.from('%PDF-1.4');
       invoicePdfService.generate.mockResolvedValue(pdfBuffer);
@@ -159,12 +159,12 @@ describe('OrdersService', () => {
             { provider: 'PayFast', status: 'SUCCEEDED', amount: '649.00' },
           ],
         },
-        'EliteCommerce',
+        'Nhundzu',
       );
       expect(result).toBe(pdfBuffer);
     });
 
-    it('falls back to "EliteCommerce" if site settings have not been seeded', async () => {
+    it('falls back to "Nhundzu" if site settings have not been seeded', async () => {
       prisma.order.findUnique.mockResolvedValue(baseOrder);
       prisma.siteSettings.findUnique.mockResolvedValue(null);
       invoicePdfService.generate.mockResolvedValue(Buffer.from('%PDF-1.4'));
@@ -173,7 +173,7 @@ describe('OrdersService', () => {
 
       expect(invoicePdfService.generate).toHaveBeenCalledWith(
         expect.anything(),
-        'EliteCommerce',
+        'Nhundzu',
       );
     });
   });

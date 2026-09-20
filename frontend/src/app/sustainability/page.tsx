@@ -1,15 +1,8 @@
 import { Leaf, Recycle, Handshake } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
-import StatBlock from "@/src/app/components/ui/StatBlock";
 import InfoCard from "@/src/app/components/shared/InfoCard";
 import { SITE_NAME } from "@/src/lib/siteConfig";
-
-const stats = [
-  { value: "40%", label: "Recycled packaging materials" },
-  { value: "120+", label: "Vendors vetted for ethical sourcing" },
-  { value: "18K", label: "Trees supported through offset programs" },
-];
 
 const commitments = [
   { icon: <Leaf className="h-5 w-5" />, title: "Responsible Sourcing", description: "We work with vendors who share our commitment to ethical, sustainable manufacturing." },
@@ -30,13 +23,7 @@ export default function SustainabilityPage() {
             how we&apos;re working to make {SITE_NAME} more responsible, one order at a time.
           </p>
 
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {stats.map((stat) => (
-              <StatBlock key={stat.label} {...stat} />
-            ))}
-          </div>
-
-          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {commitments.map((item) => (
               <InfoCard key={item.title} {...item} />
             ))}

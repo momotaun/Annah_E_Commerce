@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ArrowRight, Truck, Lock, Leaf } from "lucide-react";
+import { ArrowRight, Truck, Lock, Store } from "lucide-react";
 import Button from "@/src/app/components/ui/Button";
 import { getCategoryTheme } from "@/src/lib/categoryTheme";
 
@@ -25,7 +25,7 @@ export interface Slide {
 const heroValueProps = [
   { icon: Truck, title: "Free shipping", subtitle: "on orders over R1000" },
   { icon: Lock, title: "Secure payment", subtitle: "100% safe & encrypted" },
-  { icon: Leaf, title: "A greener choice", subtitle: "For a brighter future" },
+  { icon: Store, title: "Shop local sellers", subtitle: "Verified South African vendors" },
 ];
 
 const SLIDE_INTERVAL_MS = 6000;

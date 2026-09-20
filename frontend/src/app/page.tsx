@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ArrowRight, Truck, Leaf, ShieldCheck, Star } from "lucide-react";
+import { ArrowRight, Truck, BadgeCheck, ShieldCheck, Star } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Button from "@/src/app/components/ui/Button";
@@ -132,10 +132,10 @@ function PromoBanner() {
 }
 
 const trustProps = [
-  { icon: Leaf, title: "Sustainable products", subtitle: "A cleaner, greener future" },
+  { icon: BadgeCheck, title: "Verified sellers", subtitle: "Vetted for trust and quality" },
   { icon: Truck, title: "Fast & reliable delivery", subtitle: "Get it when you need it" },
   { icon: ShieldCheck, title: "Secure checkout", subtitle: "Shop with confidence" },
-  { icon: Star, title: "Rated by real customers", subtitle: "Trusted by thousands" },
+  { icon: Star, title: "Rated by real customers", subtitle: "Real reviews, real feedback" },
 ];
 
 function TrustBadges() {

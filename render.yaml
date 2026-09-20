@@ -66,7 +66,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM_EMAIL
-        value: "EliteCommerce <onboarding@resend.dev>"
+        value: "Nhundzu <onboarding@resend.dev>"
 
       # Object storage for vendor-uploaded product images — any
       # S3-compatible bucket (e.g. Neon Object Storage or AWS S3). Leave

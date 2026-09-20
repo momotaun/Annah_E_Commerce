@@ -10,6 +10,7 @@ import LocationIndicator from "@/src/app/components/layout/LocationIndicator";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
+import { useSiteSettings } from "@/src/context/SiteSettingsContext";
 import { cn } from "@/src/lib/utils";
 import { withLoginRedirect } from "@/src/lib/loginRedirect";
 
@@ -46,6 +47,7 @@ function Header({
   const router = useRouter();
   const { itemCount } = useCart();
   const { user, logout } = useAuth();
+  const { siteName } = useSiteSettings();
   const loginHref = withLoginRedirect(pathname);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -125,7 +127,7 @@ function Header({
               href="/vendor-onboarding/business-info"
               className="text-primary-100 hover:text-white hover:underline"
             >
-              Sell on Nhudzu
+              Sell on {siteName}
             </Link>
             <span className="h-3.5 w-px bg-primary-300/50" aria-hidden="true" />
             {user ? (

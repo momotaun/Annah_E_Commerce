@@ -159,7 +159,7 @@ export class OrdersService {
           amount: p.amount.toString(),
         })),
       },
-      siteSettings?.siteName ?? 'EliteCommerce',
+      siteSettings?.siteName ?? 'Nhundzu',
     );
   }
 
