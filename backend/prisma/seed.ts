@@ -54,7 +54,55 @@ async function main() {
     create: { name: 'Fashion', slug: 'fashion' },
   });
 
-  console.log({ electronics, computing, fashion });
+  const sportsOutdoor = await prisma.category.upsert({
+    where: { slug: 'sports-outdoor' },
+    update: {},
+    create: { name: 'Sports & Outdoor', slug: 'sports-outdoor' },
+  });
+
+  const fitnessEquipment = await prisma.category.upsert({
+    where: { slug: 'fitness-equipment' },
+    update: {},
+    create: {
+      name: 'Fitness Equipment',
+      slug: 'fitness-equipment',
+      parentId: sportsOutdoor.id,
+    },
+  });
+
+  const campingHiking = await prisma.category.upsert({
+    where: { slug: 'camping-hiking' },
+    update: {},
+    create: {
+      name: 'Camping & Hiking',
+      slug: 'camping-hiking',
+      parentId: sportsOutdoor.id,
+    },
+  });
+
+  const beautyHealth = await prisma.category.upsert({
+    where: { slug: 'beauty-health' },
+    update: {},
+    create: { name: 'Beauty & Health', slug: 'beauty-health' },
+  });
+
+  const skincare = await prisma.category.upsert({
+    where: { slug: 'skincare' },
+    update: {},
+    create: { name: 'Skincare', slug: 'skincare', parentId: beautyHealth.id },
+  });
+
+  const personalCare = await prisma.category.upsert({
+    where: { slug: 'personal-care' },
+    update: {},
+    create: {
+      name: 'Personal Care',
+      slug: 'personal-care',
+      parentId: beautyHealth.id,
+    },
+  });
+
+  console.log({ electronics, computing, fashion, sportsOutdoor, beautyHealth });
 
   const probookImageUrl = await uploadSeedProductImage('/images/probook.jpg');
   const laptop = await prisma.product.upsert({
@@ -812,6 +860,170 @@ async function main() {
     },
   ]);
 
+  // Every new-category product shares one generic placeholder image — see
+  // the "Generic placeholder" decision above: none of the site's existing,
+  // shot-for-this-store photography fits these categories, and every real
+  // product photo already belongs to another item.
+  const placeholderImageUrl = await uploadSeedProductImage(
+    '/images/placeholder-product.jpg',
+  );
+
+  const fitnessProducts = [
+    {
+      name: 'Ridgeline Adjustable Dumbbell Set',
+      sku: 'RIDGELINE-ADJUSTABLE-DUMBBELL-SET',
+      slug: 'ridgeline-adjustable-dumbbell-set',
+      description:
+        'Pair of space-saving dumbbells, adjustable from 2.5kg to 24kg each in seconds.',
+      price: 3499.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'Apex Yoga Mat Pro',
+      sku: 'APEX-YOGA-MAT-PRO',
+      slug: 'apex-yoga-mat-pro',
+      description:
+        '6mm non-slip yoga mat with alignment lines, includes a carry strap.',
+      price: 649.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'Summit Resistance Band Kit',
+      sku: 'SUMMIT-RESISTANCE-BAND-KIT',
+      slug: 'summit-resistance-band-kit',
+      description:
+        'Five-band resistance set from light to heavy, with door anchor and handles.',
+      price: 449.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'Vertex Foam Roller',
+      sku: 'VERTEX-FOAM-ROLLER',
+      slug: 'vertex-foam-roller',
+      description:
+        'High-density textured foam roller for post-workout muscle recovery.',
+      price: 379.0,
+      imageUrl: placeholderImageUrl,
+    },
+  ];
+
+  const campingProducts = [
+    {
+      name: 'Basecamp 2-Person Tent',
+      sku: 'BASECAMP-2-PERSON-TENT',
+      slug: 'basecamp-2-person-tent',
+      description:
+        'Freestanding 3-season tent, sets up in under 5 minutes, fully waterproof.',
+      price: 2299.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'TrailLite Hiking Backpack 40L',
+      sku: 'TRAILLITE-HIKING-BACKPACK-40L',
+      slug: 'trailite-hiking-backpack-40l',
+      description:
+        '40-litre hiking pack with adjustable harness and integrated rain cover.',
+      price: 1799.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'Ember Portable Camp Stove',
+      sku: 'EMBER-PORTABLE-CAMP-STOVE',
+      slug: 'ember-portable-camp-stove',
+      description:
+        'Foldable butane camp stove with piezo ignition, boils water in under 3 minutes.',
+      price: 599.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'Northstar Sleeping Bag -5°C',
+      sku: 'NORTHSTAR-SLEEPING-BAG-MINUS5',
+      slug: 'northstar-sleeping-bag-minus-5',
+      description:
+        'Mummy-shaped sleeping bag rated to -5°C, compresses down to a 20cm sack.',
+      price: 1299.0,
+      imageUrl: placeholderImageUrl,
+    },
+  ];
+
+  const skincareProducts = [
+    {
+      name: 'Lumière Vitamin C Serum',
+      sku: 'LUMIERE-VITAMIN-C-SERUM',
+      slug: 'lumiere-vitamin-c-serum',
+      description:
+        '15% vitamin C brightening serum with hyaluronic acid, for daily radiance.',
+      price: 549.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'Pure Radiance Facial Cleanser',
+      sku: 'PURE-RADIANCE-FACIAL-CLEANSER',
+      slug: 'pure-radiance-facial-cleanser',
+      description:
+        'Sulphate-free gel cleanser that lifts away makeup without stripping skin.',
+      price: 289.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'Aloe Fresh Hydrating Moisturizer',
+      sku: 'ALOE-FRESH-HYDRATING-MOISTURIZER',
+      slug: 'aloe-fresh-hydrating-moisturizer',
+      description:
+        'Lightweight daily moisturizer with aloe vera and ceramides for all skin types.',
+      price: 329.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'Glow Clay Face Mask',
+      sku: 'GLOW-CLAY-FACE-MASK',
+      slug: 'glow-clay-face-mask',
+      description:
+        'Kaolin clay mask that draws out impurities and refines pores in 10 minutes.',
+      price: 259.0,
+      imageUrl: placeholderImageUrl,
+    },
+  ];
+
+  const personalCareProducts = [
+    {
+      name: 'Silk Touch Electric Toothbrush',
+      sku: 'SILK-TOUCH-ELECTRIC-TOOTHBRUSH',
+      slug: 'silk-touch-electric-toothbrush',
+      description:
+        'Sonic electric toothbrush with 3 cleaning modes and a 3-week battery life.',
+      price: 899.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'Breeze Hair Dryer 2200W',
+      sku: 'BREEZE-HAIR-DRYER-2200W',
+      slug: 'breeze-hair-dryer-2200w',
+      description:
+        'Ionic hair dryer with 2200W motor, 3 heat settings and a cool-shot button.',
+      price: 749.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'Precision Grooming Kit',
+      sku: 'PRECISION-GROOMING-KIT',
+      slug: 'precision-grooming-kit',
+      description:
+        'All-in-one trimmer kit for hair, beard, and body with 6 attachment guides.',
+      price: 649.0,
+      imageUrl: placeholderImageUrl,
+    },
+    {
+      name: 'Calm Aromatherapy Diffuser',
+      sku: 'CALM-AROMATHERAPY-DIFFUSER',
+      slug: 'calm-aromatherapy-diffuser',
+      description:
+        'Ultrasonic essential oil diffuser with colour-changing light and auto shut-off.',
+      price: 449.0,
+      imageUrl: placeholderImageUrl,
+    },
+  ];
+
   const unbrandedGroups: Array<{
     categoryId: string;
     items: typeof electronicsProducts;
@@ -820,6 +1032,10 @@ async function main() {
     { categoryId: audio.id, items: audioProducts },
     { categoryId: computing.id, items: computingProducts },
     { categoryId: homeLiving.id, items: homeLivingProducts },
+    { categoryId: fitnessEquipment.id, items: fitnessProducts },
+    { categoryId: campingHiking.id, items: campingProducts },
+    { categoryId: skincare.id, items: skincareProducts },
+    { categoryId: personalCare.id, items: personalCareProducts },
   ];
 
   for (const group of unbrandedGroups) {
@@ -845,6 +1061,10 @@ async function main() {
     audio: audioProducts.length,
     computing: computingProducts.length,
     homeLiving: homeLivingProducts.length,
+    fitness: fitnessProducts.length,
+    camping: campingProducts.length,
+    skincare: skincareProducts.length,
+    personalCare: personalCareProducts.length,
   });
 
   console.log({ meridian, productCount: clothingProducts.length });
