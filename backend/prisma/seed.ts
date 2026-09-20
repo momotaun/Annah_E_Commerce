@@ -104,68 +104,11 @@ async function main() {
 
   console.log({ electronics, computing, fashion, sportsOutdoor, beautyHealth });
 
-  const probookImageUrl = await uploadSeedProductImage('/images/probook.jpg');
-  const laptop = await prisma.product.upsert({
-    where: { sku: 'APEX-PROBOOK-M3MAX' },
-    update: { imageUrl: probookImageUrl },
-    create: {
-      name: 'Apex ProBook M3 Max',
-      slug: 'apex-probook-m3-max',
-      sku: 'APEX-PROBOOK-M3MAX',
-      description:
-        'M3 Max Silicon with 16-core CPU, 40-core GPU, up to 22 hours of battery life.',
-      price: 45999.0,
-      imageUrl: probookImageUrl,
-      categoryId: computing.id,
-    },
-  });
-
-  const headphonesImageUrl = await uploadSeedProductImage(
-    '/images/headphones.jpg',
-  );
-  await prisma.product.upsert({
-    where: { sku: 'SONICMASTER-ELITE-G2' },
-    update: { imageUrl: headphonesImageUrl },
-    create: {
-      name: 'SonicMaster Elite G2',
-      slug: 'sonicmaster-elite-g2',
-      sku: 'SONICMASTER-ELITE-G2',
-      description: 'Active Noise Cancellation, 40h battery life.',
-      price: 349.0,
-      imageUrl: headphonesImageUrl,
-      categoryId: computing.id,
-    },
-  });
-
-  console.log({ electronics, computing, laptop });
-
-  const customerPasswordHash = await bcrypt.hash('customerPassword123', 12);
-  await prisma.user.upsert({
-    where: { email: 'customer@apex.co.za' },
-    update: {},
-    create: {
-      email: 'customer@apex.co.za',
-      passwordHash: customerPasswordHash,
-      firstName: 'Thandiwe',
-      lastName: 'Nkosi',
-      role: 'CUSTOMER',
-    },
-  });
-
-  const adminPasswordHash = await bcrypt.hash('adminPassword123', 12);
-  await prisma.user.upsert({
-    where: { email: 'admin@apex.co.za' },
-    update: {},
-    create: {
-      email: 'admin@apex.co.za',
-      passwordHash: adminPasswordHash,
-      firstName: 'Apex',
-      lastName: 'Admin',
-      role: 'ADMIN',
-    },
-  });
-
+  // Every product needs a vendor for card display purposes (the "by <store>"
+  // line) — one vendor per category grouping, created up front so their ids
+  // are available to every product created below, branded or not.
   const vendorPasswordHash = await bcrypt.hash('vendorPassword123', 12);
+
   const meridianUser = await prisma.user.upsert({
     where: { email: 'vendor@meridianapparel.co.za' },
     update: {},
@@ -194,6 +137,171 @@ async function main() {
       bio: meridianBio,
       status: 'APPROVED',
       approvedAt: new Date(),
+    },
+  });
+
+  const voltCircuitUser = await prisma.user.upsert({
+    where: { email: 'vendor@voltcircuit.co.za' },
+    update: {},
+    create: {
+      email: 'vendor@voltcircuit.co.za',
+      passwordHash: vendorPasswordHash,
+      firstName: 'Sipho',
+      lastName: 'Mahlangu',
+      role: 'VENDOR',
+    },
+  });
+
+  const voltCircuit = await prisma.vendor.upsert({
+    where: { contactEmail: 'hello@voltcircuit.co.za' },
+    update: {},
+    create: {
+      userId: voltCircuitUser.id,
+      businessName: 'Volt & Circuit Co.',
+      contactEmail: 'hello@voltcircuit.co.za',
+      bio: 'Everyday tech and audio gear, picked for reliability over hype.',
+      status: 'APPROVED',
+      approvedAt: new Date(),
+    },
+  });
+
+  const hearthHomeUser = await prisma.user.upsert({
+    where: { email: 'vendor@hearthandhome.co.za' },
+    update: {},
+    create: {
+      email: 'vendor@hearthandhome.co.za',
+      passwordHash: vendorPasswordHash,
+      firstName: 'Palesa',
+      lastName: 'Dube',
+      role: 'VENDOR',
+    },
+  });
+
+  const hearthHome = await prisma.vendor.upsert({
+    where: { contactEmail: 'hello@hearthandhome.co.za' },
+    update: {},
+    create: {
+      userId: hearthHomeUser.id,
+      businessName: 'Hearth & Home Co.',
+      contactEmail: 'hello@hearthandhome.co.za',
+      bio: 'Thoughtfully made pieces for a calmer, more comfortable home.',
+      status: 'APPROVED',
+      approvedAt: new Date(),
+    },
+  });
+
+  const basecampUser = await prisma.user.upsert({
+    where: { email: 'vendor@basecampoutdoors.co.za' },
+    update: {},
+    create: {
+      email: 'vendor@basecampoutdoors.co.za',
+      passwordHash: vendorPasswordHash,
+      firstName: 'Kagiso',
+      lastName: 'van der Merwe',
+      role: 'VENDOR',
+    },
+  });
+
+  const basecamp = await prisma.vendor.upsert({
+    where: { contactEmail: 'hello@basecampoutdoors.co.za' },
+    update: {},
+    create: {
+      userId: basecampUser.id,
+      businessName: 'Basecamp Outdoors',
+      contactEmail: 'hello@basecampoutdoors.co.za',
+      bio: 'Gear built for the trail, the campsite, and everything between.',
+      status: 'APPROVED',
+      approvedAt: new Date(),
+    },
+  });
+
+  const pureGlowUser = await prisma.user.upsert({
+    where: { email: 'vendor@pureglowbeauty.co.za' },
+    update: {},
+    create: {
+      email: 'vendor@pureglowbeauty.co.za',
+      passwordHash: vendorPasswordHash,
+      firstName: 'Zanele',
+      lastName: 'Mokoena',
+      role: 'VENDOR',
+    },
+  });
+
+  const pureGlow = await prisma.vendor.upsert({
+    where: { contactEmail: 'hello@pureglowbeauty.co.za' },
+    update: {},
+    create: {
+      userId: pureGlowUser.id,
+      businessName: 'Pure Glow Beauty',
+      contactEmail: 'hello@pureglowbeauty.co.za',
+      bio: 'Clean, simple skincare and personal care essentials.',
+      status: 'APPROVED',
+      approvedAt: new Date(),
+    },
+  });
+
+  const probookImageUrl = await uploadSeedProductImage('/images/probook.jpg');
+  const laptop = await prisma.product.upsert({
+    where: { sku: 'APEX-PROBOOK-M3MAX' },
+    update: { imageUrl: probookImageUrl, images: [probookImageUrl, probookImageUrl], vendorId: voltCircuit.id },
+    create: {
+      name: 'Apex ProBook M3 Max',
+      slug: 'apex-probook-m3-max',
+      sku: 'APEX-PROBOOK-M3MAX',
+      description:
+        'M3 Max Silicon with 16-core CPU, 40-core GPU, up to 22 hours of battery life.',
+      price: 45999.0,
+      imageUrl: probookImageUrl,
+      images: [probookImageUrl, probookImageUrl],
+      categoryId: computing.id,
+      vendorId: voltCircuit.id,
+    },
+  });
+
+  const headphonesImageUrl = await uploadSeedProductImage(
+    '/images/headphones.jpg',
+  );
+  await prisma.product.upsert({
+    where: { sku: 'SONICMASTER-ELITE-G2' },
+    update: { imageUrl: headphonesImageUrl, images: [headphonesImageUrl, headphonesImageUrl], vendorId: voltCircuit.id },
+    create: {
+      name: 'SonicMaster Elite G2',
+      slug: 'sonicmaster-elite-g2',
+      sku: 'SONICMASTER-ELITE-G2',
+      description: 'Active Noise Cancellation, 40h battery life.',
+      price: 349.0,
+      imageUrl: headphonesImageUrl,
+      images: [headphonesImageUrl, headphonesImageUrl],
+      categoryId: computing.id,
+      vendorId: voltCircuit.id,
+    },
+  });
+
+  console.log({ electronics, computing, laptop });
+
+  const customerPasswordHash = await bcrypt.hash('customerPassword123', 12);
+  await prisma.user.upsert({
+    where: { email: 'customer@apex.co.za' },
+    update: {},
+    create: {
+      email: 'customer@apex.co.za',
+      passwordHash: customerPasswordHash,
+      firstName: 'Thandiwe',
+      lastName: 'Nkosi',
+      role: 'CUSTOMER',
+    },
+  });
+
+  const adminPasswordHash = await bcrypt.hash('adminPassword123', 12);
+  await prisma.user.upsert({
+    where: { email: 'admin@apex.co.za' },
+    update: {},
+    create: {
+      email: 'admin@apex.co.za',
+      passwordHash: adminPasswordHash,
+      firstName: 'Apex',
+      lastName: 'Admin',
+      role: 'ADMIN',
     },
   });
 
@@ -330,7 +438,11 @@ async function main() {
   for (const item of clothingProducts) {
     await prisma.product.upsert({
       where: { sku: item.sku },
-      update: { imageUrl: item.imageUrl },
+      update: {
+        imageUrl: item.imageUrl,
+        images: [item.imageUrl, item.imageUrl],
+        vendorId: meridian.id,
+      },
       create: {
         name: item.name,
         slug: item.slug,
@@ -338,6 +450,7 @@ async function main() {
         description: item.description,
         price: item.price,
         imageUrl: item.imageUrl,
+        images: [item.imageUrl, item.imageUrl],
         categoryId: fashion.id,
         vendorId: meridian.id,
       },
@@ -1024,25 +1137,34 @@ async function main() {
     },
   ];
 
-  const unbrandedGroups: Array<{
+  // Every product needs a vendor for card display purposes — grouped by
+  // category theme rather than one vendor per item, matching how a real
+  // marketplace vendor tends to specialise in a handful of related
+  // categories.
+  const categorizedProductGroups: Array<{
     categoryId: string;
+    vendorId: string;
     items: typeof electronicsProducts;
   }> = [
-    { categoryId: electronics.id, items: electronicsProducts },
-    { categoryId: audio.id, items: audioProducts },
-    { categoryId: computing.id, items: computingProducts },
-    { categoryId: homeLiving.id, items: homeLivingProducts },
-    { categoryId: fitnessEquipment.id, items: fitnessProducts },
-    { categoryId: campingHiking.id, items: campingProducts },
-    { categoryId: skincare.id, items: skincareProducts },
-    { categoryId: personalCare.id, items: personalCareProducts },
+    { categoryId: electronics.id, vendorId: voltCircuit.id, items: electronicsProducts },
+    { categoryId: audio.id, vendorId: voltCircuit.id, items: audioProducts },
+    { categoryId: computing.id, vendorId: voltCircuit.id, items: computingProducts },
+    { categoryId: homeLiving.id, vendorId: hearthHome.id, items: homeLivingProducts },
+    { categoryId: fitnessEquipment.id, vendorId: basecamp.id, items: fitnessProducts },
+    { categoryId: campingHiking.id, vendorId: basecamp.id, items: campingProducts },
+    { categoryId: skincare.id, vendorId: pureGlow.id, items: skincareProducts },
+    { categoryId: personalCare.id, vendorId: pureGlow.id, items: personalCareProducts },
   ];
 
-  for (const group of unbrandedGroups) {
+  for (const group of categorizedProductGroups) {
     for (const item of group.items) {
       await prisma.product.upsert({
         where: { sku: item.sku },
-        update: { imageUrl: item.imageUrl },
+        update: {
+          imageUrl: item.imageUrl,
+          images: [item.imageUrl, item.imageUrl],
+          vendorId: group.vendorId,
+        },
         create: {
           name: item.name,
           slug: item.slug,
@@ -1050,7 +1172,9 @@ async function main() {
           description: item.description,
           price: item.price,
           imageUrl: item.imageUrl,
+          images: [item.imageUrl, item.imageUrl],
           categoryId: group.categoryId,
+          vendorId: group.vendorId,
         },
       });
     }
