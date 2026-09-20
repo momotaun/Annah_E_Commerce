@@ -84,6 +84,7 @@ export default function TopRatedEssentials({ products }: TopRatedEssentialsProps
                 title={product.name}
                 vendor={product.vendor}
                 price={formatPrice(product.price)}
+                showWishlist
                 onAddToCart={() => addItem(product.id)}
               />
             </div>

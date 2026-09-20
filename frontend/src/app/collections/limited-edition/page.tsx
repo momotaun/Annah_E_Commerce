@@ -37,6 +37,7 @@ export default async function LimitedEditionCollectionPage() {
                   vendor={product.vendor}
                   price={formatPrice(product.price)}
                   badge={{ label: "Limited", variant: "danger" }}
+                  showWishlist
                 />
               ))}
             </div>

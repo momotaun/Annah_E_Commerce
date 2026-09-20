@@ -36,6 +36,7 @@ export default async function LookbookPage() {
                   vendor={product.vendor}
                   description={product.description ?? undefined}
                   price={formatPrice(product.price)}
+                  showWishlist
                 />
               ))}
             </div>

@@ -208,6 +208,7 @@ export default function ProductDetailsClient({
                   title={p.name}
                   vendor={p.vendor}
                   price={formatPrice(p.price)}
+                  showWishlist
                 />
               ))}
             </div>

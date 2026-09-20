@@ -228,6 +228,7 @@ export default function CategoryClient({
                     vendor={product.vendor}
                     description={product.description ?? undefined}
                     price={formatPrice(product.price)}
+                    showWishlist
                     onAddToCart={() => addItem(product.id)}
                   />
                 ))}

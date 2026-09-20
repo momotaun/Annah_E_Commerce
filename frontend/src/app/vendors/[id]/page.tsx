@@ -105,6 +105,7 @@ export default async function VendorStorefrontPage({
                   title={product.name}
                   description={product.description ?? undefined}
                   price={formatPrice(product.price)}
+                  showWishlist
                 />
               ))}
             </div>
