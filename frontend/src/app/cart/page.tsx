@@ -42,7 +42,8 @@ export default function ShoppingCartPage() {
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <div className="rounded-md border border-gray-200 bg-white px-6">
+              <div className="rounded-2xl border border-amber-200 bg-white px-6 py-2">
+                <h2 className="pt-4 text-lg font-bold text-gray-900">Items</h2>
                 {items.map((item) => (
                   <CartLineItem
                     key={item.id}
@@ -50,6 +51,9 @@ export default function ShoppingCartPage() {
                     title={item.product.name}
                     price={`R${Number(item.lineTotal).toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`}
                     quantity={item.quantity}
+                    vendor={item.product.vendor}
+                    deliveryOption={item.product.deliveryOption}
+                    showWishlist
                     onQuantityChange={(qty) => updateItem(item.id, qty)}
                     onRemove={() => removeItem(item.id)}
                   />

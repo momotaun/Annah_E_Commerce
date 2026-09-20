@@ -18,7 +18,15 @@ export class CartService {
       where: { id: cartId },
       include: {
         items: {
-          include: { product: true },
+          include: {
+            product: {
+              include: {
+                vendor: {
+                  select: { businessName: true, verified: true, status: true },
+                },
+              },
+            },
+          },
           orderBy: { id: 'asc' },
         },
       },
@@ -33,6 +41,14 @@ export class CartService {
         name: item.product.name,
         price: item.product.price.toString(),
         imageUrl: item.product.imageUrl,
+        deliveryOption: item.product.deliveryOption,
+        vendor:
+          item.product.vendor?.status === 'APPROVED'
+            ? {
+                businessName: item.product.vendor.businessName,
+                verified: item.product.vendor.verified,
+              }
+            : null,
       },
       lineTotal: (item.product.price.toNumber() * item.quantity).toFixed(2),
     }));

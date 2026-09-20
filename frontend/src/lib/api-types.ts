@@ -34,7 +34,14 @@ export interface CartItemResponse {
   id: string;
   productId: string;
   quantity: number;
-  product: { id: string; name: string; price: string; imageUrl: string | null };
+  product: {
+    id: string;
+    name: string;
+    price: string;
+    imageUrl: string | null;
+    deliveryOption: string | null;
+    vendor: { businessName: string; verified: boolean } | null;
+  };
   lineTotal: string;
 }
 
