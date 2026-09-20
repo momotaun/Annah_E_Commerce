@@ -71,11 +71,13 @@ describe('ProductCard', () => {
     expect(handleAddToCart).toHaveBeenCalledTimes(1);
   });
 
-  it('renders RatingStars only when a rating is provided', () => {
-    const { rerender } = render(<ProductCard {...baseProps} />);
-    expect(screen.queryByText(/^\d\.\d$/)).not.toBeInTheDocument();
+  it('falls back to a stable mock rating when none is provided', () => {
+    render(<ProductCard {...baseProps} />);
+    expect(screen.getByText(/^\d\.\d$/)).toBeInTheDocument();
+  });
 
-    rerender(<ProductCard {...baseProps} rating={4.9} reviewCount={124} />);
+  it('renders the exact rating and review count when provided', () => {
+    render(<ProductCard {...baseProps} rating={4.9} reviewCount={124} />);
     expect(screen.getByText('4.9')).toBeInTheDocument();
     expect(screen.getByText('(124)')).toBeInTheDocument();
   });

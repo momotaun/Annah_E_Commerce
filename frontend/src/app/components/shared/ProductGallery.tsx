@@ -22,7 +22,7 @@ function ProductGallery({ images, alt }: ProductGalleryProps) {
       <div className="flex gap-3 overflow-x-auto sm:flex-col sm:overflow-visible">
         {images.map((img, i) => (
           <button
-            key={img}
+            key={i}
             onClick={() => setActiveIndex(i)}
             className={cn(
               "relative h-20 w-20 shrink-0 overflow-hidden rounded-md border-2 bg-gray-100",

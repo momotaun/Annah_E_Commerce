@@ -59,9 +59,12 @@ export default function ProductDetailsClient({
     }
   }
 
-  const galleryImages = product.imageUrl
-    ? [product.imageUrl]
-    : ["/images/placeholder-product.jpg"];
+  const galleryImages =
+    product.images.length > 0
+      ? product.images
+      : product.imageUrl
+        ? [product.imageUrl]
+        : ["/images/placeholder-product.jpg"];
 
   return (
     <div className="flex min-h-screen flex-col">

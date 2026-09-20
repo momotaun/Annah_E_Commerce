@@ -16,7 +16,11 @@ import HeroSection, { Slide } from "@/src/app/HeroSection";
 
 export default async function LandingPage() {
   const [essentials, categories, heroSlides] = await Promise.all([
-    getProducts({ limit: 12 }),
+    // "newest" would be dominated entirely by whichever category was most
+    // recently seeded (they're inserted in one batch per category) — sorting
+    // by price instead gives a natural mix of vendor and marketplace-owned
+    // products across the row, like a real storefront's picks would.
+    getProducts({ limit: 12, sort: "price-asc" }),
     getCategories(),
     getHeroSlides(),
   ]);
