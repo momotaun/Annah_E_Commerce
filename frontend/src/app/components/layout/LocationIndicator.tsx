@@ -49,10 +49,12 @@ function LocationIndicator() {
   // Resolve the banner text once on mount and whenever auth state changes —
   // a signed-in shopper's saved default address is the accurate,
   // zero-permission-prompt source; the browser's own geolocation (which
-  // does prompt) is only a fallback for everyone else.
+  // does prompt) is only a fallback for everyone else. Header keys this
+  // component by user id, so a login/logout remounts it (and resets
+  // `location` back to FALLBACK_LOCATION) instead of this effect having to
+  // setState synchronously on every run.
   useEffect(() => {
     let cancelled = false;
-    setLocation(FALLBACK_LOCATION);
 
     async function resolveFromSavedAddress() {
       if (!user) return false;
