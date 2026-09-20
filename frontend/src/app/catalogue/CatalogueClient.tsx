@@ -58,7 +58,7 @@ export default function CatalogueClient({
   activeQuery,
 }: CatalogueClientProps) {
   const router = useRouter();
-  const { addItem } = useCart();
+  const { cart, setProductQuantity } = useCart();
   const [isPending, startTransition] = useTransition();
 
   const [products, setProducts] = useState(initialProducts);
@@ -288,7 +288,8 @@ export default function CatalogueClient({
                   price={formatPrice(product.price)}
                   showWishlist
                   showQuickView
-                  onAddToCart={() => addItem(product.id)}
+                  quantity={cart?.items.find((item) => item.productId === product.id)?.quantity ?? 0}
+                  onQuantityChange={(quantity) => setProductQuantity(product.id, quantity)}
                 />
               ))}
             </div>

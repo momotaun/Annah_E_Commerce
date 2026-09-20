@@ -11,6 +11,9 @@ interface CartContextValue {
   addItem: (productId: string, quantity?: number) => Promise<void>;
   updateItem: (itemId: string, quantity: number) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
+  /** Sets a product's cart quantity directly — add/update/remove, whichever
+      applies — for quantity-selector controls that don't track cart item ids. */
+  setProductQuantity: (productId: string, quantity: number) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined);
@@ -55,10 +58,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCart(updated);
   }
 
+  async function setProductQuantity(productId: string, quantity: number) {
+    const existing = cart?.items.find((item) => item.productId === productId);
+    if (existing) {
+      if (quantity <= 0) {
+        await removeItem(existing.id);
+      } else {
+        await updateItem(existing.id, quantity);
+      }
+    } else if (quantity > 0) {
+      await addItem(productId, quantity);
+    }
+  }
+
   const itemCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
   return (
-    <CartContext.Provider value={{ cart, isLoading, itemCount, addItem, updateItem, removeItem }}>
+    <CartContext.Provider
+      value={{ cart, isLoading, itemCount, addItem, updateItem, removeItem, setProductQuantity }}
+    >
       {children}
     </CartContext.Provider>
   );

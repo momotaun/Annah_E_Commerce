@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 // Atoms
 import FormField from "@/src/app/components/ui/FormField";
 import Button from "@/src/app/components/ui/Button";
@@ -23,6 +25,9 @@ import Footer from "@/src/app/components/layout/Footer";
 import { Home, ArrowLeft, RefreshCw, AlertCircle, Search, Mail } from "lucide-react";
 
 export default function PlaygroundPage() {
+  const [headphonesQuantity, setHeadphonesQuantity] = useState(0);
+  const [phoneQuantity, setPhoneQuantity] = useState(0);
+
   return (
     <div className="p-10 space-y-8 bg-gray-50 min-h-screen">
       <div className="flex gap-4">
@@ -158,6 +163,7 @@ export default function PlaygroundPage() {
                 price="R2,499.00"
                 rating={4.9}
                 reviewCount={124}
+                discountPercent={20}
                 showWishlist
                 showQuickView
             />
@@ -168,7 +174,8 @@ export default function PlaygroundPage() {
                 category="Electronics"
                 price="R4,299"
                 badge={{ label: "Bestseller", variant: "primary" }}
-                onAddToCart={() => console.log("add to cart")}
+                quantity={headphonesQuantity}
+                onQuantityChange={setHeadphonesQuantity}
             />
             <ProductCard
                 href="/products/zenith-phone-x"
@@ -177,7 +184,8 @@ export default function PlaygroundPage() {
                 description="5G Enabled, 200MP Triple Camera, 120Hz Display."
                 price="R999.00"
                 badge={{ label: "New Entry", variant: "warning" }}
-                onAddToCart={() => console.log("add to cart")}
+                quantity={phoneQuantity}
+                onQuantityChange={setPhoneQuantity}
             />
         </div>
 

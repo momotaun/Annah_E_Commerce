@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Heart, ShoppingCart } from "lucide-react";
 import Badge from "@/src/app/components/ui/Badge";
 import RatingStars from "@/src/app/components/ui/RatingStars";
+import Stepper from "@/src/app/components/ui/Stepper";
 import { cn } from "@/src/lib/utils";
 
 // No rating/review data exists in the schema — this generates a stable,
@@ -31,11 +32,17 @@ export interface ProductCardProps {
   vendor?: { id: string; businessName: string } | null;
   description?: string;
   badge?: { label: string; variant?: "primary" | "warning" | "danger" };
+  /** Whole-number percentage off, e.g. 20 for "20% off" — renders a pill next to the wishlist heart. */
+  discountPercent?: number;
   rating?: number;
   reviewCount?: number;
   showWishlist?: boolean;
   showQuickView?: boolean;
-  onAddToCart?: () => void;
+  /** Current quantity of this product in the cart. Paired with
+      onQuantityChange, renders a plain Add to Cart button until quantity is
+      at least 1, then swaps to a quantity selector. */
+  quantity?: number;
+  onQuantityChange?: (quantity: number) => void;
   onToggleWishlist?: () => void;
   className?: string;
 }
@@ -49,11 +56,13 @@ function ProductCard({
   vendor,
   description,
   badge,
+  discountPercent,
   rating,
   reviewCount,
   showWishlist = false,
   showQuickView = false,
-  onAddToCart,
+  quantity,
+  onQuantityChange,
   onToggleWishlist,
   className,
 }: ProductCardProps) {
@@ -79,15 +88,25 @@ function ProductCard({
           </Badge>
         )}
 
-        {showWishlist && (
-          <button
-            type="button"
-            onClick={onToggleWishlist}
-            aria-label="Add to wishlist"
-            className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-500 hover:text-danger-500"
-          >
-            <Heart className="h-4 w-4" />
-          </button>
+        {(showWishlist || (discountPercent !== undefined && discountPercent > 0)) && (
+          <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+            {discountPercent !== undefined && discountPercent > 0 && (
+              <span className="flex h-9 items-center justify-center rounded-full bg-danger-500 px-3 text-sm font-bold text-white">
+                -{discountPercent}%
+              </span>
+            )}
+
+            {showWishlist && (
+              <button
+                type="button"
+                onClick={onToggleWishlist}
+                aria-label="Add to wishlist"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/90 text-gray-500 hover:text-danger-500"
+              >
+                <Heart className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         )}
 
         {showQuickView && (
@@ -140,16 +159,19 @@ function ProductCard({
             {price}
           </span>
 
-          {onAddToCart && (
-            <button
-              type="button"
-              onClick={onAddToCart}
-              aria-label="Add to cart"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-500 text-white hover:bg-primary-600"
-            >
-              <ShoppingCart className="h-4 w-4" />
-            </button>
-          )}
+          {onQuantityChange &&
+            (quantity && quantity > 0 ? (
+              <Stepper value={quantity} onChange={onQuantityChange} min={0} size="sm" className="shrink-0" />
+            ) : (
+              <button
+                type="button"
+                onClick={() => onQuantityChange(1)}
+                aria-label="Add to cart"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-500 text-white hover:bg-primary-600"
+              >
+                <ShoppingCart className="h-4 w-4" />
+              </button>
+            ))}
         </div>
       </div>
     </div>

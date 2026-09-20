@@ -56,19 +56,32 @@ describe('ProductCard', () => {
     expect(handleToggle).toHaveBeenCalledTimes(1);
   });
 
-  it('does not render an Add to Cart button unless onAddToCart is provided', () => {
+  it('does not render an Add to Cart button unless onQuantityChange is provided', () => {
     render(<ProductCard {...baseProps} />);
     expect(screen.queryByLabelText('Add to cart')).not.toBeInTheDocument();
   });
 
-  it('calls onAddToCart when the cart button is clicked', async () => {
-    const handleAddToCart = vi.fn();
+  it('shows a plain Add to Cart button until quantity is at least 1', async () => {
+    const handleQuantityChange = vi.fn();
     const user = userEvent.setup();
-    render(<ProductCard {...baseProps} onAddToCart={handleAddToCart} />);
+    render(<ProductCard {...baseProps} quantity={0} onQuantityChange={handleQuantityChange} />);
 
+    expect(screen.queryByLabelText('Increase quantity')).not.toBeInTheDocument();
     await user.click(screen.getByLabelText('Add to cart'));
 
-    expect(handleAddToCart).toHaveBeenCalledTimes(1);
+    expect(handleQuantityChange).toHaveBeenCalledTimes(1);
+    expect(handleQuantityChange).toHaveBeenCalledWith(1);
+  });
+
+  it('swaps to a quantity selector once quantity is at least 1', async () => {
+    const handleQuantityChange = vi.fn();
+    const user = userEvent.setup();
+    render(<ProductCard {...baseProps} quantity={2} onQuantityChange={handleQuantityChange} />);
+
+    expect(screen.queryByLabelText('Add to cart')).not.toBeInTheDocument();
+    await user.click(screen.getByLabelText('Increase quantity'));
+
+    expect(handleQuantityChange).toHaveBeenCalledWith(3);
   });
 
   it('falls back to a stable mock rating when none is provided', () => {

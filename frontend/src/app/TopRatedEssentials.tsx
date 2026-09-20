@@ -13,7 +13,7 @@ interface TopRatedEssentialsProps {
 }
 
 export default function TopRatedEssentials({ products }: TopRatedEssentialsProps) {
-  const { addItem } = useCart();
+  const { cart, setProductQuantity } = useCart();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -85,7 +85,8 @@ export default function TopRatedEssentials({ products }: TopRatedEssentialsProps
                 vendor={product.vendor}
                 price={formatPrice(product.price)}
                 showWishlist
-                onAddToCart={() => addItem(product.id)}
+                quantity={cart?.items.find((item) => item.productId === product.id)?.quantity ?? 0}
+                onQuantityChange={(quantity) => setProductQuantity(product.id, quantity)}
               />
             </div>
           ))}
