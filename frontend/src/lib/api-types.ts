@@ -15,6 +15,9 @@ export interface Product {
   price: string;
   imageUrl: string | null;
   images: string[];
+  averageRating: string | null;
+  deliveryOption: string | null;
+  segment: string | null;
   categoryId: string;
   vendorId: string | null;
   /** Present only for products sold by an approved vendor — the only case

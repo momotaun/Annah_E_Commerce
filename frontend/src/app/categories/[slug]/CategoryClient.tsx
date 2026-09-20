@@ -31,6 +31,10 @@ interface CategoryClientProps {
   activeMinPrice?: number;
   activeMaxPrice?: number;
   activeSort?: ProductSort;
+  activeSegments?: string[];
+  activeDelivery?: string[];
+  activeMinRating?: number;
+  activeVerifiedOnly?: boolean;
 }
 
 function flattenCategories(categories: Category[]) {
@@ -49,6 +53,10 @@ export default function CategoryClient({
   activeMinPrice,
   activeMaxPrice,
   activeSort,
+  activeSegments = [],
+  activeDelivery = [],
+  activeMinRating,
+  activeVerifiedOnly = false,
 }: CategoryClientProps) {
   const router = useRouter();
   const { cart, setProductQuantity } = useCart();
@@ -83,6 +91,10 @@ export default function CategoryClient({
         minPrice: activeMinPrice,
         maxPrice: activeMaxPrice,
         sort: activeSort,
+        segment: activeSegments.length ? activeSegments.join(",") : undefined,
+        delivery: activeDelivery.length ? activeDelivery.join(",") : undefined,
+        minRating: activeMinRating,
+        verifiedOnly: activeVerifiedOnly,
         page: products.meta.page + 1,
         limit: 12,
       });
@@ -96,7 +108,17 @@ export default function CategoryClient({
       isLoadingMoreRef.current = false;
       setIsLoadingMore(false);
     }
-  }, [products, category.slug, activeMinPrice, activeMaxPrice, activeSort]);
+  }, [
+    products,
+    category.slug,
+    activeMinPrice,
+    activeMaxPrice,
+    activeSort,
+    activeSegments,
+    activeDelivery,
+    activeMinRating,
+    activeVerifiedOnly,
+  ]);
 
   useEffect(() => {
     const el = sentinelRef.current;
@@ -149,6 +171,40 @@ export default function CategoryClient({
     });
   }
 
+  function pushParam(key: string, value: string | null) {
+    const params = new URLSearchParams(window.location.search);
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    startTransition(() => {
+      router.push(`/categories/${category.slug}?${params.toString()}`);
+    });
+  }
+
+  function handleSegmentChange(value: string, checked: boolean) {
+    const next = checked
+      ? [...new Set([...activeSegments, value])]
+      : activeSegments.filter((s) => s !== value);
+    pushParam("segment", next.length ? next.join(",") : null);
+  }
+
+  function handleDeliveryChange(value: string, checked: boolean) {
+    const next = checked
+      ? [...new Set([...activeDelivery, value])]
+      : activeDelivery.filter((d) => d !== value);
+    pushParam("delivery", next.length ? next.join(",") : null);
+  }
+
+  function handleVerifiedOnlyChange(checked: boolean) {
+    pushParam("verifiedOnly", checked ? "true" : null);
+  }
+
+  function handleMinRatingChange(checked: boolean) {
+    pushParam("minRating", checked ? "4" : null);
+  }
+
   const theme = getCategoryTheme(category.slug);
 
   return (
@@ -184,6 +240,14 @@ export default function CategoryClient({
             minPrice={activeMinPrice}
             maxPrice={activeMaxPrice}
             onPriceChange={handlePriceChange}
+            selectedSegments={activeSegments}
+            onSegmentChange={handleSegmentChange}
+            selectedDelivery={activeDelivery}
+            onDeliveryChange={handleDeliveryChange}
+            verifiedOnly={activeVerifiedOnly}
+            onVerifiedOnlyChange={handleVerifiedOnlyChange}
+            minRating={activeMinRating}
+            onMinRatingChange={handleMinRatingChange}
           />
 
           <div className="flex-1">

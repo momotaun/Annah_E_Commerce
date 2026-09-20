@@ -11,6 +11,10 @@ export default async function CataloguePage({
     maxPrice?: string;
     sort?: string;
     q?: string;
+    segment?: string;
+    delivery?: string;
+    minRating?: string;
+    verifiedOnly?: string;
   }>;
 }) {
   const {
@@ -19,6 +23,10 @@ export default async function CataloguePage({
     maxPrice: maxPriceParam,
     sort: sortParam,
     q,
+    segment,
+    delivery,
+    minRating: minRatingParam,
+    verifiedOnly: verifiedOnlyParam,
   } = await searchParams;
   const minPrice = minPriceParam ? Number(minPriceParam) : undefined;
   const maxPrice = maxPriceParam ? Number(maxPriceParam) : undefined;
@@ -26,6 +34,8 @@ export default async function CataloguePage({
     sortParam === "price-asc" || sortParam === "price-desc"
       ? (sortParam as ProductSort)
       : undefined;
+  const minRating = minRatingParam ? Number(minRatingParam) : undefined;
+  const verifiedOnly = verifiedOnlyParam === "true";
 
   // Infinite scroll always starts from the first page on a real
   // navigation — CatalogueClient's IntersectionObserver takes over from
@@ -33,7 +43,18 @@ export default async function CataloguePage({
   const [productsResult, categories] = await Promise.all([
     q
       ? searchProducts(q, 1, 20, sort)
-      : getProducts({ category, page: 1, minPrice, maxPrice, sort, limit: 12 }),
+      : getProducts({
+          category,
+          page: 1,
+          minPrice,
+          maxPrice,
+          sort,
+          segment,
+          delivery,
+          minRating,
+          verifiedOnly,
+          limit: 12,
+        }),
     getCategories(),
   ]);
 
@@ -46,6 +67,10 @@ export default async function CataloguePage({
       activeMaxPrice={maxPrice}
       activeSort={sort}
       activeQuery={q}
+      activeSegments={segment ? segment.split(",") : []}
+      activeDelivery={delivery ? delivery.split(",") : []}
+      activeMinRating={minRating}
+      activeVerifiedOnly={verifiedOnly}
     />
   );
 }

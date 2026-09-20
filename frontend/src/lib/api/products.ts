@@ -12,6 +12,10 @@ export function getProducts(params?: {
   sort?: ProductSort;
   page?: number;
   limit?: number;
+  delivery?: string;
+  segment?: string;
+  minRating?: number;
+  verifiedOnly?: boolean;
 }) {
   const query = new URLSearchParams();
   if (params?.category) query.set('category', params.category);
@@ -21,6 +25,10 @@ export function getProducts(params?: {
   if (params?.sort) query.set('sort', params.sort);
   if (params?.page) query.set('page', String(params.page));
   if (params?.limit) query.set('limit', String(params.limit));
+  if (params?.delivery) query.set('delivery', params.delivery);
+  if (params?.segment) query.set('segment', params.segment);
+  if (params?.minRating !== undefined) query.set('minRating', String(params.minRating));
+  if (params?.verifiedOnly) query.set('verifiedOnly', 'true');
   const qs = query.toString();
   return apiClient.get<PaginatedProducts>(`/products${qs ? `?${qs}` : ''}`);
 }
