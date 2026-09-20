@@ -39,6 +39,15 @@ model Product {
   archivedReason      ArchiveReason?
   archivedDescription String?
   archivedAt          DateTime?
+  // Seeded, not review-derived — there's no Review model yet. Kept as a
+  // real persisted/queryable column (rather than computed at request time)
+  // specifically so the Rating filter can query it.
+  averageRating  Decimal?        @db.Decimal(2, 1)
+  deliveryOption DeliveryOption?
+  // Only meaningful for Fashion products — the filter sidebar's Category
+  // group there (Women/Men/Kids/Accessories) is an audience segment, not
+  // a real Category row, since Fashion has no sub-categories today.
+  segment ProductSegment?
   categoryId String
   category   Category      @relation(fields: [categoryId], references: [id])
 
@@ -68,6 +77,19 @@ enum ArchiveReason {
   OUT_OF_STOCK
   PRODUCT_PROBLEM
   DAMAGES
+}
+
+enum DeliveryOption {
+  NEXT_DAY
+  TWO_DAY
+  COLLECTION
+}
+
+enum ProductSegment {
+  WOMEN
+  MEN
+  KIDS
+  ACCESSORIES
 }
 
 model Cart {
@@ -290,6 +312,10 @@ model Vendor {
   logoUrl      String?
   status       VendorStatus @default(PENDING)
   approvedAt   DateTime?
+  // A distinct "verified" badge, separate from approval status — every
+  // APPROVED vendor can sell, but only some carry this extra trust badge.
+  // Seeded rather than exposed through any admin flow yet.
+  verified Boolean @default(false)
 
   products         Product[]
   vendorOrderItems VendorOrderItem[]

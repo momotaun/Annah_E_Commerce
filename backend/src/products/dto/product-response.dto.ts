@@ -6,6 +6,11 @@ export class ProductResponseDto {
   price: string; // Decimal serialized as string to avoid float precision issues
   imageUrl: string | null;
   images: string[];
+  // Seeded, not review-derived (see the Product.averageRating comment in
+  // schema.prisma) — Decimal serialized as string, same as price.
+  averageRating: string | null;
+  deliveryOption: string | null;
+  segment: string | null;
   categoryId: string;
   vendorId: string | null;
   // Only set when the vendor is APPROVED — that's the only case with a

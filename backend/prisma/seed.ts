@@ -23,6 +23,32 @@ async function withUploadedImages<T extends { imageUrl: string }>(
   return items;
 }
 
+// Same hash used by the frontend's ProductCard mock-rating fallback
+// (seeded from "/products/<slug>"), so a product's real, persisted,
+// filterable averageRating matches what the card already displays.
+function hashSeed(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+function ratingFor(slug: string): number {
+  const hash = hashSeed(`/products/${slug}`);
+  // 2.5 – 5.0 in 0.1 steps — wider than the card's always-good 4.0–5.0
+  // mock display range, deliberately: a Rating filter needs some products
+  // to actually fall below its threshold to be a meaningful demo.
+  return 2.5 + (hash % 26) / 10;
+}
+
+const DELIVERY_OPTIONS = ['NEXT_DAY', 'TWO_DAY', 'COLLECTION'] as const;
+
+function deliveryOptionFor(slug: string) {
+  const hash = hashSeed(`delivery:${slug}`);
+  return DELIVERY_OPTIONS[hash % DELIVERY_OPTIONS.length];
+}
+
 async function main() {
   const electronics = await prisma.category.upsert({
     where: { slug: 'electronics' },
@@ -129,7 +155,7 @@ async function main() {
     // (a user can own multiple stores) — this still identifies the same
     // seeded row.
     where: { contactEmail: 'hello@meridianapparel.co.za' },
-    update: { bio: meridianBio },
+    update: { bio: meridianBio, verified: true },
     create: {
       userId: meridianUser.id,
       businessName: 'Meridian Apparel Co.',
@@ -137,6 +163,7 @@ async function main() {
       bio: meridianBio,
       status: 'APPROVED',
       approvedAt: new Date(),
+      verified: true,
     },
   });
 
@@ -243,7 +270,13 @@ async function main() {
   const probookImageUrl = await uploadSeedProductImage('/images/probook.jpg');
   const laptop = await prisma.product.upsert({
     where: { sku: 'APEX-PROBOOK-M3MAX' },
-    update: { imageUrl: probookImageUrl, images: [probookImageUrl, probookImageUrl], vendorId: voltCircuit.id },
+    update: {
+      imageUrl: probookImageUrl,
+      images: [probookImageUrl, probookImageUrl],
+      vendorId: voltCircuit.id,
+      averageRating: ratingFor('apex-probook-m3-max'),
+      deliveryOption: deliveryOptionFor('apex-probook-m3-max'),
+    },
     create: {
       name: 'Apex ProBook M3 Max',
       slug: 'apex-probook-m3-max',
@@ -255,6 +288,8 @@ async function main() {
       images: [probookImageUrl, probookImageUrl],
       categoryId: computing.id,
       vendorId: voltCircuit.id,
+      averageRating: ratingFor('apex-probook-m3-max'),
+      deliveryOption: deliveryOptionFor('apex-probook-m3-max'),
     },
   });
 
@@ -263,7 +298,13 @@ async function main() {
   );
   await prisma.product.upsert({
     where: { sku: 'SONICMASTER-ELITE-G2' },
-    update: { imageUrl: headphonesImageUrl, images: [headphonesImageUrl, headphonesImageUrl], vendorId: voltCircuit.id },
+    update: {
+      imageUrl: headphonesImageUrl,
+      images: [headphonesImageUrl, headphonesImageUrl],
+      vendorId: voltCircuit.id,
+      averageRating: ratingFor('sonicmaster-elite-g2'),
+      deliveryOption: deliveryOptionFor('sonicmaster-elite-g2'),
+    },
     create: {
       name: 'SonicMaster Elite G2',
       slug: 'sonicmaster-elite-g2',
@@ -274,6 +315,8 @@ async function main() {
       images: [headphonesImageUrl, headphonesImageUrl],
       categoryId: computing.id,
       vendorId: voltCircuit.id,
+      averageRating: ratingFor('sonicmaster-elite-g2'),
+      deliveryOption: deliveryOptionFor('sonicmaster-elite-g2'),
     },
   });
 
@@ -314,6 +357,7 @@ async function main() {
         'Double-breasted overcoat in 100% merino wool, tailored for a modern silhouette.',
       price: 3499.0,
       imageUrl: '/images/merino-overcoat.jpg',
+      segment: 'MEN' as const,
     },
     {
       name: 'Meridian Tailored Blazer',
@@ -323,6 +367,7 @@ async function main() {
         'Slim-fit blazer in Italian wool blend, fully lined with horn buttons.',
       price: 2299.0,
       imageUrl: '/images/tailored-blazer.jpg',
+      segment: 'WOMEN' as const,
     },
     {
       name: 'TerraFlex Performance Chinos',
@@ -332,6 +377,7 @@ async function main() {
         'Four-way stretch chinos with a water-resistant finish, built for all-day movement.',
       price: 899.0,
       imageUrl: '/images/performance-chinos.jpg',
+      segment: 'MEN' as const,
     },
     {
       name: 'Apex Signature Oxford Shirt',
@@ -341,6 +387,7 @@ async function main() {
         'Brushed cotton oxford shirt with mother-of-pearl buttons and a tailored fit.',
       price: 749.0,
       imageUrl: '/images/oxford-shirt.jpg',
+      segment: 'MEN' as const,
     },
     {
       name: 'Solstice Cashmere Sweater',
@@ -349,6 +396,7 @@ async function main() {
       description: 'Crew-neck sweater in pure cashmere, ribbed cuffs and hem.',
       price: 1899.0,
       imageUrl: '/images/cashmere-sweater.jpg',
+      segment: 'WOMEN' as const,
     },
     {
       name: 'Meridian Silk Tie',
@@ -357,6 +405,7 @@ async function main() {
       description: 'Navy silk necktie with a fine textured weave.',
       price: 599.0,
       imageUrl: '/images/meridian-silk-tie.jpg',
+      segment: 'ACCESSORIES' as const,
     },
     {
       name: 'Apex Leather Belt',
@@ -365,6 +414,7 @@ async function main() {
       description: 'Full-grain leather belt with a brushed silver buckle.',
       price: 749.0,
       imageUrl: '/images/apex-leather-belt.jpg',
+      segment: 'ACCESSORIES' as const,
     },
     {
       name: 'Meridian Denim Jacket',
@@ -373,6 +423,7 @@ async function main() {
       description: 'Classic indigo denim jacket with a tailored, modern cut.',
       price: 1499.0,
       imageUrl: '/images/meridian-denim-jacket.jpg',
+      segment: 'WOMEN' as const,
     },
     {
       name: 'Solstice Wool Scarf',
@@ -382,6 +433,7 @@ async function main() {
         'Soft charcoal wool scarf, generously sized for cold mornings.',
       price: 549.0,
       imageUrl: '/images/solstice-wool-scarf.jpg',
+      segment: 'ACCESSORIES' as const,
     },
     {
       name: 'Apex Chelsea Boots',
@@ -391,6 +443,7 @@ async function main() {
         'Polished black leather Chelsea boots with elastic side panels.',
       price: 2199.0,
       imageUrl: '/images/apex-chelsea-boots.jpg',
+      segment: 'MEN' as const,
     },
     {
       name: 'Meridian Linen Shirt',
@@ -399,6 +452,7 @@ async function main() {
       description: 'Breathable beige linen shirt, relaxed tailored fit.',
       price: 849.0,
       imageUrl: '/images/meridian-linen-shirt.jpg',
+      segment: 'MEN' as const,
     },
     {
       name: 'Apex Wool Trousers',
@@ -407,6 +461,7 @@ async function main() {
       description: 'Charcoal tailored wool trousers with a flat-front finish.',
       price: 1299.0,
       imageUrl: '/images/apex-wool-trousers.jpg',
+      segment: 'MEN' as const,
     },
     {
       name: 'Solstice Merino Polo',
@@ -416,6 +471,7 @@ async function main() {
         'Navy merino wool polo shirt, soft and breathable year-round.',
       price: 899.0,
       imageUrl: '/images/solstice-merino-polo.jpg',
+      segment: 'MEN' as const,
     },
     {
       name: 'Meridian Leather Gloves',
@@ -424,6 +480,7 @@ async function main() {
       description: 'Supple brown leather gloves with a soft knit lining.',
       price: 649.0,
       imageUrl: '/images/meridian-leather-gloves.jpg',
+      segment: 'ACCESSORIES' as const,
     },
     {
       name: 'Apex Silk Pocket Square',
@@ -432,6 +489,7 @@ async function main() {
       description: 'Patterned silk pocket square, finished by hand.',
       price: 349.0,
       imageUrl: '/images/apex-silk-pocket-square.jpg',
+      segment: 'ACCESSORIES' as const,
     },
   ]);
 
@@ -442,6 +500,9 @@ async function main() {
         imageUrl: item.imageUrl,
         images: [item.imageUrl, item.imageUrl],
         vendorId: meridian.id,
+        averageRating: ratingFor(item.slug),
+        deliveryOption: deliveryOptionFor(item.slug),
+        segment: item.segment,
       },
       create: {
         name: item.name,
@@ -453,6 +514,9 @@ async function main() {
         images: [item.imageUrl, item.imageUrl],
         categoryId: fashion.id,
         vendorId: meridian.id,
+        averageRating: ratingFor(item.slug),
+        deliveryOption: deliveryOptionFor(item.slug),
+        segment: item.segment,
       },
     });
   }
@@ -1164,6 +1228,8 @@ async function main() {
           imageUrl: item.imageUrl,
           images: [item.imageUrl, item.imageUrl],
           vendorId: group.vendorId,
+          averageRating: ratingFor(item.slug),
+          deliveryOption: deliveryOptionFor(item.slug),
         },
         create: {
           name: item.name,
@@ -1175,6 +1241,8 @@ async function main() {
           images: [item.imageUrl, item.imageUrl],
           categoryId: group.categoryId,
           vendorId: group.vendorId,
+          averageRating: ratingFor(item.slug),
+          deliveryOption: deliveryOptionFor(item.slug),
         },
       });
     }

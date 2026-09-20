@@ -39,6 +39,18 @@ export class ProductsService {
           ...(query.maxPrice !== undefined && { lte: query.maxPrice }),
         },
       }),
+      ...(query.delivery?.length && {
+        deliveryOption: { in: query.delivery },
+      }),
+      ...(query.segment?.length && {
+        segment: { in: query.segment },
+      }),
+      ...(query.minRating !== undefined && {
+        averageRating: { gte: query.minRating },
+      }),
+      ...(query.verifiedOnly && {
+        vendor: { verified: true },
+      }),
     };
 
     const [products, total] = await Promise.all([

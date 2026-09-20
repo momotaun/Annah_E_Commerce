@@ -12,6 +12,7 @@ export const PRODUCT_VENDOR_INCLUDE = {
 
 interface ProductWithVendor {
   price: { toString(): string };
+  averageRating?: { toString(): string } | null;
   vendor?: { id: string; businessName: string; status: string } | null;
   [key: string]: unknown;
 }
@@ -19,10 +20,14 @@ interface ProductWithVendor {
 export function toProductResponseDto(
   product: ProductWithVendor,
 ): ProductResponseDto {
-  const { vendor, ...rest } = product;
+  const { vendor, averageRating, ...rest } = product;
   return {
-    ...(rest as unknown as Omit<ProductResponseDto, 'price' | 'vendor'>),
+    ...(rest as unknown as Omit<
+      ProductResponseDto,
+      'price' | 'averageRating' | 'vendor'
+    >),
     price: product.price.toString(),
+    averageRating: averageRating ? averageRating.toString() : null,
     // Pending/suspended vendors have no public storefront
     // (VendorsService.findPublic 404s), so they're reported as no vendor
     // at all rather than a link that would dead-end.
