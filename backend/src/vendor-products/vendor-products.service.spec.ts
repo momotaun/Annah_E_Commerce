@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   NotFoundException,
@@ -158,6 +159,7 @@ describe('VendorProductsService', () => {
       expect(prisma.product.update).toHaveBeenCalledWith({
         where: { id: 'product-1' },
         data: { price: 99 },
+        include: { options: { select: { type: true, values: true } } },
       });
     });
   });
@@ -213,6 +215,7 @@ describe('VendorProductsService', () => {
           archivedDescription: 'Water damage discovered during a stock check.',
           archivedAt: expect.any(Date),
         },
+        include: { options: { select: { type: true, values: true } } },
       });
     });
 
@@ -398,6 +401,187 @@ describe('VendorProductsService', () => {
           }),
         }),
       );
+    });
+
+    it('rejects an option type that is not valid for the chosen category', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'user-1',
+        status: 'APPROVED',
+      });
+      prisma.product.findUnique.mockResolvedValue(null);
+      // Computing has Color + Storage Capacity, not Size — see
+      // product-option-types.ts.
+      prisma.category.findUnique.mockResolvedValue({
+        id: 'cat-1',
+        slug: 'computing',
+      });
+
+      await expect(
+        service.create('user-1', 'vendor-1', {
+          name: 'Laptop Stand',
+          sku: 'LAPTOP-STAND',
+          price: 100,
+          quantity: 10,
+          categoryId: 'cat-1',
+          options: [{ type: 'SIZE', values: ['Small'] }],
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.product.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects the same option type sent twice', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'user-1',
+        status: 'APPROVED',
+      });
+      prisma.product.findUnique.mockResolvedValue(null);
+      prisma.category.findUnique.mockResolvedValue({
+        id: 'cat-1',
+        slug: 'fashion',
+      });
+
+      await expect(
+        service.create('user-1', 'vendor-1', {
+          name: 'Blazer',
+          sku: 'BLAZER-1',
+          price: 100,
+          quantity: 10,
+          categoryId: 'cat-1',
+          options: [
+            { type: 'COLOR', values: ['Black'] },
+            { type: 'COLOR', values: ['Navy'] },
+          ],
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.product.create).not.toHaveBeenCalled();
+    });
+
+    it('creates a product with valid options for its category', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'user-1',
+        status: 'APPROVED',
+      });
+      prisma.product.findUnique.mockResolvedValue(null);
+      prisma.category.findUnique.mockResolvedValue({
+        id: 'cat-1',
+        slug: 'fashion',
+      });
+      prisma.product.create.mockResolvedValue({
+        id: 'product-1',
+        price: { toString: () => '100.00' },
+        options: [{ type: 'COLOR', values: ['Black'] }],
+      });
+
+      await service.create('user-1', 'vendor-1', {
+        name: 'Blazer',
+        sku: 'BLAZER-1',
+        price: 100,
+        quantity: 10,
+        categoryId: 'cat-1',
+        options: [
+          { type: 'COLOR', values: ['Black', 'Navy'] },
+          { type: 'SIZE', values: ['S', 'M', 'L'] },
+        ],
+      });
+
+      expect(prisma.product.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            options: {
+              create: [
+                { type: 'COLOR', values: ['Black', 'Navy'] },
+                { type: 'SIZE', values: ['S', 'M', 'L'] },
+              ],
+            },
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('update options', () => {
+    it('leaves existing options untouched when options is omitted', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'user-1',
+        status: 'APPROVED',
+      });
+      prisma.product.findUnique.mockResolvedValue({
+        id: 'product-1',
+        vendorId: 'vendor-1',
+        categoryId: 'cat-1',
+      });
+      prisma.product.update.mockResolvedValue({
+        id: 'product-1',
+        price: { toString: () => '99.00' },
+      });
+
+      await service.update('user-1', 'vendor-1', 'product-1', { price: 99 });
+
+      expect(prisma.category.findUnique).not.toHaveBeenCalled();
+      const data = prisma.product.update.mock.calls[0][0].data;
+      expect(data).not.toHaveProperty('options');
+    });
+
+    it('clears every existing option when options is an empty array', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'user-1',
+        status: 'APPROVED',
+      });
+      prisma.product.findUnique.mockResolvedValue({
+        id: 'product-1',
+        vendorId: 'vendor-1',
+        categoryId: 'cat-1',
+      });
+      prisma.category.findUnique.mockResolvedValue({
+        id: 'cat-1',
+        slug: 'fashion',
+      });
+      prisma.product.update.mockResolvedValue({
+        id: 'product-1',
+        price: { toString: () => '99.00' },
+      });
+
+      await service.update('user-1', 'vendor-1', 'product-1', {
+        options: [],
+      });
+
+      expect(prisma.product.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            options: { deleteMany: {}, create: [] },
+          }),
+        }),
+      );
+    });
+
+    it('rejects an option type that is not valid for the product\'s existing category', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'user-1',
+        status: 'APPROVED',
+      });
+      prisma.product.findUnique.mockResolvedValue({
+        id: 'product-1',
+        vendorId: 'vendor-1',
+        categoryId: 'cat-1',
+      });
+      // Audio only has Color — see product-option-types.ts.
+      prisma.category.findUnique.mockResolvedValue({
+        id: 'cat-1',
+        slug: 'audio',
+      });
+
+      await expect(
+        service.update('user-1', 'vendor-1', 'product-1', {
+          options: [{ type: 'STORAGE_CAPACITY', values: ['128GB'] }],
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.product.update).not.toHaveBeenCalled();
     });
   });
 

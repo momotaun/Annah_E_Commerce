@@ -26,6 +26,7 @@ import { AdminModule } from './admin/admin.module';
 import { LegalPagesModule } from './legal-pages/legal-pages.module';
 import { SiteSettingsModule } from './site-settings/site-settings.module';
 import { HeroSlidesModule } from './hero-slides/hero-slides.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { isPinoPrettyAvailable } from './bootstrap/is-pino-pretty-available';
 
 @Module({
@@ -91,6 +92,7 @@ import { isPinoPrettyAvailable } from './bootstrap/is-pino-pretty-available';
     LegalPagesModule,
     SiteSettingsModule,
     HeroSlidesModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -9,9 +10,11 @@ import { requireOwnedVendor } from '../vendors/require-owned-vendor';
 import { CreateVendorProductDto } from './dto/create-vendor-product.dto';
 import { UpdateVendorProductDto } from './dto/update-vendor-product.dto';
 import { ArchiveVendorProductDto } from './dto/archive-vendor-product.dto';
+import { ProductOptionInputDto } from './dto/product-option-input.dto';
 import { VendorProductResponseDto } from './dto/vendor-product-response.dto';
 import { ProductResponseDto } from 'src/products/dto/product-response.dto';
 import { ObjectStorageService } from '../uploads/object-storage.service';
+import { optionTypesForCategory } from '../common/product-option-types';
 
 @Injectable()
 export class VendorProductsService {
@@ -21,11 +24,23 @@ export class VendorProductsService {
   ) {}
 
   private toResponseDto(product: any): VendorProductResponseDto {
-    return { ...product, price: product.price.toString() };
+    return {
+      ...product,
+      price: product.price.toString(),
+      compareAtPrice: product.compareAtPrice
+        ? product.compareAtPrice.toString()
+        : null,
+    };
   }
 
   private toProductResponseDto(product: any): ProductResponseDto {
-    return { ...product, price: product.price.toString() };
+    return {
+      ...product,
+      price: product.price.toString(),
+      compareAtPrice: product.compareAtPrice
+        ? product.compareAtPrice.toString()
+        : null,
+    };
   }
 
   // Ownership + this specific store being APPROVED — managing products
@@ -46,6 +61,7 @@ export class VendorProductsService {
     const products = await this.prisma.product.findMany({
       where: { vendorId: vendor.id },
       orderBy: { createdAt: 'desc' },
+      include: { options: { select: { type: true, values: true } } },
     });
     return products.map((p) => this.toResponseDto(p));
   }
@@ -55,6 +71,7 @@ export class VendorProductsService {
       where: {
         OR: [{ id: idOrSlug }, { slug: idOrSlug }],
       },
+      include: { options: { select: { type: true, values: true } } },
     });
 
     if (!product) {
@@ -62,6 +79,32 @@ export class VendorProductsService {
     }
 
     return this.toProductResponseDto(product);
+  }
+
+  // A DTO decorator can't see a sibling field's value, so which option
+  // types are valid for a given category (product-option-types.ts) is
+  // enforced here instead, once we actually have the category in hand.
+  private validateOptionsForCategory(
+    options: ProductOptionInputDto[] | undefined,
+    categorySlug: string,
+  ): void {
+    if (!options?.length) return;
+
+    const allowed = new Set(
+      optionTypesForCategory(categorySlug).map((o) => o.type),
+    );
+    const seen = new Set<string>();
+    for (const option of options) {
+      if (!allowed.has(option.type)) {
+        throw new BadRequestException(
+          `"${option.type}" is not a valid option for this product's category`,
+        );
+      }
+      if (seen.has(option.type)) {
+        throw new BadRequestException(`Duplicate "${option.type}" option`);
+      }
+      seen.add(option.type);
+    }
   }
 
   async create(
@@ -85,11 +128,14 @@ export class VendorProductsService {
       throw new NotFoundException(`Category "${dto.categoryId}" not found`);
     }
 
+    const { options, ...rest } = dto;
+    this.validateOptionsForCategory(options, category.slug);
+
     const slug = await this.generateUniqueSlug(dto.name);
 
     const product = await this.prisma.product.create({
       data: {
-        ...dto,
+        ...rest,
         slug,
         vendorId: vendor.id,
         // imageUrl is the primary/thumbnail image everywhere outside the
@@ -97,7 +143,9 @@ export class VendorProductsService {
         // it from the uploaded gallery unless the caller set it directly.
         imageUrl: dto.imageUrl ?? dto.images?.[0],
         status: dto.status ?? 'PUBLISHED',
+        options: options?.length ? { create: options } : undefined,
       },
+      include: { options: { select: { type: true, values: true } } },
     });
 
     return this.toResponseDto(product);
@@ -125,11 +173,33 @@ export class VendorProductsService {
     dto: UpdateVendorProductDto,
   ): Promise<VendorProductResponseDto> {
     const vendor = await this.requireApprovedVendor(userId, vendorId);
-    await this.requireOwnedProduct(vendor.id, productId);
+    const existing = await this.requireOwnedProduct(vendor.id, productId);
+
+    const { options, ...rest } = dto;
+
+    // Sending options: [] clears every existing option; omitting the field
+    // entirely (options === undefined) leaves them untouched — see the
+    // CreateVendorProductDto.options comment.
+    if (options !== undefined) {
+      const categoryId = dto.categoryId ?? existing.categoryId;
+      const category = await this.prisma.category.findUnique({
+        where: { id: categoryId },
+      });
+      if (!category) {
+        throw new NotFoundException(`Category "${categoryId}" not found`);
+      }
+      this.validateOptionsForCategory(options, category.slug);
+    }
 
     const updated = await this.prisma.product.update({
       where: { id: productId },
-      data: dto,
+      data: {
+        ...rest,
+        ...(options !== undefined && {
+          options: { deleteMany: {}, create: options },
+        }),
+      },
+      include: { options: { select: { type: true, values: true } } },
     });
 
     return this.toResponseDto(updated);
@@ -152,6 +222,7 @@ export class VendorProductsService {
         archivedDescription: dto.description ?? null,
         archivedAt: new Date(),
       },
+      include: { options: { select: { type: true, values: true } } },
     });
 
     return this.toResponseDto(updated);

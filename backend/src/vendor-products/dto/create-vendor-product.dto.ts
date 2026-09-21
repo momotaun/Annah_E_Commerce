@@ -10,9 +10,12 @@ import {
   IsString,
   Matches,
   Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ProductStatus } from '@prisma/client';
 import { PRODUCT_IMAGE_URL_PATTERN } from '../../common/product-image-url-pattern';
+import { ProductOptionInputDto } from './product-option-input.dto';
 
 export class CreateVendorProductDto {
   @IsNotEmpty()
@@ -29,6 +32,18 @@ export class CreateVendorProductDto {
   @IsNumber()
   @IsPositive()
   price: number;
+
+  // The pre-discount "was" price. Optional — set it to put the product on
+  // sale, or send null to clear one (same @IsOptional()-treats-null-as-
+  // missing convention as UpdateSiteSettingsDto.logoUrl). Not validated
+  // against price here (e.g. > price): a vendor may legitimately clear a
+  // sale by lowering price below a stale compareAtPrice before removing
+  // it, and the response only ever renders a discount when
+  // compareAtPrice > price anyway.
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  compareAtPrice?: number | null;
 
   @IsInt()
   @Min(0)
@@ -59,4 +74,15 @@ export class CreateVendorProductDto {
   @IsString()
   @IsNotEmpty()
   categoryId: string;
+
+  // Variant pickers (Color, Size, Storage Capacity...) — which types are
+  // valid depends on categoryId, checked in VendorProductsService against
+  // product-option-types.ts's CATEGORY_OPTION_TYPES (a DTO decorator alone
+  // can't see a sibling field's value). Sending [] clears every existing
+  // option on update; omitting the field entirely leaves them untouched.
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductOptionInputDto)
+  options?: ProductOptionInputDto[];
 }

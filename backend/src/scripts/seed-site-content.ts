@@ -10,6 +10,7 @@ import { PrismaClient } from '@prisma/client';
 import { seedSiteContent } from '../bootstrap/seed-site-content';
 import { backfillSeedImages } from '../bootstrap/backfill-seed-images';
 import { backfillProductGalleryImages } from '../bootstrap/backfill-product-gallery-images';
+import { backfillProductDiscounts } from '../bootstrap/backfill-product-discounts';
 
 const prisma = new PrismaClient();
 
@@ -23,6 +24,7 @@ seedSiteContent(prisma)
     return backfillSeedImages(prisma);
   })
   .then(() => backfillProductGalleryImages(prisma))
+  .then(() => backfillProductDiscounts(prisma))
   .catch((error) => {
     console.error('Site content seeding failed:', error);
     process.exitCode = 1;

@@ -1,3 +1,7 @@
+// class-transformer's @Type() decorator (used by the options field) reads
+// TypeScript's emitted design type metadata, which requires this polyfill
+// — see query-products.dto.spec.ts for the fuller explanation.
+import 'reflect-metadata';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { CreateVendorProductDto } from './create-vendor-product.dto';
@@ -99,6 +103,28 @@ describe('CreateVendorProductDto price', () => {
   });
 });
 
+describe('CreateVendorProductDto compareAtPrice', () => {
+  it('allows a missing compareAtPrice (optional field)', async () => {
+    const errors = await validateDto({ compareAtPrice: undefined });
+    expect(errors.find((e) => e.property === 'compareAtPrice')).toBeUndefined();
+  });
+
+  it('allows a positive compareAtPrice', async () => {
+    const errors = await validateDto({ compareAtPrice: 449 });
+    expect(errors.find((e) => e.property === 'compareAtPrice')).toBeUndefined();
+  });
+
+  it('allows null (clears a previously-set discount)', async () => {
+    const errors = await validateDto({ compareAtPrice: null });
+    expect(errors.find((e) => e.property === 'compareAtPrice')).toBeUndefined();
+  });
+
+  it('rejects a zero or negative compareAtPrice', async () => {
+    const errors = await validateDto({ compareAtPrice: 0 });
+    expect(errors.find((e) => e.property === 'compareAtPrice')).toBeDefined();
+  });
+});
+
 describe('CreateVendorProductDto quantity', () => {
   it('rejects a missing quantity — every product must have a stock count', async () => {
     const errors = await validateDto({ quantity: undefined });
@@ -146,6 +172,39 @@ describe('CreateVendorProductDto images', () => {
       images: ['https://evil.example.com/tracking-pixel.jpg'],
     });
     expect(errors.find((e) => e.property === 'images')).toBeDefined();
+  });
+});
+
+describe('CreateVendorProductDto options', () => {
+  it('allows a missing options array', async () => {
+    const errors = await validateDto({ options: undefined });
+    expect(errors.find((e) => e.property === 'options')).toBeUndefined();
+  });
+
+  it('allows an empty options array (clears every option on update)', async () => {
+    const errors = await validateDto({ options: [] });
+    expect(errors.find((e) => e.property === 'options')).toBeUndefined();
+  });
+
+  it('allows a well-formed option', async () => {
+    const errors = await validateDto({
+      options: [{ type: 'COLOR', values: ['Black', 'White'] }],
+    });
+    expect(errors.find((e) => e.property === 'options')).toBeUndefined();
+  });
+
+  it('rejects an unrecognized option type', async () => {
+    const errors = await validateDto({
+      options: [{ type: 'WEIGHT', values: ['1kg'] }],
+    });
+    expect(errors.find((e) => e.property === 'options')).toBeDefined();
+  });
+
+  it('rejects an option with no values', async () => {
+    const errors = await validateDto({
+      options: [{ type: 'COLOR', values: [] }],
+    });
+    expect(errors.find((e) => e.property === 'options')).toBeDefined();
   });
 });
 

@@ -29,6 +29,10 @@ model Product {
   sku         String   @unique
   description String?
   price       Decimal       @db.Decimal(10, 2)
+  // The pre-discount "was" price. The product is on sale when this is set
+  // and greater than price; the discount badge/percentage is derived from
+  // the two rather than stored separately, so they can never disagree.
+  compareAtPrice Decimal?   @db.Decimal(10, 2)
   quantity    Int           @default(0)
   imageUrl    String? // primary/thumbnail — mirrors images[0] once set
   images      String[]      @default([])
@@ -59,11 +63,36 @@ model Product {
   vendorOrderItems  VendorOrderItem[]
   orderItems        OrderItem[]
   wishlistItems     WishlistItem[]
+  // Which variant pickers (Color, Size, Storage Capacity...) this product
+  // exposes and their values — at most one row per type (see the @@unique
+  // below). Which types are even valid for this product is a function of
+  // its category, not stored here — see
+  // src/common/product-option-types.ts, the single source of truth for
+  // that category -> option-type relationship on both the vendor form and
+  // the DTO validation that enforces it server-side.
+  options ProductOption[]
+  reviews Review[]
 
   createdAt DateTime @default(now())
 
   @@index([categoryId])
   @@index([vendorId])
+}
+
+model ProductOption {
+  id        String            @id @default(cuid())
+  productId String
+  product   Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type      ProductOptionType
+  values    String[]
+
+  @@unique([productId, type])
+}
+
+enum ProductOptionType {
+  COLOR
+  SIZE
+  STORAGE_CAPACITY
 }
 
 enum ProductStatus {
@@ -159,6 +188,7 @@ model User {
   addresses     Address[]
   orders        Order[]
   wishlistItems WishlistItem[]
+  reviews       Review[]
   createdAt     DateTime       @default(now())
 
   refreshTokens           RefreshToken[]
@@ -208,6 +238,22 @@ model WishlistItem {
 
   @@unique([userId, productId])
   @@index([userId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  // One review per customer per product — writing a second one edits the
+  // first (see ReviewsService.upsert) rather than piling up duplicates.
+  @@unique([userId, productId])
+  @@index([productId])
 }
 
 enum OrderStatus {

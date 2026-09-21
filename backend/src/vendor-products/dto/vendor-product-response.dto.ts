@@ -1,4 +1,4 @@
-import { ArchiveReason, ProductStatus } from '@prisma/client';
+import { ArchiveReason, ProductOptionType, ProductStatus } from '@prisma/client';
 
 export class VendorProductResponseDto {
   id: string;
@@ -6,6 +6,7 @@ export class VendorProductResponseDto {
   sku: string;
   description: string | null;
   price: string;
+  compareAtPrice: string | null;
   quantity: number;
   imageUrl: string | null;
   images: string[];
@@ -13,5 +14,6 @@ export class VendorProductResponseDto {
   archivedReason: ArchiveReason | null;
   archivedDescription: string | null;
   categoryId: string;
+  options: { type: ProductOptionType; values: string[] }[];
   createdAt: Date;
 }
