@@ -278,7 +278,15 @@ export default function VendorProductsPage() {
                 </p>
               </div>
 
-              <span className="shrink-0 text-sm font-bold text-primary-600">{formatPrice(p.price)}</span>
+              <div className="flex shrink-0 flex-col items-end gap-0.5">
+                <span className="text-sm font-bold text-primary-600">{formatPrice(p.price)}</span>
+                {p.compareAtPrice && Number(p.compareAtPrice) > Number(p.price) && (
+                  <span className="flex items-center gap-1">
+                    <span className="text-xs text-gray-400 line-through">{formatPrice(p.compareAtPrice)}</span>
+                    <Badge variant="danger">Sale</Badge>
+                  </span>
+                )}
+              </div>
 
               <div className="flex shrink-0 items-center gap-2">
                 <Button size="sm" variant="outline" href={`/vendor/${vendorId}/products/${p.id}/edit`}>

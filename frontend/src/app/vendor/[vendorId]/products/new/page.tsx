@@ -11,9 +11,11 @@ import Select from "@/src/app/components/ui/Select";
 import Button from "@/src/app/components/ui/Button";
 import Badge from "@/src/app/components/ui/Badge";
 import Stepper from "@/src/app/components/ui/Stepper";
+import ColorSwatch from "@/src/app/components/ui/ColorSwatch";
 import { getCategories } from "@/src/lib/api/categories";
 import { Category } from "@/src/lib/api-types";
-import { createVendorProduct } from "@/src/lib/api/vendor-products";
+import { createVendorProduct, VendorProductOption } from "@/src/lib/api/vendor-products";
+import { optionTypesForCategory } from "@/src/lib/product-option-types";
 import { formatPrice } from "@/src/lib/utils";
 
 const STEPS = [
@@ -37,8 +39,13 @@ export default function NewVendorProductPage() {
   const [description, setDescription] = useState("");
   const [sku, setSku] = useState("");
   const [price, setPrice] = useState("");
+  const [compareAtPrice, setCompareAtPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  // Raw comma-separated text per option type (e.g. optionInputs.COLOR =
+  // "Black, White, Navy"), only ever read for the chosen category's
+  // applicable types — see applicableOptionTypes below.
+  const [optionInputs, setOptionInputs] = useState<Record<string, string>>({});
   const [images, setImages] = useState<string[]>([]);
 
   const [basicsError, setBasicsError] = useState<string | null>(null);
@@ -53,6 +60,18 @@ export default function NewVendorProductPage() {
 
   const flatCategories = categories.flatMap((c) => [c, ...c.children]);
   const selectedCategory = flatCategories.find((c) => c.id === categoryId);
+  const applicableOptionTypes = optionTypesForCategory(selectedCategory?.slug);
+
+  function parseOptionValues(raw: string | undefined): string[] {
+    return (raw ?? "")
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }
+
+  const options: VendorProductOption[] = applicableOptionTypes
+    .map((def) => ({ type: def.type, values: parseOptionValues(optionInputs[def.type]) }))
+    .filter((o) => o.values.length > 0);
 
   function goNext() {
     if (step === 0) {
@@ -68,6 +87,13 @@ export default function NewVendorProductPage() {
       if (!price.trim() || !(parsedPrice > 0) || !quantity.trim() || !(parsedQuantity >= 0) || !Number.isInteger(parsedQuantity)) {
         setInventoryError("A valid quantity and price are required to continue.");
         return;
+      }
+      if (compareAtPrice.trim()) {
+        const parsedCompareAtPrice = parseFloat(compareAtPrice);
+        if (!(parsedCompareAtPrice > 0) || !(parsedCompareAtPrice > parsedPrice)) {
+          setInventoryError("The original price must be higher than the current price for a discount to show.");
+          return;
+        }
       }
       setInventoryError(null);
     }
@@ -93,9 +119,11 @@ export default function NewVendorProductPage() {
         name: name.trim(),
         sku: sku.trim(),
         price: parseFloat(price),
+        compareAtPrice: compareAtPrice.trim() ? parseFloat(compareAtPrice) : undefined,
         quantity: parseInt(quantity, 10),
         description: description.trim() || undefined,
         categoryId,
+        options: options.length > 0 ? options : undefined,
         images: images.length > 0 ? images : undefined,
         status,
       });
@@ -108,6 +136,13 @@ export default function NewVendorProductPage() {
   }
 
   const galleryImages = images.length > 0 ? images : ["/images/placeholder-product.jpg"];
+
+  const parsedPrice = parseFloat(price) || 0;
+  const parsedCompareAtPrice = parseFloat(compareAtPrice) || 0;
+  const isOnSale = parsedCompareAtPrice > parsedPrice;
+  const discountPercent = isOnSale
+    ? Math.round(((parsedCompareAtPrice - parsedPrice) / parsedCompareAtPrice) * 100)
+    : null;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -154,6 +189,12 @@ export default function NewVendorProductPage() {
                 <label className="mb-1.5 block text-sm font-medium text-gray-900">Price (ZAR)</label>
                 <Input placeholder="e.g. 349.00" type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} />
               </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                  Original Price <span className="font-normal text-gray-500">(optional — set this to show a discount)</span>
+                </label>
+                <Input placeholder="e.g. 449.00" type="number" min="0" step="0.01" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)} />
+              </div>
             </div>
 
             {inventoryError && <p className="mt-4 text-sm text-danger-500">{inventoryError}</p>}
@@ -175,6 +216,28 @@ export default function NewVendorProductPage() {
             </div>
 
             {categoryError && <p className="mt-4 text-sm text-danger-500">{categoryError}</p>}
+
+            {/* Only this category's applicable variant pickers show up —
+                e.g. Fashion gets Color + Size, Computing gets Color +
+                Storage Capacity. See lib/product-option-types.ts. */}
+            {applicableOptionTypes.length > 0 && (
+              <div className="mt-6 flex flex-col gap-4 border-t border-gray-200 pt-6">
+                {applicableOptionTypes.map((def) => (
+                  <div key={def.type}>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                      {def.label} <span className="font-normal text-gray-500">(optional — comma-separated)</span>
+                    </label>
+                    <Input
+                      placeholder={def.type === "COLOR" ? "e.g. Black, White, Navy" : "e.g. S, M, L, XL"}
+                      value={optionInputs[def.type] ?? ""}
+                      onChange={(e) =>
+                        setOptionInputs((prev) => ({ ...prev, [def.type]: e.target.value }))
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -201,11 +264,43 @@ export default function NewVendorProductPage() {
                 <Badge variant="outline">{selectedCategory?.name ?? "Uncategorized"}</Badge>
                 <h2 className="mt-3 text-2xl font-bold text-gray-900">{name || "Untitled Product"}</h2>
 
-                <div className="mt-3 border-t border-gray-200 pt-3">
+                <div className="mt-3 flex flex-wrap items-baseline gap-3 border-t border-gray-200 pt-3">
                   <span className="text-3xl font-bold text-primary-600">{formatPrice(price)}</span>
+                  {isOnSale && (
+                    <>
+                      <span className="text-lg text-gray-400 line-through">{formatPrice(compareAtPrice)}</span>
+                      <span className="rounded-full bg-danger-500 px-2.5 py-1 text-xs font-semibold text-white">
+                        {discountPercent}% off
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 {description && <p className="mt-3 text-sm text-gray-500">{description}</p>}
+
+                {options.map((option) => {
+                  const def = applicableOptionTypes.find((d) => d.type === option.type);
+                  return (
+                    <div key={option.type} className="mt-4">
+                      <span className="text-sm font-semibold text-gray-900">{def?.label ?? option.type}</span>
+                      {option.type === "COLOR" ? (
+                        <div className="mt-2 flex gap-2">
+                          {option.values.map((value) => (
+                            <ColorSwatch key={value} color={value} label={value} />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="mt-2">
+                          <Select
+                            value={option.values[0]}
+                            onChange={() => {}}
+                            options={option.values.map((v) => ({ label: v, value: v }))}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 <div className="mt-6 flex gap-4">
                   <Stepper value={1} onChange={() => {}} />

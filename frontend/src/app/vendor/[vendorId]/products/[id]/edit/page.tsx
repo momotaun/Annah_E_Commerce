@@ -17,7 +17,9 @@ import {
   getMyVendorProducts,
   updateVendorProduct,
   VendorProduct,
+  VendorProductOption,
 } from "@/src/lib/api/vendor-products";
+import { optionTypesForCategory } from "@/src/lib/product-option-types";
 
 const MAX_IMAGES = 10;
 
@@ -42,8 +44,10 @@ export default function EditVendorProductPage() {
   const [description, setDescription] = useState("");
   const [sku, setSku] = useState("");
   const [price, setPrice] = useState("");
+  const [compareAtPrice, setCompareAtPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [optionInputs, setOptionInputs] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT");
   const [images, setImages] = useState<string[]>([]);
 
@@ -64,8 +68,12 @@ export default function EditVendorProductPage() {
         setDescription(match.description ?? "");
         setSku(match.sku);
         setPrice(match.price);
+        setCompareAtPrice(match.compareAtPrice ?? "");
         setQuantity(String(match.quantity));
         setCategoryId(match.categoryId);
+        setOptionInputs(
+          Object.fromEntries(match.options.map((o) => [o.type, o.values.join(", ")])),
+        );
         setStatus(match.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT");
         setImages(match.images);
       })
@@ -74,6 +82,19 @@ export default function EditVendorProductPage() {
   }, [vendorId, id]);
 
   const flatCategories = categories.flatMap((c) => [c, ...c.children]);
+  const selectedCategory = flatCategories.find((c) => c.id === categoryId);
+  const applicableOptionTypes = optionTypesForCategory(selectedCategory?.slug);
+
+  function parseOptionValues(raw: string | undefined): string[] {
+    return (raw ?? "")
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }
+
+  const options: VendorProductOption[] = applicableOptionTypes
+    .map((def) => ({ type: def.type, values: parseOptionValues(optionInputs[def.type]) }))
+    .filter((o) => o.values.length > 0);
 
   async function handleSave() {
     if (!product) return;
@@ -86,6 +107,15 @@ export default function EditVendorProductPage() {
       return;
     }
 
+    let parsedCompareAtPrice: number | null = null;
+    if (compareAtPrice.trim()) {
+      parsedCompareAtPrice = parseFloat(compareAtPrice);
+      if (!(parsedCompareAtPrice > 0) || !(parsedCompareAtPrice > parsedPrice)) {
+        setError("The original price must be higher than the current price for a discount to show.");
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       await updateVendorProduct(vendorId, product.id, {
@@ -93,8 +123,14 @@ export default function EditVendorProductPage() {
         description: description.trim(),
         sku: sku.trim(),
         price: parsedPrice,
+        compareAtPrice: parsedCompareAtPrice,
         quantity: parsedQuantity,
         categoryId,
+        // Always sent (even []): the vendor's current category may allow
+        // fewer/no option types than before, or they may have cleared a
+        // field, and options: [] is what actually removes stale ones —
+        // see UpdateVendorProductDto/VendorProductsService.update.
+        options,
         images,
         imageUrl: images[0],
         status,
@@ -177,6 +213,13 @@ export default function EditVendorProductPage() {
           </div>
 
           <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-900">
+              Original Price <span className="font-normal text-gray-500">(optional — set this to show a discount, clear it to remove one)</span>
+            </label>
+            <Input type="number" min="0" step="0.01" placeholder="e.g. 449.00" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)} />
+          </div>
+
+          <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-900">Category</label>
             <Select
               value={categoryId}
@@ -184,6 +227,22 @@ export default function EditVendorProductPage() {
               options={flatCategories.map((c) => ({ label: c.name, value: c.id }))}
             />
           </div>
+
+          {/* Only this category's applicable variant pickers show up —
+              e.g. Fashion gets Color + Size, Computing gets Color +
+              Storage Capacity. See lib/product-option-types.ts. */}
+          {applicableOptionTypes.map((def) => (
+            <div key={def.type}>
+              <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                {def.label} <span className="font-normal text-gray-500">(optional — comma-separated)</span>
+              </label>
+              <Input
+                placeholder={def.type === "COLOR" ? "e.g. Black, White, Navy" : "e.g. S, M, L, XL"}
+                value={optionInputs[def.type] ?? ""}
+                onChange={(e) => setOptionInputs((prev) => ({ ...prev, [def.type]: e.target.value }))}
+              />
+            </div>
+          ))}
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-900">Status</label>

@@ -1,3 +1,5 @@
+import type { ProductOptionType } from "./product-option-types";
+
 export interface Category {
   id: string;
   name: string;
@@ -13,11 +15,18 @@ export interface Product {
   sku: string;
   description: string | null;
   price: string;
+  /** The pre-discount "was" price. Set (and greater than price) only when
+      the product is on sale. */
+  compareAtPrice: string | null;
   imageUrl: string | null;
   images: string[];
   averageRating: string | null;
   deliveryOption: string | null;
   segment: string | null;
+  /** Which variant pickers (Color, Size, Storage Capacity...) this product
+      exposes, and their values — which types are valid depends on the
+      product's category (see lib/product-option-types.ts). */
+  options: { type: ProductOptionType; values: string[] }[];
   categoryId: string;
   vendorId: string | null;
   /** Present only for products sold by an approved vendor — the only case
