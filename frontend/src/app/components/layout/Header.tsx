@@ -123,12 +123,18 @@ function Header({
           </div>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/vendor-onboarding/business-info"
-              className="text-primary-100 hover:text-white hover:underline"
-            >
-              Sell on {siteName}
-            </Link>
+            {user?.role === "VENDOR" ? (
+              <Link href="/vendor" className="text-primary-100 hover:text-white hover:underline">
+                Visit My Stores
+              </Link>
+            ) : (
+              <Link
+                href="/vendor-onboarding/business-info"
+                className="text-primary-100 hover:text-white hover:underline"
+              >
+                Sell on {siteName}
+              </Link>
+            )}
             <span className="h-3.5 w-px bg-primary-300/50" aria-hidden="true" />
             {user ? (
               <button
