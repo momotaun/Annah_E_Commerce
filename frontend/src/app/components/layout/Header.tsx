@@ -260,7 +260,7 @@ function Header({
 
           {variant === "full" && (
             <Link
-              href="/profile"
+              href="/wishlist"
               className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-gray-900 hover:text-primary-600"
             >
               <Heart className="h-5 w-5" />
@@ -443,7 +443,7 @@ function Header({
               </Link>
             )}
             <Link
-              href="/profile"
+              href="/wishlist"
               className="flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-gray-900 hover:bg-gray-50"
             >
               <Heart className="h-5 w-5" />

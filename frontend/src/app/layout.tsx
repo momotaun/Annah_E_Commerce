@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/src/context/CartContext";
 import { AuthProvider } from "@/src/context/AuthContext";
+import { WishlistProvider } from "@/src/context/WishlistContext";
 import { SiteSettingsProvider } from "@/src/context/SiteSettingsContext";
 import { Analytics } from "@vercel/analytics/next";
 import { SITE_NAME } from "@/src/lib/siteConfig";
@@ -29,7 +30,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <AuthProvider>
           <SiteSettingsProvider initialSettings={siteSettings}>
-            <CartProvider>{children}</CartProvider>
+            <WishlistProvider>
+              <CartProvider>{children}</CartProvider>
+            </WishlistProvider>
           </SiteSettingsProvider>
         </AuthProvider>
         <Analytics />

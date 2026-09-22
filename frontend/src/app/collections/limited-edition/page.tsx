@@ -1,7 +1,7 @@
 import Badge from "@/src/app/components/ui/Badge";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
-import ProductCard from "@/src/app/components/shared/ProductCard";
+import ProductCardWithWishlist from "@/src/app/components/shared/ProductCardWithWishlist";
 import { getProducts } from "@/src/lib/api/products";
 import { formatPrice } from "@/src/lib/utils";
 
@@ -29,8 +29,9 @@ export default async function LimitedEditionCollectionPage() {
           <section className="mx-auto max-w-7xl px-6 py-16">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {products.map((product) => (
-                <ProductCard
+                <ProductCardWithWishlist
                   key={product.id}
+                  productId={product.id}
                   href={`/products/${product.slug}`}
                   image={product.imageUrl ?? "/images/placeholder-product.jpg"}
                   title={product.name}

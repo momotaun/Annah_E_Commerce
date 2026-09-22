@@ -13,6 +13,7 @@ import ProductCard from "@/src/app/components/shared/ProductCard";
 import Select from "@/src/app/components/ui/Select";
 import Spinner from "@/src/app/components/ui/Spinner";
 import { useCart } from "@/src/context/CartContext";
+import { useWishlist } from "@/src/context/WishlistContext";
 import { Category, PaginatedProducts } from "@/src/lib/api-types";
 import { getProducts, ProductSort, searchProducts } from "@/src/lib/api/products";
 import { formatPrice } from "@/src/lib/utils";
@@ -67,6 +68,7 @@ export default function CatalogueClient({
 }: CatalogueClientProps) {
   const router = useRouter();
   const { cart, setProductQuantity } = useCart();
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const [isPending, startTransition] = useTransition();
 
   const [products, setProducts] = useState(initialProducts);
@@ -352,6 +354,8 @@ export default function CatalogueClient({
                   vendor={product.vendor}
                   price={formatPrice(product.price)}
                   showWishlist
+                  isWishlisted={isWishlisted(product.id)}
+                  onToggleWishlist={() => toggleWishlist(product.id)}
                   showQuickView
                   quantity={cart?.items.find((item) => item.productId === product.id)?.quantity ?? 0}
                   onQuantityChange={(quantity) => setProductQuantity(product.id, quantity)}

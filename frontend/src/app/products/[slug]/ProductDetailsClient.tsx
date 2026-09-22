@@ -18,6 +18,7 @@ import Textarea from "@/src/app/components/ui/Textarea";
 import Tabs from "@/src/app/components/ui/Tabs";
 import Spinner from "@/src/app/components/ui/Spinner";
 import { useCart } from "@/src/context/CartContext";
+import { useWishlist } from "@/src/context/WishlistContext";
 import { useAuth } from "@/src/context/AuthContext";
 import { withLoginRedirect } from "@/src/lib/loginRedirect";
 import { Product } from "@/src/lib/api-types";
@@ -66,6 +67,7 @@ export default function ProductDetailsClient({
   categoryName,
 }: ProductDetailsClientProps) {
   const { addItem } = useCart();
+  const { isWishlisted, toggleWishlist } = useWishlist();
 
   const isFashion = categoryName.trim().toLowerCase() === "fashion";
   const secondaryLabel = isFashion ? "Size" : "Storage Capacity";
@@ -207,8 +209,18 @@ export default function ProductDetailsClient({
               <p className="mt-2 text-sm text-danger-500">{addError}</p>
             )}
 
-            <Button variant="ghost" fullWidth className="mt-3" icon={<Heart className="h-4 w-4" />}>
-              Add to Wishlist
+            <Button
+              variant="ghost"
+              fullWidth
+              className="mt-3"
+              onClick={() => toggleWishlist(product.id)}
+              icon={
+                <Heart
+                  className={cn("h-4 w-4", isWishlisted(product.id) && "fill-current text-danger-500")}
+                />
+              }
+            >
+              {isWishlisted(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
             </Button>
           </div>
         </div>
@@ -262,6 +274,8 @@ export default function ProductDetailsClient({
                   vendor={p.vendor}
                   price={formatPrice(p.price)}
                   showWishlist
+                  isWishlisted={isWishlisted(p.id)}
+                  onToggleWishlist={() => toggleWishlist(p.id)}
                 />
               ))}
             </div>

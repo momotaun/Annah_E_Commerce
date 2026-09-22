@@ -4,7 +4,7 @@ import { BadgeCheck } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Breadcrumb from "@/src/app/components/shared/Breadcrumb";
-import ProductCard from "@/src/app/components/shared/ProductCard";
+import ProductCardWithWishlist from "@/src/app/components/shared/ProductCardWithWishlist";
 import { ApiError } from "@/src/lib/api-client";
 import { getVendor } from "@/src/lib/api/vendors";
 import { getProducts } from "@/src/lib/api/products";
@@ -98,8 +98,9 @@ export default async function VendorStorefrontPage({
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {products.map((product) => (
-                <ProductCard
+                <ProductCardWithWishlist
                   key={product.id}
+                  productId={product.id}
                   href={`/products/${product.slug}`}
                   image={product.imageUrl ?? "/images/placeholder-product.jpg"}
                   title={product.name}

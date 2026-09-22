@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Heart } from "lucide-react";
 import Stepper from "@/src/app/components/ui/Stepper";
+import { cn } from "@/src/lib/utils";
 
 export interface CartLineItemProps {
   image: string;
@@ -15,6 +16,7 @@ export interface CartLineItemProps {
   onQuantityChange: (quantity: number) => void;
   onRemove?: () => void;
   showWishlist?: boolean;
+  isWishlisted?: boolean;
   onToggleWishlist?: () => void;
 }
 
@@ -35,6 +37,7 @@ function CartLineItem({
   onQuantityChange,
   onRemove,
   showWishlist = false,
+  isWishlisted = false,
   onToggleWishlist,
 }: CartLineItemProps) {
   const deliveryLabel = deliveryOption ? DELIVERY_LABEL[deliveryOption] : undefined;
@@ -47,10 +50,13 @@ function CartLineItem({
           <button
             type="button"
             onClick={onToggleWishlist}
-            aria-label="Add to wishlist"
-            className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-gray-500 hover:text-danger-500"
+            aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            className={cn(
+              "absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 hover:text-danger-500",
+              isWishlisted ? "text-danger-500" : "text-gray-500"
+            )}
           >
-            <Heart className="h-3.5 w-3.5" />
+            <Heart className={cn("h-3.5 w-3.5", isWishlisted && "fill-current")} />
           </button>
         )}
       </div>

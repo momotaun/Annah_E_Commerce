@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import ProductCard from "@/src/app/components/shared/ProductCard";
 import { useCart } from "@/src/context/CartContext";
+import { useWishlist } from "@/src/context/WishlistContext";
 import { Product } from "@/src/lib/api-types";
 import { formatPrice } from "@/src/lib/utils";
 
@@ -14,6 +15,7 @@ interface TopRatedEssentialsProps {
 
 export default function TopRatedEssentials({ products }: TopRatedEssentialsProps) {
   const { cart, setProductQuantity } = useCart();
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -85,6 +87,8 @@ export default function TopRatedEssentials({ products }: TopRatedEssentialsProps
                 vendor={product.vendor}
                 price={formatPrice(product.price)}
                 showWishlist
+                isWishlisted={isWishlisted(product.id)}
+                onToggleWishlist={() => toggleWishlist(product.id)}
                 quantity={cart?.items.find((item) => item.productId === product.id)?.quantity ?? 0}
                 onQuantityChange={(quantity) => setProductQuantity(product.id, quantity)}
               />

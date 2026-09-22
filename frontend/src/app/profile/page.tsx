@@ -161,13 +161,13 @@ export default function ProfilePage() {
                 icon={<MapPin className="h-5 w-5" />}
                 title="Saved Addresses"
                 description="Manage your shipping and billing locations for faster checkout."
-                comingSoon
+                href="/profile/addresses"
               />
               <ActivityCard
                 icon={<Heart className="h-5 w-5" />}
                 title="Wishlist"
                 description="Keep track of the products you love and want to purchase later."
-                comingSoon
+                href="/wishlist"
               />
             </div>
           </section>

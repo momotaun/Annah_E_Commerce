@@ -37,6 +37,7 @@ export interface ProductCardProps {
   rating?: number;
   reviewCount?: number;
   showWishlist?: boolean;
+  isWishlisted?: boolean;
   showQuickView?: boolean;
   /** Current quantity of this product in the cart. Paired with
       onQuantityChange, renders a plain Add to Cart button until quantity is
@@ -60,6 +61,7 @@ function ProductCard({
   rating,
   reviewCount,
   showWishlist = false,
+  isWishlisted = false,
   showQuickView = false,
   quantity,
   onQuantityChange,
@@ -100,10 +102,13 @@ function ProductCard({
               <button
                 type="button"
                 onClick={onToggleWishlist}
-                aria-label="Add to wishlist"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/90 text-gray-500 hover:text-danger-500"
+                aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                className={cn(
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/90 hover:text-danger-500",
+                  isWishlisted ? "text-danger-500" : "text-gray-500"
+                )}
               >
-                <Heart className="h-4 w-4" />
+                <Heart className={cn("h-4 w-4", isWishlisted && "fill-current")} />
               </button>
             )}
           </div>

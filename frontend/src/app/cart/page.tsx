@@ -9,11 +9,13 @@ import CartLineItem from "@/src/app/components/shared/CartLineItem";
 import Button from "@/src/app/components/ui/Button";
 import Spinner from "@/src/app/components/ui/Spinner";
 import { useCart } from "@/src/context/CartContext";
+import { useWishlist } from "@/src/context/WishlistContext";
 import { useAuth } from "@/src/context/AuthContext";
 import { withLoginRedirect } from "@/src/lib/loginRedirect";
 
 export default function ShoppingCartPage() {
   const { cart, isLoading, updateItem, removeItem } = useCart();
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const { user } = useAuth();
 
   const items = cart?.items ?? [];
@@ -54,6 +56,8 @@ export default function ShoppingCartPage() {
                     vendor={item.product.vendor}
                     deliveryOption={item.product.deliveryOption}
                     showWishlist
+                    isWishlisted={isWishlisted(item.productId)}
+                    onToggleWishlist={() => toggleWishlist(item.productId)}
                     onQuantityChange={(qty) => updateItem(item.id, qty)}
                     onRemove={() => removeItem(item.id)}
                   />
