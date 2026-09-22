@@ -116,10 +116,14 @@ function Header({
             <Link href="/help" className="text-primary-100 hover:text-white hover:underline">
               Help
             </Link>
-            <span className="h-3.5 w-px bg-primary-300/50" aria-hidden="true" />
-            <Link href="/orders" className="text-primary-100 hover:text-white hover:underline">
-              Track Order
-            </Link>
+            {user?.role !== "VENDOR" && (
+              <>
+                <span className="h-3.5 w-px bg-primary-300/50" aria-hidden="true" />
+                <Link href="/orders" className="text-primary-100 hover:text-white hover:underline">
+                  Track Order
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
