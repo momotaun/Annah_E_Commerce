@@ -7,7 +7,7 @@ import ProductCard from "@/src/app/components/shared/ProductCard";
 import { useCart } from "@/src/context/CartContext";
 import { useWishlist } from "@/src/context/WishlistContext";
 import { Product } from "@/src/lib/api-types";
-import { formatPrice } from "@/src/lib/utils";
+import { formatPrice, getDiscountPercent } from "@/src/lib/utils";
 
 interface TopRatedEssentialsProps {
   products: Product[];
@@ -51,12 +51,12 @@ export default function TopRatedEssentials({ products }: TopRatedEssentialsProps
     <section className="mx-auto max-w-7xl px-6 py-16">
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Deals Worth Seeing</h2>
+          <h2 className="text-xl font-bold text-ink sm:text-2xl">Today&apos;s Best Deals</h2>
           <p className="text-sm text-gray-500">Popular products, loved by our customers.</p>
         </div>
         <Link
           href="/collections/limited-edition"
-          className="flex shrink-0 items-center gap-1 text-sm font-semibold text-primary-600 hover:underline"
+          className="flex shrink-0 items-center gap-1 text-sm font-semibold text-ink hover:underline"
         >
           See all deals
           <ArrowRight className="h-4 w-4" />
@@ -86,6 +86,12 @@ export default function TopRatedEssentials({ products }: TopRatedEssentialsProps
                 title={product.name}
                 vendor={product.vendor}
                 price={formatPrice(product.price)}
+                originalPrice={
+                  getDiscountPercent(product.price, product.compareAtPrice) !== null
+                    ? formatPrice(product.compareAtPrice!)
+                    : undefined
+                }
+                discountPercent={getDiscountPercent(product.price, product.compareAtPrice) ?? undefined}
                 showWishlist
                 isWishlisted={isWishlisted(product.id)}
                 onToggleWishlist={() => toggleWishlist(product.id)}

@@ -117,3 +117,23 @@ describe('ProductCard', () => {
     expect(screen.getByText('A great laptop for professionals.')).toBeInTheDocument();
   });
 });
+describe('ProductCard sale pricing', () => {
+  const props = {
+    href: '/products/test-product',
+    image: '/images/test.jpg',
+    title: 'Galactic Gray Power Tee',
+    price: 'R149,00',
+  };
+
+  it('shows the was price struck through and the percent-off badge', () => {
+    render(<ProductCard {...props} originalPrice="R550,00" discountPercent={72} />);
+    expect(screen.getByText('R550,00')).toHaveClass('line-through');
+    expect(screen.getByText('-72%')).toBeInTheDocument();
+  });
+
+  it('shows no discount UI when the product is not on sale', () => {
+    render(<ProductCard {...props} />);
+    expect(screen.queryByText(/^-\d+%$/)).not.toBeInTheDocument();
+    expect(document.querySelector('.line-through')).toBeNull();
+  });
+});
