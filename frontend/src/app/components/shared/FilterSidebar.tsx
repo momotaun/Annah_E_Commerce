@@ -63,6 +63,8 @@ export interface FilterSidebarProps {
   onVerifiedOnlyChange?: (checked: boolean) => void;
   minRating?: number;
   onMinRatingChange?: (checked: boolean) => void;
+  /** Hide the price controls when price is filtered elsewhere (e.g. price chips). */
+  hidePrice?: boolean;
 }
 
 function FilterSidebar({
@@ -85,6 +87,7 @@ function FilterSidebar({
   onVerifiedOnlyChange,
   minRating,
   onMinRatingChange,
+  hidePrice = false,
 }: FilterSidebarProps) {
   // Only when exactly one category is active, and it's Fashion — "All
   // Categories" (none selected) or more than one selected both fall back
@@ -144,6 +147,7 @@ function FilterSidebar({
             </div>
           </div>
 
+          {!hidePrice && (
           <div>
             <h3 className="mb-3 text-xs font-semibold uppercase text-gray-500">
               Price
@@ -168,6 +172,7 @@ function FilterSidebar({
               })}
             </div>
           </div>
+          )}
 
           <div>
             <h3 className="mb-3 text-xs font-semibold uppercase text-gray-500">
@@ -216,6 +221,7 @@ function FilterSidebar({
         </>
       ) : (
         <>
+          {categories.length > 0 && (
           <div>
             <h3 className="mb-3 text-xs font-semibold uppercase text-gray-500">
               Categories
@@ -232,7 +238,9 @@ function FilterSidebar({
               ))}
             </div>
           </div>
+          )}
 
+          {!hidePrice && (
           <div>
             <h3 className="mb-3 text-xs font-semibold uppercase text-gray-500">
               Price Range
@@ -304,7 +312,9 @@ function FilterSidebar({
               />
             </div>
           </div>
+          )}
 
+          {brands.length > 0 && (
           <div>
             <h3 className="mb-3 text-xs font-semibold uppercase text-gray-500">
               Brand
@@ -321,6 +331,7 @@ function FilterSidebar({
               ))}
             </div>
           </div>
+          )}
 
           {colors.length > 0 && (
             <div>
