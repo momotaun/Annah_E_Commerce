@@ -11,6 +11,7 @@ const badgeVariants = cva(
         lime: "bg-brand-lime text-ink",
         sale: "bg-sale text-white",
         discount: "rounded-md bg-clearance text-white",
+        discountSale: "rounded-md bg-sale text-white",
         digital: "bg-digital text-white",
         success: "bg-success-500/10 text-success-500",
         warning: "bg-warning-500/10 text-warning-500",

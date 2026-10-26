@@ -22,6 +22,11 @@ function mockRating(seed: string): { rating: number; reviewCount: number } {
   };
 }
 
+// From this percentage off, the badge switches from Sale Orange (ordinary
+// discounts) to Retail Red (clearance-level cuts), per the brand sheet:
+// orange = "discounts, offers", red = "clearance, urgent".
+export const CLEARANCE_DISCOUNT_THRESHOLD = 60;
+
 export interface ProductCardProps {
   href: string;
   image: string;
@@ -88,7 +93,10 @@ function ProductCard({
         </Link>
 
         {discountPercent !== undefined && discountPercent > 0 && (
-          <Badge variant="discount" className="absolute left-3 top-3 z-10 px-2 py-1 text-sm font-bold">
+          <Badge
+            variant={discountPercent >= CLEARANCE_DISCOUNT_THRESHOLD ? "discount" : "discountSale"}
+            className="absolute left-3 top-3 z-10 px-2 py-1 text-sm font-bold"
+          >
             -{discountPercent}%
           </Badge>
         )}

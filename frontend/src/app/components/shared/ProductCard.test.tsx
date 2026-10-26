@@ -137,3 +137,22 @@ describe('ProductCard sale pricing', () => {
     expect(document.querySelector('.line-through')).toBeNull();
   });
 });
+
+describe('ProductCard discount badge colour', () => {
+  const props = {
+    href: '/products/test-product',
+    image: '/images/test.jpg',
+    title: 'Galactic Gray Power Tee',
+    price: 'R149,00',
+  };
+
+  it('uses Sale Orange for an ordinary discount', () => {
+    render(<ProductCard {...props} discountPercent={40} />);
+    expect(screen.getByText('-40%')).toHaveClass('bg-sale');
+  });
+
+  it('switches to Retail Red at clearance-level cuts (60% and above)', () => {
+    render(<ProductCard {...props} discountPercent={72} />);
+    expect(screen.getByText('-72%')).toHaveClass('bg-clearance');
+  });
+});
