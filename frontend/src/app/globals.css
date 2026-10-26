@@ -36,13 +36,25 @@
   --color-warning-500: #d97706;
   --color-success-500: #16a34a;
 
+  /* Redesign brand tokens (designer handoff, Oct 2026). Lime is the primary
+     action colour, ink is for the header/nav and text on lime, sale/clearance/
+     digital carry the merchandising colours. Hex values read from the
+     handoff image; confirm with the designer before launch. */
+  --color-brand-lime: #c5f22f;
+  --color-brand-lime-dark: #b0dc1c;
+  --color-ink: #101010;
+  --color-sale: #f4511e;
+  --color-clearance: #e40521;
+  --color-digital: #2563eb;
+  --color-surface: #f5f5f3;
+
   --radius-md: 16px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-poppins), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 @keyframes floating {
