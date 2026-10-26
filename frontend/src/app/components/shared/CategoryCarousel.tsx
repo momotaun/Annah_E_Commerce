@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Percent, Sparkles } from "lucide-react";
 import { Category } from "@/src/lib/api-types";
 import { getCategoryTheme } from "@/src/lib/categoryTheme";
 
@@ -16,6 +16,10 @@ const CATEGORY_IMAGES: Record<string, string> = {
   audio: "/images/apex-elite-wireless-headphones.jpg",
   "home-living": "/images/cat-home.jpg",
   fashion: "/images/cat-fashion.jpg",
+  "sports-outdoor": "/images/cat-outdoor.jpg",
+  "camping-hiking": "/images/cat-outdoor.jpg",
+  "fitness-equipment": "/images/cat-outdoor.jpg",
+  "beauty-health": "/images/solace-diffuser-essential-oil-set.jpg",
 };
 
 interface CarouselTile {
@@ -29,7 +33,7 @@ interface CarouselTile {
 const SPECIAL_OFFERS_TILE: CarouselTile = {
   id: "special-offers",
   slug: "special-offers",
-  name: "Special Offers",
+  name: "Deals",
   href: "/collections/limited-edition",
   highlight: true,
 };
@@ -81,7 +85,17 @@ function CategoryCarousel({ categories }: { categories: Category[] }) {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-10">
+    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <h2 className="text-xl font-bold text-ink sm:text-2xl">Shop by Category</h2>
+        <Link
+          href="/categories"
+          className="flex shrink-0 items-center gap-1 text-sm font-semibold text-ink hover:underline"
+        >
+          View All Categories
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
       <div className="relative">
         <button
           type="button"
@@ -104,23 +118,25 @@ function CategoryCarousel({ categories }: { categories: Category[] }) {
               <Link
                 key={tile.id}
                 href={tile.href}
-                className="group flex w-20 shrink-0 snap-start flex-col items-center gap-3"
+                className="group flex w-20 shrink-0 snap-start flex-col items-center gap-2 sm:w-24"
               >
-                <span className="relative block h-16 w-16 overflow-hidden rounded-lg transition-transform group-hover:scale-[1.03]">
-                  {image || tile.highlight ? (
-                    <Image
-                      src={image ?? "/images/cat-outdoor.jpg"}
-                      alt=""
-                      fill
-                      sizes="64px"
-                      className="object-cover"
-                    />
+                <span
+                  className={`relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full transition-transform group-hover:scale-[1.05] sm:h-20 sm:w-20 ${
+                    tile.highlight ? "bg-clearance text-white" : ""
+                  }`}
+                >
+                  {tile.highlight ? (
+                    <Percent className="h-8 w-8" strokeWidth={2.5} />
+                  ) : image ? (
+                    <Image src={image} alt="" fill sizes="80px" className="object-cover" />
                   ) : (
-                    <span className={`flex h-full w-full items-center justify-center ${theme.bgSoft}`} />
+                    <span className={`flex h-full w-full items-center justify-center ${theme.bgSoft}`}>
+                      <Sparkles className="h-6 w-6 text-gray-400" />
+                    </span>
                   )}
                 </span>
                 <span
-                  className={`text-center text-sm font-medium ${tile.highlight ? "text-danger-500" : "text-gray-900"}`}
+                  className={`text-center text-sm font-medium ${tile.highlight ? "text-clearance" : "text-ink"}`}
                 >
                   {tile.name}
                 </span>
