@@ -8,7 +8,9 @@ export interface LogoProps {
   // "light" for a light/white background (colored badge, dark wordmark);
   // "dark" for a colored/dark background like the footer (white badge,
   // white wordmark).
-  theme?: "light" | "dark";
+  // "ink" is for the redesigned black header: no initial badge (unless the
+  // admin has set a logo image) and a lime, uppercase wordmark.
+  theme?: "light" | "dark" | "ink";
   size?: "sm" | "md";
   showBadge?: boolean;
   showWordmark?: boolean;
@@ -34,11 +36,13 @@ const wordmarkSizes = {
 const badgeTheme = {
   light: "bg-primary-600 text-white",
   dark: "bg-white text-primary-600",
+  ink: "bg-brand-lime text-ink",
 };
 
 const wordmarkTheme = {
   light: "text-gray-900",
   dark: "text-white",
+  ink: "text-brand-lime uppercase tracking-wide",
 };
 
 // The one place that renders the brand mark. Every header (customer,
@@ -58,6 +62,7 @@ function Logo({
   return (
     <span className={cn("flex items-center gap-2", className)}>
       {showBadge &&
+        (logoUrl || theme !== "ink") &&
         (logoUrl ? (
           <Image
             src={logoUrl}
