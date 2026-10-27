@@ -8,6 +8,7 @@ import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Breadcrumb from "@/src/app/components/shared/Breadcrumb";
 import ProductGallery from "@/src/app/components/shared/ProductGallery";
+import PriceBlock from "@/src/app/components/shared/PriceBlock";
 import ProductCard from "@/src/app/components/shared/ProductCard";
 import RatingStars from "@/src/app/components/ui/RatingStars";
 import ColorSwatch from "@/src/app/components/ui/ColorSwatch";
@@ -22,7 +23,7 @@ import { useWishlist } from "@/src/context/WishlistContext";
 import { useAuth } from "@/src/context/AuthContext";
 import { withLoginRedirect } from "@/src/lib/loginRedirect";
 import { Product } from "@/src/lib/api-types";
-import { formatPrice, cn } from "@/src/lib/utils";
+import { formatPrice, getDiscountPercent, cn } from "@/src/lib/utils";
 import {
   getProductReviews,
   submitProductReview,
@@ -59,12 +60,14 @@ interface ProductDetailsClientProps {
   product: Product;
   relatedProducts: Product[];
   categoryName: string;
+  categorySlug?: string;
 }
 
 export default function ProductDetailsClient({
   product,
   relatedProducts,
   categoryName,
+  categorySlug,
 }: ProductDetailsClientProps) {
   const { addItem } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
@@ -81,13 +84,6 @@ export default function ProductDetailsClient({
 
   const { reviewCount, soldCount } = mockEngagementCounts(product.slug);
   const displayRating = product.averageRating ? Number(product.averageRating) : 4.5;
-
-  const price = Number(product.price);
-  const compareAtPrice = product.compareAtPrice ? Number(product.compareAtPrice) : null;
-  const isOnSale = compareAtPrice !== null && compareAtPrice > price;
-  const discountPercent = isOnSale
-    ? Math.round(((compareAtPrice! - price) / compareAtPrice!) * 100)
-    : null;
 
   async function handleAddToCart() {
     setIsAdding(true);
@@ -117,7 +113,7 @@ export default function ProductDetailsClient({
         <Breadcrumb
           items={[
             { label: "Catalogue", href: "/catalogue" },
-            { label: categoryName, href: "/categories" },
+            { label: categoryName, href: categorySlug ? `/categories/${categorySlug}` : "/catalogue" },
             { label: product.name },
           ]}
         />
@@ -129,16 +125,16 @@ export default function ProductDetailsClient({
             {product.vendor && (
               <Link
                 href={`/vendors/${product.vendor.id}`}
-                className="group inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-600"
+                className="group inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-ink"
               >
                 <Store className="h-4 w-4" />
-                <span className="font-semibold text-gray-900 group-hover:text-primary-600 group-hover:underline">
+                <span className="font-semibold text-gray-900 group-hover:underline">
                   {product.vendor.businessName}
                 </span>
               </Link>
             )}
 
-            <h1 className="mt-2 text-3xl font-bold text-gray-900">{product.name}</h1>
+            <h1 className="mt-2 text-3xl font-bold text-ink">{product.name}</h1>
 
             {/* averageRating is real (seeded per product); review and
                 sold counts have no backing model yet, so — same convention
@@ -152,20 +148,8 @@ export default function ProductDetailsClient({
               </span>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-end gap-8">
-              <span className="text-3xl font-bold text-primary-600">
-                {formatPrice(product.price)}
-              </span>
-              {isOnSale && (
-                <>
-                  <span className="text-lg text-gray-400 line-through">
-                    {formatPrice(product.compareAtPrice!)}
-                  </span>
-                  <span className="inline-flex items-center justify-center rounded-full bg-danger-500 px-2.5 py-1 text-xs font-semibold text-white">
-                    {discountPercent}% off
-                  </span>
-                </>
-              )}
+            <div className="mt-4">
+              <PriceBlock price={product.price} compareAtPrice={product.compareAtPrice} />
             </div>
 
             <hr className="mt-4 border-gray-200" />
@@ -260,7 +244,7 @@ export default function ProductDetailsClient({
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Customers also viewed</h2>
                 <p className="text-sm text-gray-500">
-                  Recommended pairings and similar high-end workstations.
+                  More products you might like.
                 </p>
               </div>
             </div>
@@ -273,6 +257,12 @@ export default function ProductDetailsClient({
                   title={p.name}
                   vendor={p.vendor}
                   price={formatPrice(p.price)}
+                  originalPrice={
+                    getDiscountPercent(p.price, p.compareAtPrice) !== null
+                      ? formatPrice(p.compareAtPrice!)
+                      : undefined
+                  }
+                  discountPercent={getDiscountPercent(p.price, p.compareAtPrice) ?? undefined}
                   showWishlist
                   isWishlisted={isWishlisted(p.id)}
                   onToggleWishlist={() => toggleWishlist(p.id)}

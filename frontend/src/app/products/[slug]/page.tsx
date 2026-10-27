@@ -29,6 +29,7 @@ export default async function ProductDetailsPage({
       product={product}
       relatedProducts={relatedResult.data.filter((p) => p.id !== product.id).slice(0, 4)}
       categoryName={category?.name ?? "Uncategorized"}
+      categorySlug={category?.slug}
     />
   );
 }
