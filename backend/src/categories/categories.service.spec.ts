@@ -88,4 +88,18 @@ describe('CategoriesService', () => {
     expect(result).toHaveLength(1);
     expect(result[0].children[0].id).toBe('computing');
   });
+
+  it('nests categories three levels deep (Fashion > Men > Tops)', async () => {
+    prisma.category.findMany.mockResolvedValue([
+      { id: 'fashion', name: 'Fashion', slug: 'fashion', parentId: null },
+      { id: 'men', name: 'Men', slug: 'men', parentId: 'fashion' },
+      { id: 'men-tops', name: 'Tops', slug: 'men-tops', parentId: 'men' },
+    ]);
+
+    const result = await service.findAll();
+
+    expect(result).toHaveLength(1);
+    expect(result[0].children[0].slug).toBe('men');
+    expect(result[0].children[0].children[0].slug).toBe('men-tops');
+  });
 });

@@ -16,6 +16,8 @@ model Category {
   name      String
   slug      String     @unique
   parentId  String?
+  // Display order among siblings (lower first); ties fall back to name.
+  sortOrder Int        @default(0)
   parent    Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id])
   children  Category[] @relation("CategoryToSubcategory")
   products  Product[]

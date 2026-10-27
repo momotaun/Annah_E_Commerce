@@ -34,6 +34,25 @@ export const CATEGORY_OPTION_TYPES: Record<string, ProductOptionTypeDef[]> = {
   // variant pickers — omitted keys resolve to [] via optionTypesForCategory.
 };
 
+// Sub-categories (Fashion > Men > Tops) have no entry of their own — they
+// inherit the option types of their nearest ancestor that does. `loadParent`
+// fetches a category's parent by id so this stays independent of Prisma.
+export async function resolveOptionTypesForCategory(
+  category: { slug: string; parentId?: string | null },
+  loadParent: (
+    parentId: string,
+  ) => Promise<{ slug: string; parentId?: string | null } | null>,
+): Promise<ProductOptionTypeDef[]> {
+  let current: { slug: string; parentId?: string | null } | null = category;
+  // The depth cap guards against a (bad-data) parent cycle.
+  for (let depth = 0; current && depth < 10; depth++) {
+    const own = CATEGORY_OPTION_TYPES[current.slug];
+    if (own) return own;
+    current = current.parentId ? await loadParent(current.parentId) : null;
+  }
+  return [];
+}
+
 export function optionTypesForCategory(
   categorySlug: string,
 ): ProductOptionTypeDef[] {

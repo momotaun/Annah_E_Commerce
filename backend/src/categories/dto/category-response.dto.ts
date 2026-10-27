@@ -3,6 +3,7 @@ export class CategoryResponseDto {
   name: string;
   slug: string;
   parentId: string | null;
+  sortOrder: number;
   createdAt: Date;
   children: CategoryResponseDto[];
 }

@@ -7,6 +7,7 @@ describe('ProductsService', () => {
   let service: ProductsService;
   let prisma: {
     product: { findMany: jest.Mock; count: jest.Mock; findFirst: jest.Mock };
+    category: { findMany: jest.Mock };
   };
 
   beforeEach(async () => {
@@ -16,6 +17,7 @@ describe('ProductsService', () => {
         count: jest.fn().mockResolvedValue(0),
         findFirst: jest.fn(),
       },
+      category: { findMany: jest.fn().mockResolvedValue([]) },
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -128,6 +130,24 @@ describe('ProductsService', () => {
       expect(call.where.category).toEqual({
         slug: { in: ['apparel', 'footwear'] },
       });
+    });
+
+    it('includes nested sub-categories when filtering by a parent category', async () => {
+      prisma.category.findMany.mockResolvedValue([
+        { id: '1', slug: 'fashion', parentId: null },
+        { id: '2', slug: 'men', parentId: '1' },
+        { id: '3', slug: 'men-tops', parentId: '2' },
+      ]);
+
+      await service.findAll({ page: 1, limit: 20, category: ['men'] });
+
+      const [call] = prisma.product.findMany.mock.calls[0] as [
+        { where: { category?: { slug: { in: string[] } } } },
+      ];
+      expect([...(call.where.category?.slug.in ?? [])].sort()).toEqual([
+        'men',
+        'men-tops',
+      ]);
     });
 
     it('defaults to newest-first when no sort is given', async () => {
