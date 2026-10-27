@@ -6,21 +6,7 @@ import Link from "next/link";
 import { ArrowRight, ChevronLeft, ChevronRight, Percent, Sparkles } from "lucide-react";
 import { Category } from "@/src/lib/api-types";
 import { getCategoryTheme } from "@/src/lib/categoryTheme";
-
-// Photos for the real, seeded categories (both top-level and their
-// children) — anything without an entry here falls back to the category's
-// soft theme colour rather than breaking.
-const CATEGORY_IMAGES: Record<string, string> = {
-  electronics: "/images/cat-electronics.jpg",
-  computing: "/images/apex-mini-desktop-tower.jpg",
-  audio: "/images/apex-elite-wireless-headphones.jpg",
-  "home-living": "/images/cat-home.jpg",
-  fashion: "/images/cat-fashion.jpg",
-  "sports-outdoor": "/images/cat-outdoor.jpg",
-  "camping-hiking": "/images/cat-outdoor.jpg",
-  "fitness-equipment": "/images/cat-outdoor.jpg",
-  "beauty-health": "/images/solace-diffuser-essential-oil-set.jpg",
-};
+import { CATEGORY_IMAGES } from "@/src/lib/categoryImages";
 
 interface CarouselTile {
   id: string;

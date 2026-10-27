@@ -156,3 +156,23 @@ describe('ProductCard discount badge colour', () => {
     expect(screen.getByText('-72%')).toHaveClass('bg-clearance');
   });
 });
+
+describe('ProductCard layout', () => {
+  const props = {
+    href: '/products/test-product',
+    image: '/images/test.jpg',
+    title: 'Galactic Gray Power Tee',
+    price: 'R149,00',
+  };
+
+  it('stacks vertically by default', () => {
+    const { container } = render(<ProductCard {...props} />);
+    expect(container.firstChild).toHaveClass('flex-col');
+  });
+
+  it('lays out horizontally in list mode', () => {
+    const { container } = render(<ProductCard {...props} layout="list" />);
+    expect(container.firstChild).toHaveClass('flex-row');
+    expect(container.firstChild).not.toHaveClass('flex-col');
+  });
+});

@@ -46,6 +46,8 @@ export interface ProductCardProps {
   showWishlist?: boolean;
   isWishlisted?: boolean;
   showQuickView?: boolean;
+  /** "list" lays the card out horizontally (image left, details right). */
+  layout?: "grid" | "list";
   /** Current quantity of this product in the cart. Paired with
       onQuantityChange, renders a plain Add to Cart button until quantity is
       at least 1, then swaps to a quantity selector. */
@@ -71,6 +73,7 @@ function ProductCard({
   showWishlist = false,
   isWishlisted = false,
   showQuickView = false,
+  layout = "grid",
   quantity,
   onQuantityChange,
   onToggleWishlist,
@@ -83,11 +86,17 @@ function ProductCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white",
+        "group relative flex overflow-hidden rounded-xl border border-gray-200 bg-white",
+        layout === "list" ? "flex-row" : "flex-col",
         className
       )}
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
+      <div
+        className={cn(
+          "relative aspect-square overflow-hidden bg-gray-100",
+          layout === "list" ? "w-36 shrink-0 sm:w-52" : "w-full"
+        )}
+      >
         <Link href={href}>
           <Image src={image} alt={title} fill className="object-cover" />
         </Link>
