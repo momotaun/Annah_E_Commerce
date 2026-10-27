@@ -31,6 +31,8 @@ const SORT_OPTIONS = [
 
 interface CategoryClientProps {
   category: Category;
+  /** Root-to-category chain, e.g. [Fashion, Men, Tops]. */
+  categoryPath?: Category[];
   categories: Category[];
   initialProducts: PaginatedProducts;
   activeMinPrice?: number;
@@ -44,6 +46,7 @@ interface CategoryClientProps {
 
 export default function CategoryClient({
   category,
+  categoryPath = [category],
   categories,
   initialProducts,
   activeMinPrice,
@@ -206,7 +209,11 @@ export default function CategoryClient({
           items={[
             { label: "Home", href: "/" },
             { label: "Catalogue", href: "/catalogue" },
-            { label: category.name },
+            ...categoryPath.map((node, index) =>
+              index === categoryPath.length - 1
+                ? { label: node.name }
+                : { label: node.name, href: `/categories/${node.slug}` }
+            ),
           ]}
         />
 
@@ -214,7 +221,7 @@ export default function CategoryClient({
           <CategoryBanner
             name={category.name}
             productCount={products.meta.total}
-            image={getCategoryImage(category.slug)}
+            image={[...categoryPath].reverse().map((node) => getCategoryImage(node.slug)).find(Boolean)}
           />
         </div>
 
@@ -230,6 +237,8 @@ export default function CategoryClient({
               maxPrice={activeMaxPrice}
               onPriceChange={handlePriceChange}
               hidePrice
+              isFashion={categoryPath.some((node) => node.slug === "fashion")}
+              hideSegments
               selectedSegments={activeSegments}
               onSegmentChange={handleSegmentChange}
               selectedDelivery={activeDelivery}

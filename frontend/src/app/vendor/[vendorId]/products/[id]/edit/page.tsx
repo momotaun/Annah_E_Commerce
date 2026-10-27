@@ -19,7 +19,8 @@ import {
   VendorProduct,
   VendorProductOption,
 } from "@/src/lib/api/vendor-products";
-import { optionTypesForCategory } from "@/src/lib/product-option-types";
+import { flattenCategoryTree, getCategoryPath } from "@/src/lib/categoryTree";
+import { optionTypesForCategoryPath } from "@/src/lib/product-option-types";
 
 const MAX_IMAGES = 10;
 
@@ -81,9 +82,11 @@ export default function EditVendorProductPage() {
       .finally(() => setIsLoading(false));
   }, [vendorId, id]);
 
-  const flatCategories = categories.flatMap((c) => [c, ...c.children]);
-  const selectedCategory = flatCategories.find((c) => c.id === categoryId);
-  const applicableOptionTypes = optionTypesForCategory(selectedCategory?.slug);
+  const flatCategories = flattenCategoryTree(categories);
+  const selectedCategory = flatCategories.find((f) => f.category.id === categoryId)?.category;
+  const applicableOptionTypes = optionTypesForCategoryPath(
+    selectedCategory ? getCategoryPath(categories, selectedCategory.slug).map((c) => c.slug) : [],
+  );
 
   function parseOptionValues(raw: string | undefined): string[] {
     return (raw ?? "")
@@ -224,7 +227,7 @@ export default function EditVendorProductPage() {
             <Select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              options={flatCategories.map((c) => ({ label: c.name, value: c.id }))}
+              options={flatCategories.map((f) => ({ label: f.label, value: f.category.id }))}
             />
           </div>
 

@@ -20,6 +20,7 @@ import {
 import { getCategories } from "@/src/lib/api/categories";
 import { Category } from "@/src/lib/api-types";
 import { ApiError } from "@/src/lib/api-client";
+import { flattenCategoryTree } from "@/src/lib/categoryTree";
 import { cn, formatPrice } from "@/src/lib/utils";
 
 const ARCHIVE_REASON_OPTIONS: { label: string; value: ArchiveReason }[] = [
@@ -116,7 +117,7 @@ export default function VendorProductsPage() {
   }, [vendorId]);
 
   const categoryNameById = new Map(
-    categories.flatMap((c) => [c, ...c.children]).map((c) => [c.id, c.name]),
+    flattenCategoryTree(categories).map((f) => [f.category.id, f.label]),
   );
 
   const statusCounts = useMemo(

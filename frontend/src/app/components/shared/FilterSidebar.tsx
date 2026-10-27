@@ -20,8 +20,10 @@ const PRICE_STEP = 100;
 
 // Fashion's filter set replaces the generic one entirely (see the
 // isFashionOnly check below) — these are fixed, not data-driven, since
-// they're specific to this one category's UI, not real Category rows
-// (Fashion has no sub-categories) or query-configurable lists.
+// they're specific to this one category's UI rather than real Category
+// rows or query-configurable lists. Under the Fashion category tree the
+// segment checkboxes are hidden (hideSegments) — Men/Women/Girls/Boys are
+// real categories there.
 const FASHION_SEGMENTS: FilterOption[] = [
   { label: "Women", value: "WOMEN" },
   { label: "Men", value: "MEN" },
@@ -65,6 +67,10 @@ export interface FilterSidebarProps {
   onMinRatingChange?: (checked: boolean) => void;
   /** Hide the price controls when price is filtered elsewhere (e.g. price chips). */
   hidePrice?: boolean;
+  /** Force the Fashion filter set (e.g. when viewing a sub-category of Fashion). */
+  isFashion?: boolean;
+  /** Hide the Women/Men/Kids/Accessories checkboxes when the category tree already covers them. */
+  hideSegments?: boolean;
 }
 
 function FilterSidebar({
@@ -88,12 +94,14 @@ function FilterSidebar({
   minRating,
   onMinRatingChange,
   hidePrice = false,
+  isFashion = false,
+  hideSegments = false,
 }: FilterSidebarProps) {
   // Only when exactly one category is active, and it's Fashion — "All
   // Categories" (none selected) or more than one selected both fall back
   // to the generic filter set.
   const isFashionOnly =
-    selectedCategories.length === 1 && selectedCategories[0] === "fashion";
+    isFashion || (selectedCategories.length === 1 && selectedCategories[0] === "fashion");
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
   // Local, immediately-responsive slider state, separate from the
@@ -130,6 +138,7 @@ function FilterSidebar({
     <aside className="flex w-full flex-col gap-8 md:w-64">
       {isFashionOnly ? (
         <>
+          {!hideSegments && (
           <div>
             <h3 className="mb-3 text-xs font-semibold uppercase text-gray-500">
               Category
@@ -146,6 +155,7 @@ function FilterSidebar({
               ))}
             </div>
           </div>
+          )}
 
           {!hidePrice && (
           <div>
