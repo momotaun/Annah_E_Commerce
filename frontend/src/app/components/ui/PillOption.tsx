@@ -17,8 +17,8 @@ function PillOption({ label, selected = false, onClick }: PillOptionProps) {
       className={cn(
         "rounded-md border px-4 py-2 text-sm font-medium transition-colors",
         selected
-          ? "border-primary-600 bg-primary-50 text-primary-600"
-          : "border-gray-200 bg-white text-gray-900 hover:border-gray-300"
+          ? "border-ink bg-ink text-white"
+          : "border-gray-300 bg-white text-ink hover:border-ink"
       )}
     >
       {label}

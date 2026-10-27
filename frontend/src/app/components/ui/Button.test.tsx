@@ -38,4 +38,22 @@ describe('Button', () => {
     render(<Button isLoading>Submit</Button>);
     expect(screen.getByRole('button')).toBeDisabled();
   });
+
+  it('uses the lime brand colour with dark text for the primary variant', () => {
+    render(<Button>Add to Cart</Button>);
+    expect(screen.getByRole('button')).toHaveClass('bg-brand-lime', 'text-ink');
+  });
+
+  it('supports dark, sale and clearance variants', () => {
+    render(
+      <>
+        <Button variant="dark">Shop Now</Button>
+        <Button variant="sale">Sale</Button>
+        <Button variant="clearance">Clearance</Button>
+      </>
+    );
+    expect(screen.getByText('Shop Now')).toHaveClass('bg-ink');
+    expect(screen.getByText('Sale')).toHaveClass('bg-sale');
+    expect(screen.getByText('Clearance')).toHaveClass('bg-clearance');
+  });
 });

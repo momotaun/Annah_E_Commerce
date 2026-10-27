@@ -1,15 +1,13 @@
-import Image from "next/image";
-import { ArrowRight, Truck, BadgeCheck, ShieldCheck, Star } from "lucide-react";
+import { Truck, BadgeCheck, ShieldCheck, Star } from "lucide-react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
-import Button from "@/src/app/components/ui/Button";
+import PromoCard from "@/src/app/components/shared/PromoCard";
 import NewsletterBand from "@/src/app/components/shared/NewsletterBand";
 import AppDownloadBadges from "@/src/app/components/shared/AppDownloadBadges";
 import CategoryCarousel from "@/src/app/components/shared/CategoryCarousel";
 import { getProducts } from "@/src/lib/api/products";
 import { getCategories } from "@/src/lib/api/categories";
 import { getHeroSlides } from "@/src/lib/api/hero-slides";
-import { getCategoryTheme } from "@/src/lib/categoryTheme";
 import TopRatedEssentials from "@/src/app/TopRatedEssentials";
 import HeroSection, { Slide } from "@/src/app/HeroSection";
 
@@ -43,10 +41,10 @@ export default async function LandingPage() {
 
       <main className="flex-1">
         <HeroSection slides={slides} />
-        <AppDownloadBadges />
+        <PromoCards />
         <CategoryCarousel categories={categories} />
         <TopRatedEssentials products={essentials.data} />
-        <PromoBanner />
+        <AppDownloadBadges />
         <TrustBadges />
         <NewsletterBand />
       </main>
@@ -56,76 +54,39 @@ export default async function LandingPage() {
   );
 }
 
-const promoCards = [
-  {
-    slug: "home-living",
-    eyebrow: "Home Essentials",
-    headline: "Make home a happier place",
-    subtext: "Stylish. Practical. Made for everyday living",
-    cta: "Shop Home & Living",
-    href: "/categories/home-living",
-    discount: "40%",
-    image: "/images/cat-home.jpg",
-  },
-  {
-    slug: "electronics",
-    eyebrow: "Tech For A Brighter Tomorrow",
-    headline: "Smarter tech. Greener choices.",
-    subtext: "Innovation for a better everyday.",
-    cta: "Shop Electronics",
-    href: "/categories/electronics",
-    discount: "30%",
-    image: "/images/cat-electronics.jpg",
-  },
-];
-
-function PromoBanner() {
+function PromoCards() {
   return (
-    <section className="mx-auto max-w-7xl px-6 pb-16">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {promoCards.map((card) => {
-          const theme = getCategoryTheme(card.slug);
-          return (
-            <div
-              key={card.href}
-              className="group relative min-h-[260px] overflow-hidden rounded-md"
-            >
-              <Image
-                src={card.image}
-                alt=""
-                fill
-                className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-transparent" />
-
-              <div className="relative flex h-full w-3/4 flex-col justify-center gap-3 px-8 py-8">
-                <span className={`text-xs font-bold uppercase tracking-widest ${theme.text}`}>
-                  {card.eyebrow}
-                </span>
-                <h3 className="text-2xl font-bold leading-tight text-gray-900 sm:text-3xl">
-                  {card.headline}
-                </h3>
-                <p className="text-sm text-gray-500">{card.subtext}</p>
-                <Button
-                  href={card.href}
-                  className={`mt-2 w-fit ${theme.button}`}
-                  icon={<ArrowRight className="h-4 w-4" />}
-                  iconPosition="right"
-                >
-                  {card.cta}
-                </Button>
-              </div>
-
-              <div
-                className={`absolute right-6 top-1/2 flex h-44 w-44 -translate-y-1/2 flex-col items-center justify-center rounded-full text-center leading-none ${theme.text}`}
-              >
-                <span className="text-base font-bold uppercase tracking-widest">Up to</span>
-                <span className="text-8xl font-extrabold">{card.discount}</span>
-                <span className="text-base font-bold uppercase tracking-widest">Off</span>
-              </div>
-            </div>
-          );
-        })}
+    <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <PromoCard
+          tone="orange"
+          eyebrow="Fashion deals"
+          headline={
+            <>
+              Up to <PromoCard.Accent>70% off</PromoCard.Accent>
+            </>
+          }
+          cta={{ label: "Shop Fashion", href: "/categories/fashion" }}
+          image="/images/cat-fashion.jpg"
+        />
+        <PromoCard
+          tone="neutral"
+          eyebrow="Everyday essentials"
+          headline="Take 2 & save"
+          cta={{ label: "Shop now", href: "/categories/home-living" }}
+          image="/images/cat-home.jpg"
+        />
+        <PromoCard
+          tone="pink"
+          eyebrow="Beauty favourites"
+          headline={
+            <>
+              Up to <PromoCard.Accent>50% off</PromoCard.Accent>
+            </>
+          }
+          cta={{ label: "Shop Beauty", href: "/categories/beauty-health" }}
+          image="/images/solace-diffuser-essential-oil-set.jpg"
+        />
       </div>
     </section>
   );

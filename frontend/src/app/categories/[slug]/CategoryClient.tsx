@@ -5,19 +5,23 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Header from "@/src/app/components/layout/Header";
 import Footer from "@/src/app/components/layout/Footer";
 import Breadcrumb from "@/src/app/components/shared/Breadcrumb";
+import CategoryBanner from "@/src/app/components/shared/CategoryBanner";
+import CategoryTree from "@/src/app/components/shared/CategoryTree";
 import FilterSidebar, {
   PRICE_FLOOR,
   PRICE_CEILING,
 } from "@/src/app/components/shared/FilterSidebar";
+import PriceChips from "@/src/app/components/shared/PriceChips";
 import ProductCard from "@/src/app/components/shared/ProductCard";
 import Select from "@/src/app/components/ui/Select";
 import Spinner from "@/src/app/components/ui/Spinner";
+import ViewToggle, { ProductView } from "@/src/app/components/ui/ViewToggle";
 import { useCart } from "@/src/context/CartContext";
 import { useWishlist } from "@/src/context/WishlistContext";
 import { Category, PaginatedProducts } from "@/src/lib/api-types";
 import { getProducts, ProductSort } from "@/src/lib/api/products";
-import { getCategoryTheme } from "@/src/lib/categoryTheme";
-import { formatPrice } from "@/src/lib/utils";
+import { getCategoryImage } from "@/src/lib/categoryImages";
+import { formatPrice, getDiscountPercent } from "@/src/lib/utils";
 
 const SORT_OPTIONS = [
   { label: "Newest", value: "newest" },
@@ -38,15 +42,6 @@ interface CategoryClientProps {
   activeVerifiedOnly?: boolean;
 }
 
-function flattenCategories(categories: Category[]) {
-  const flat: { label: string; value: string }[] = [];
-  for (const cat of categories) {
-    flat.push({ label: cat.name, value: cat.slug });
-    for (const child of cat.children) flat.push({ label: child.name, value: child.slug });
-  }
-  return flat;
-}
-
 export default function CategoryClient({
   category,
   categories,
@@ -65,6 +60,7 @@ export default function CategoryClient({
   const [isPending, startTransition] = useTransition();
 
   const [products, setProducts] = useState(initialProducts);
+  const [view, setView] = useState<ProductView>("grid");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const isLoadingMoreRef = useRef(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -138,12 +134,6 @@ export default function CategoryClient({
     return () => observer.disconnect();
   }, [loadMore]);
 
-  function handleCategoryChange(slug: string, checked: boolean) {
-    startTransition(() => {
-      router.push(checked ? `/categories/${slug}` : "/catalogue");
-    });
-  }
-
   function handlePriceChange(min: number, max: number) {
     const params = new URLSearchParams(window.location.search);
     if (min > PRICE_FLOOR) {
@@ -207,8 +197,6 @@ export default function CategoryClient({
     pushParam("minRating", checked ? "4" : null);
   }
 
-  const theme = getCategoryTheme(category.slug);
-
   return (
     <div className="flex min-h-screen flex-col">
       <Header showSearch />
@@ -222,49 +210,58 @@ export default function CategoryClient({
           ]}
         />
 
-        <section
-          className={`relative mt-4 flex min-h-[200px] items-center overflow-hidden rounded-md bg-gradient-to-br px-8 ${theme.gradientFrom} ${theme.gradientTo}`}
-        >
-          <div className="relative max-w-lg text-white">
-            <h1 className="text-4xl font-extrabold">{category.name}</h1>
-            {/* No description field exists on Category in our schema —
-                the original hero copy was entirely hardcoded placeholder
-                text, so it's omitted here rather than faked per category. */}
-          </div>
-        </section>
+        <div className="mt-4">
+          <CategoryBanner
+            name={category.name}
+            productCount={products.meta.total}
+            image={getCategoryImage(category.slug)}
+          />
+        </div>
 
         <div className="mt-8 flex flex-col gap-8 md:flex-row">
-          <FilterSidebar
-            categories={flattenCategories(categories)}
-            brands={[]}
-            selectedCategories={[category.slug]}
-            onCategoryChange={handleCategoryChange}
-            minPrice={activeMinPrice}
-            maxPrice={activeMaxPrice}
-            onPriceChange={handlePriceChange}
-            selectedSegments={activeSegments}
-            onSegmentChange={handleSegmentChange}
-            selectedDelivery={activeDelivery}
-            onDeliveryChange={handleDeliveryChange}
-            verifiedOnly={activeVerifiedOnly}
-            onVerifiedOnlyChange={handleVerifiedOnlyChange}
-            minRating={activeMinRating}
-            onMinRatingChange={handleMinRatingChange}
-          />
+          <div className="flex w-full flex-col gap-8 md:w-56 md:shrink-0">
+            <CategoryTree categories={categories} activeSlug={category.slug} />
+            <FilterSidebar
+              categories={[]}
+              brands={[]}
+              selectedCategories={[category.slug]}
+              onCategoryChange={() => {}}
+              minPrice={activeMinPrice}
+              maxPrice={activeMaxPrice}
+              onPriceChange={handlePriceChange}
+              hidePrice
+              selectedSegments={activeSegments}
+              onSegmentChange={handleSegmentChange}
+              selectedDelivery={activeDelivery}
+              onDeliveryChange={handleDeliveryChange}
+              verifiedOnly={activeVerifiedOnly}
+              onVerifiedOnlyChange={handleVerifiedOnlyChange}
+              minRating={activeMinRating}
+              onMinRatingChange={handleMinRatingChange}
+            />
+          </div>
 
           <div className="flex-1">
-            <div className="mb-6 flex items-center justify-between">
-              <span className="text-sm text-gray-500">
-                Showing {products.data.length} of {products.meta.total} products
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Sort by:</span>
-                <Select
-                  options={SORT_OPTIONS}
-                  value={activeSort ?? "newest"}
-                  onChange={(e) => handleSortChange(e.target.value as ProductSort)}
-                  className="w-40"
-                />
+            <div className="mb-6 flex flex-col gap-3">
+              <PriceChips
+                minPrice={activeMinPrice}
+                maxPrice={activeMaxPrice}
+                onChange={handlePriceChange}
+              />
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">
+                  Showing {products.data.length} of {products.meta.total} products
+                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-500">Sort by:</span>
+                  <Select
+                    options={SORT_OPTIONS}
+                    value={activeSort ?? "newest"}
+                    onChange={(e) => handleSortChange(e.target.value as ProductSort)}
+                    className="w-40"
+                  />
+                  <ViewToggle value={view} onChange={setView} />
+                </div>
               </div>
             </div>
 
@@ -284,7 +281,13 @@ export default function CategoryClient({
               // ~50px for the price next to the cart button, clipping
               // longer prices (verified live) — same issue as the
               // Catalogue grid, same fix: wait for lg.
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div
+                className={
+                  view === "list"
+                    ? "flex flex-col gap-4"
+                    : "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                }
+              >
                 {products.data.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -294,6 +297,13 @@ export default function CategoryClient({
                     vendor={product.vendor}
                     description={product.description ?? undefined}
                     price={formatPrice(product.price)}
+                    layout={view}
+                    originalPrice={
+                      getDiscountPercent(product.price, product.compareAtPrice) !== null
+                        ? formatPrice(product.compareAtPrice!)
+                        : undefined
+                    }
+                    discountPercent={getDiscountPercent(product.price, product.compareAtPrice) ?? undefined}
                     showWishlist
                     isWishlisted={isWishlisted(product.id)}
                     onToggleWishlist={() => toggleWishlist(product.id)}

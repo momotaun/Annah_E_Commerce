@@ -22,11 +22,18 @@ function mockRating(seed: string): { rating: number; reviewCount: number } {
   };
 }
 
+// From this percentage off, the badge switches from Sale Orange (ordinary
+// discounts) to Retail Red (clearance-level cuts), per the brand sheet:
+// orange = "discounts, offers", red = "clearance, urgent".
+export const CLEARANCE_DISCOUNT_THRESHOLD = 60;
+
 export interface ProductCardProps {
   href: string;
   image: string;
   title: string;
   price: string;
+  /** The pre-discount "was" price, shown struck through beside the price. */
+  originalPrice?: string;
   category?: string;
   /** Renders a "by <name>" link to the vendor's storefront under the title. */
   vendor?: { id: string; businessName: string } | null;
@@ -39,6 +46,8 @@ export interface ProductCardProps {
   showWishlist?: boolean;
   isWishlisted?: boolean;
   showQuickView?: boolean;
+  /** "list" lays the card out horizontally (image left, details right). */
+  layout?: "grid" | "list";
   /** Current quantity of this product in the cart. Paired with
       onQuantityChange, renders a plain Add to Cart button until quantity is
       at least 1, then swaps to a quantity selector. */
@@ -53,6 +62,7 @@ function ProductCard({
   image,
   title,
   price,
+  originalPrice,
   category,
   vendor,
   description,
@@ -63,6 +73,7 @@ function ProductCard({
   showWishlist = false,
   isWishlisted = false,
   showQuickView = false,
+  layout = "grid",
   quantity,
   onQuantityChange,
   onToggleWishlist,
@@ -75,29 +86,41 @@ function ProductCard({
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white",
+        "group relative flex overflow-hidden rounded-xl border border-gray-200 bg-white",
+        layout === "list" ? "flex-row" : "flex-col",
         className
       )}
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-gray-100">
+      <div
+        className={cn(
+          "relative aspect-square overflow-hidden bg-gray-100",
+          layout === "list" ? "w-36 shrink-0 sm:w-52" : "w-full"
+        )}
+      >
         <Link href={href}>
           <Image src={image} alt={title} fill className="object-cover" />
         </Link>
 
+        {discountPercent !== undefined && discountPercent > 0 && (
+          <Badge
+            variant={discountPercent >= CLEARANCE_DISCOUNT_THRESHOLD ? "discount" : "discountSale"}
+            className="absolute left-3 top-3 z-10 px-2 py-1 text-sm font-bold"
+          >
+            -{discountPercent}%
+          </Badge>
+        )}
+
         {badge && (
-          <Badge variant={badge.variant ?? "primary"} className="absolute left-4 top-4 z-10">
+          <Badge
+            variant={badge.variant ?? "primary"}
+            className={cn("absolute left-4 z-10", discountPercent ? "top-12" : "top-4")}
+          >
             {badge.label}
           </Badge>
         )}
 
-        {(showWishlist || (discountPercent !== undefined && discountPercent > 0)) && (
+        {showWishlist && (
           <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
-            {discountPercent !== undefined && discountPercent > 0 && (
-              <span className="flex h-9 items-center justify-center rounded-full bg-danger-500 px-3 text-sm font-bold text-white">
-                -{discountPercent}%
-              </span>
-            )}
-
             {showWishlist && (
               <button
                 type="button"
@@ -117,7 +140,7 @@ function ProductCard({
         {showQuickView && (
           <Link
             href={href}
-            className="absolute inset-x-0 bottom-0 flex h-9 items-center justify-center bg-primary-600 text-sm font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100"
+            className="absolute inset-x-0 bottom-0 flex h-9 items-center justify-center bg-ink text-sm font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100"
           >
             Quick View
           </Link>
@@ -160,8 +183,13 @@ function ProductCard({
               shrink and gets hard-clipped by the card's overflow-hidden
               at narrower grid widths (verified at the 4-up tablet grid).
               truncate is a fallback ellipsis for anything still too tight. */}
-          <span className="min-w-0 flex-1 truncate text-lg font-bold text-orange-950">
-            {price}
+          <span className="flex min-w-0 flex-1 items-baseline gap-2 truncate">
+            <span className={cn("text-lg font-bold", originalPrice ? "text-clearance" : "text-ink")}>
+              {price}
+            </span>
+            {originalPrice && (
+              <span className="text-xs text-gray-500 line-through">{originalPrice}</span>
+            )}
           </span>
 
           {onQuantityChange &&
@@ -172,7 +200,7 @@ function ProductCard({
                 type="button"
                 onClick={() => onQuantityChange(1)}
                 aria-label="Add to cart"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-500 text-white hover:bg-primary-600"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-lime text-ink hover:bg-brand-lime-dark"
               >
                 <ShoppingCart className="h-4 w-4" />
               </button>

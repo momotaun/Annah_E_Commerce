@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { Menu, Heart, LogOut, Package, Settings, ShoppingCart, Store, User, X } from "lucide-react";
 import Badge from "@/src/app/components/ui/Badge";
 import Logo from "@/src/app/components/layout/Logo";
-import LocationIndicator from "@/src/app/components/layout/LocationIndicator";
 import SearchBar from "@/src/app/components/shared/SearchBar";
 import { useCart } from "@/src/context/CartContext";
 import { useAuth } from "@/src/context/AuthContext";
@@ -30,9 +29,11 @@ export interface HeaderProps {
 // backend's CategoriesModule) rather than fetching them, so the header stays
 // a lightweight client component with no data dependency of its own.
 const categoryLinks: NavLink[] = [
-  { label: "Electronics", href: "/categories/electronics" },
-  { label: "Home & Living", href: "/categories/home-living" },
   { label: "Fashion", href: "/categories/fashion" },
+  { label: "Beauty", href: "/categories/beauty-health" },
+  { label: "Home", href: "/categories/home-living" },
+  { label: "Electronics", href: "/categories/electronics" },
+  { label: "Sports", href: "/categories/sports-outdoor" },
 ];
 
 const dealsLink: NavLink = { label: "Deals", href: "/collections/limited-edition" };
@@ -52,6 +53,10 @@ function Header({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const sellLink: NavLink =
+    user?.role === "VENDOR"
+      ? { label: "Visit My Stores", href: "/vendor" }
+      : { label: `Sell on ${siteName}`, href: "/vendor-onboarding/business-info" };
 
   function handleSearch(query: string) {
     if (!query) return;
@@ -96,10 +101,10 @@ function Header({
   }
 
   const cartLink = (
-    <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-gray-900">
+    <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center text-white">
       <ShoppingCart className="h-5 w-5" />
       {itemCount > 0 && (
-        <Badge className="absolute -right-1 -top-1 h-5 min-w-5 justify-center bg-danger-500 px-1 text-white">
+        <Badge variant="discount" className="absolute -right-1 -top-1 h-5 min-w-5 justify-center rounded-full px-1">
           {itemCount}
         </Badge>
       )}
@@ -107,59 +112,11 @@ function Header({
   );
 
   return (
-    <div className="w-full border-b border-gray-200 bg-white">
-      <div className="hidden bg-primary-600 py-2 text-sm font-medium text-white sm:block">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <LocationIndicator key={user?.id ?? "anonymous"} />
-            <span className="h-3.5 w-px bg-primary-300/50" aria-hidden="true" />
-            <Link href="/help" className="text-primary-100 hover:text-white hover:underline">
-              Help
-            </Link>
-            {user?.role !== "VENDOR" && (
-              <>
-                <span className="h-3.5 w-px bg-primary-300/50" aria-hidden="true" />
-                <Link href="/orders" className="text-primary-100 hover:text-white hover:underline">
-                  Track Order
-                </Link>
-              </>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3">
-            {user?.role === "VENDOR" ? (
-              <Link href="/vendor" className="text-primary-100 hover:text-white hover:underline">
-                Visit My Stores
-              </Link>
-            ) : (
-              <Link
-                href="/vendor-onboarding/business-info"
-                className="text-primary-100 hover:text-white hover:underline"
-              >
-                Sell on {siteName}
-              </Link>
-            )}
-            <span className="h-3.5 w-px bg-primary-300/50" aria-hidden="true" />
-            {user ? (
-              <button
-                type="button"
-                onClick={logout}
-                className="text-primary-100 hover:text-white hover:underline"
-              >
-                Logout
-              </button>
-            ) : (
-              <Link href={loginHref} className="text-primary-100 hover:text-white hover:underline">
-                Login
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <header className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-4 sm:px-6 md:gap-8">
+    <div className="w-full bg-white">
+      <header className="bg-ink text-white">
+        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 md:gap-8">
         <Link href="/" className="shrink-0">
-          <Logo wordmarkClassName="hidden sm:inline" />
+          <Logo theme="ink" size="sm" wordmarkClassName="text-2xl" />
         </Link>
 
         {/* Search sits in the middle, using up whatever space the logo and
@@ -170,6 +127,7 @@ function Header({
             <SearchBar
               placeholder="Search for products, brands or categories..."
               onSearch={handleSearch}
+              tone="header"
             />
           </div>
         )}
@@ -182,12 +140,12 @@ function Header({
             <>
               <Link
                 href="/orders"
-                className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-gray-900 hover:text-primary-600"
+                className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-white hover:text-brand-lime"
               >
                 <Package className="h-5 w-5" />
                 <span className="text-[11px] font-medium">Orders</span>
               </Link>
-              <span className="h-8 w-px bg-gray-200" />
+              <span className="h-8 w-px bg-white/20" />
             </>
           )}
 
@@ -198,10 +156,10 @@ function Header({
                 onClick={() => setAccountMenuOpen((open) => !open)}
                 aria-expanded={accountMenuOpen}
                 aria-haspopup="menu"
-                className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-gray-900 hover:text-primary-600"
+                className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-white hover:text-brand-lime"
               >
                 <User className="h-5 w-5" />
-                <span className="text-[11px] font-medium">Account</span>
+                <span className="text-[11px] font-medium">{user ? "Account" : "Sign in"}</span>
               </button>
 
               {accountMenuOpen && (
@@ -265,7 +223,7 @@ function Header({
           {variant === "full" && (
             <Link
               href="/wishlist"
-              className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-gray-900 hover:text-primary-600"
+              className="flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-white hover:text-brand-lime"
             >
               <Heart className="h-5 w-5" />
               <span className="text-[11px] font-medium">Wishlist</span>
@@ -275,12 +233,12 @@ function Header({
           {variant === "full" && showCart && (
             <Link
               href="/cart"
-              className="relative flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-gray-900 hover:text-primary-600"
+              className="relative flex flex-col items-center gap-0.5 rounded-md px-2 py-1 text-white hover:text-brand-lime"
             >
               <div className="relative">
                 <ShoppingCart className="h-5 w-5" />
                 {itemCount > 0 && (
-                  <Badge className="absolute -right-2 -top-1.5 h-5 min-w-5 justify-center bg-danger-500 px-1 text-white">
+                  <Badge variant="discount" className="absolute -right-2 -top-1.5 h-5 min-w-5 justify-center rounded-full px-1">
                     {itemCount}
                   </Badge>
                 )}
@@ -292,7 +250,7 @@ function Header({
           {variant === "minimal" && minimalRightLink && (
             <Link
               href={minimalRightLink.href}
-              className="text-sm font-medium text-gray-900 hover:text-primary-600"
+              className="text-sm font-medium text-white hover:text-brand-lime"
             >
               {minimalRightLink.label}
             </Link>
@@ -312,7 +270,7 @@ function Header({
               onClick={() => setMobileMenuOpen((open) => !open)}
               aria-expanded={mobileMenuOpen}
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-              className="flex h-9 w-9 items-center justify-center text-gray-900"
+              className="flex h-9 w-9 items-center justify-center text-white"
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -321,46 +279,52 @@ function Header({
           {variant === "minimal" && minimalRightLink && (
             <Link
               href={minimalRightLink.href}
-              className="text-sm font-medium text-gray-900 hover:text-primary-600"
+              className="text-sm font-medium text-white hover:text-brand-lime"
             >
               {minimalRightLink.label}
             </Link>
           )}
         </div>
+        </div>
       </header>
 
-      {/* Category bar: "All Categories" + the top-level categories, with
-          Deals called out in the danger colour on the far right. Desktop
-          only — the mobile menu below covers the same links. */}
+      {/* Nav row: the marketplace's real top-level categories, with Deals
+          (clearance red) and Sell (lime) called out as filled tabs on the far
+          right. Desktop only — the mobile menu below covers the same links. */}
       {variant === "full" && (
-        <div className="hidden border-t border-gray-200 lg:block">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 text-sm sm:px-6">
-            <div className="flex items-center gap-6">
-              <Link
-                href="/categories"
-                className="flex items-center gap-2 font-bold text-gray-900 hover:text-primary-600"
-              >
+        <div className="hidden border-b border-gray-200 bg-white lg:block">
+          <div className="mx-auto flex max-w-7xl items-stretch justify-between px-4 text-sm sm:px-6">
+            <nav className="flex items-center gap-6 py-2.5 font-medium text-ink">
+              <Link href="/categories" className="flex items-center gap-2 font-bold hover:opacity-70">
                 <Menu className="h-4 w-4" />
                 All Categories
               </Link>
-              <div className="h-4 w-px bg-gray-200" />
-              <nav className="flex items-center gap-6 font-medium text-gray-900">
-                {categoryLinks.map((link) => (
-                  <Link key={link.href} href={link.href} className="hover:text-primary-600">
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
+              {categoryLinks.map((link) => (
+                <Link key={link.href} href={link.href} className="hover:opacity-70">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+            <div className="flex items-stretch">
+              <Link
+                href={dealsLink.href}
+                className="flex items-center bg-clearance px-5 font-bold text-white hover:opacity-90"
+              >
+                {dealsLink.label}
+              </Link>
+              <Link
+                href={sellLink.href}
+                className="flex items-center bg-brand-lime px-5 font-bold uppercase text-ink hover:bg-brand-lime-dark"
+              >
+                {sellLink.label}
+              </Link>
             </div>
-            <Link href={dealsLink.href} className="font-bold text-danger-500 hover:opacity-80">
-              {dealsLink.label}
-            </Link>
           </div>
         </div>
       )}
 
       {variant === "full" && mobileMenuOpen && (
-        <div className="border-t border-gray-200 px-4 pb-6 pt-4 lg:hidden">
+        <div className="border-t border-gray-200 bg-white px-4 pb-6 pt-4 text-gray-900 lg:hidden">
           {showSearch && (
             <div className="mb-4">
               <SearchBar
@@ -396,9 +360,15 @@ function Header({
             })}
             <Link
               href={dealsLink.href}
-              className="rounded-md px-3 py-2.5 text-base font-bold text-danger-500 hover:bg-gray-50"
+              className="rounded-md px-3 py-2.5 text-base font-bold text-clearance hover:bg-gray-50"
             >
               {dealsLink.label}
+            </Link>
+            <Link
+              href={sellLink.href}
+              className="mt-1 rounded-md bg-brand-lime px-3 py-2.5 text-base font-bold uppercase text-ink"
+            >
+              {sellLink.label}
             </Link>
           </nav>
 
