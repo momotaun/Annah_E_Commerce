@@ -49,6 +49,41 @@ function deliveryOptionFor(slug: string) {
   return DELIVERY_OPTIONS[hash % DELIVERY_OPTIONS.length];
 }
 
+// The department lists below match what myrunway.co.za shows for each
+// audience (Women and Kids have Dresses & Jumpsuits; Men does not). Kids is
+// split into Girls and Boys here — Boys omits Dresses & Jumpsuits.
+const COMMON_DEPARTMENTS = [
+  'Activewear',
+  'Shoes',
+  'Accessories',
+  'Tops',
+  'Face & Body',
+  'Coats & Jackets',
+  'Bottoms',
+  'Underwear & Sleepwear',
+  'Swimwear',
+  'Living',
+];
+
+function withDresses(): string[] {
+  return [...COMMON_DEPARTMENTS.slice(0, 5), 'Dresses & Jumpsuits', ...COMMON_DEPARTMENTS.slice(5)];
+}
+
+const FASHION_TREE: Array<{ name: string; slug: string; departments: string[] }> = [
+  { name: 'Men', slug: 'men', departments: COMMON_DEPARTMENTS },
+  { name: 'Women', slug: 'women', departments: withDresses() },
+  { name: 'Girls', slug: 'girls', departments: withDresses() },
+  { name: 'Boys', slug: 'boys', departments: COMMON_DEPARTMENTS },
+];
+
+function slugify(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/&/g, ' ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 async function main() {
   const electronics = await prisma.category.upsert({
     where: { slug: 'electronics' },
@@ -79,6 +114,36 @@ async function main() {
     update: {},
     create: { name: 'Fashion', slug: 'fashion' },
   });
+
+  // Fashion > Men / Women / Girls / Boys > department, modelled on
+  // myrunway.co.za's navigation. Slugs are `<audience>` and
+  // `<audience>-<department>` so they stay unique across the whole tree.
+  for (const [audienceIndex, audience] of FASHION_TREE.entries()) {
+    const audienceCategory = await prisma.category.upsert({
+      where: { slug: audience.slug },
+      update: { sortOrder: audienceIndex },
+      create: {
+        name: audience.name,
+        slug: audience.slug,
+        parentId: fashion.id,
+        sortOrder: audienceIndex,
+      },
+    });
+
+    for (const [departmentIndex, department] of audience.departments.entries()) {
+      const slug = `${audience.slug}-${slugify(department)}`;
+      await prisma.category.upsert({
+        where: { slug },
+        update: { sortOrder: departmentIndex },
+        create: {
+          name: department,
+          slug,
+          parentId: audienceCategory.id,
+          sortOrder: departmentIndex,
+        },
+      });
+    }
+  }
 
   const sportsOutdoor = await prisma.category.upsert({
     where: { slug: 'sports-outdoor' },
