@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import WizardSteps from "@/src/app/components/shared/WizardSteps";
 import ProductGallery from "@/src/app/components/shared/ProductGallery";
 import ImageUploadGrid from "@/src/app/components/shared/ImageUploadGrid";
+import CategoryPicker from "@/src/app/components/shared/CategoryPicker";
 import Input from "@/src/app/components/ui/Input";
 import Textarea from "@/src/app/components/ui/Textarea";
 import Select from "@/src/app/components/ui/Select";
@@ -15,7 +16,8 @@ import ColorSwatch from "@/src/app/components/ui/ColorSwatch";
 import { getCategories } from "@/src/lib/api/categories";
 import { Category } from "@/src/lib/api-types";
 import { createVendorProduct, VendorProductOption } from "@/src/lib/api/vendor-products";
-import { optionTypesForCategory } from "@/src/lib/product-option-types";
+import { findCategoryById, getCategoryPath } from "@/src/lib/categoryTree";
+import { optionTypesForCategoryPath } from "@/src/lib/product-option-types";
 import { formatPrice } from "@/src/lib/utils";
 
 const STEPS = [
@@ -51,16 +53,23 @@ export default function NewVendorProductPage() {
   const [basicsError, setBasicsError] = useState<string | null>(null);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
   const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [categoryLoadError, setCategoryLoadError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
-    getCategories().then(setCategories).catch(() => setCategories([]));
+    getCategories()
+      .then(setCategories)
+      .catch(() => setCategoryLoadError(true));
   }, []);
 
-  const flatCategories = categories.flatMap((c) => [c, ...c.children]);
-  const selectedCategory = flatCategories.find((c) => c.id === categoryId);
-  const applicableOptionTypes = optionTypesForCategory(selectedCategory?.slug);
+  const selectedCategory = categoryId ? findCategoryById(categories, categoryId) : undefined;
+  const selectedCategoryPath = selectedCategory
+    ? getCategoryPath(categories, selectedCategory.slug)
+    : [];
+  const applicableOptionTypes = optionTypesForCategoryPath(
+    selectedCategoryPath.map((c) => c.slug),
+  );
 
   function parseOptionValues(raw: string | undefined): string[] {
     return (raw ?? "")
@@ -98,8 +107,8 @@ export default function NewVendorProductPage() {
       setInventoryError(null);
     }
     if (step === 2) {
-      if (!categoryId) {
-        setCategoryError("Choose a category to continue.");
+      if (!selectedCategory || selectedCategory.children.length > 0) {
+        setCategoryError("Choose the most specific category for this product to continue.");
         return;
       }
       setCategoryError(null);
@@ -207,15 +216,21 @@ export default function NewVendorProductPage() {
             <p className="mt-1 text-sm text-gray-500">Where should this product be listed?</p>
 
             <div className="mt-6">
-              <Select
-                placeholder="Select a category"
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                options={flatCategories.map((c) => ({ label: c.name, value: c.id }))}
-              />
+              {categoryLoadError ? (
+                <p className="text-sm text-danger-500">Couldn&apos;t load categories. Please try again.</p>
+              ) : (
+                <CategoryPicker
+                  categories={categories}
+                  value={categoryId}
+                  onChange={(id) => {
+                    setCategoryId(id);
+                    setCategoryError(null);
+                  }}
+                  disabled={categories.length === 0}
+                  error={categoryError ?? undefined}
+                />
+              )}
             </div>
-
-            {categoryError && <p className="mt-4 text-sm text-danger-500">{categoryError}</p>}
 
             {/* Only this category's applicable variant pickers show up —
                 e.g. Fashion gets Color + Size, Computing gets Color +
@@ -261,7 +276,9 @@ export default function NewVendorProductPage() {
               <ProductGallery images={galleryImages} alt={name || "Product preview"} />
 
               <div>
-                <Badge variant="outline">{selectedCategory?.name ?? "Uncategorized"}</Badge>
+                <Badge variant="outline">
+                  {selectedCategoryPath.map((category) => category.name).join(" › ") || "Uncategorized"}
+                </Badge>
                 <h2 className="mt-3 text-2xl font-bold text-gray-900">{name || "Untitled Product"}</h2>
 
                 <div className="mt-3 flex flex-wrap items-baseline gap-3 border-t border-gray-200 pt-3">

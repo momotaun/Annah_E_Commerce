@@ -49,6 +49,41 @@ function deliveryOptionFor(slug: string) {
   return DELIVERY_OPTIONS[hash % DELIVERY_OPTIONS.length];
 }
 
+// The department lists below match what myrunway.co.za shows for each
+// audience (Women and Kids have Dresses & Jumpsuits; Men does not). Kids is
+// split into Girls and Boys here — Boys omits Dresses & Jumpsuits.
+const COMMON_DEPARTMENTS = [
+  'Activewear',
+  'Shoes',
+  'Accessories',
+  'Tops',
+  'Face & Body',
+  'Coats & Jackets',
+  'Bottoms',
+  'Underwear & Sleepwear',
+  'Swimwear',
+  'Living',
+];
+
+function withDresses(): string[] {
+  return [...COMMON_DEPARTMENTS.slice(0, 5), 'Dresses & Jumpsuits', ...COMMON_DEPARTMENTS.slice(5)];
+}
+
+const FASHION_TREE: Array<{ name: string; slug: string; departments: string[] }> = [
+  { name: 'Men', slug: 'men', departments: COMMON_DEPARTMENTS },
+  { name: 'Women', slug: 'women', departments: withDresses() },
+  { name: 'Girls', slug: 'girls', departments: withDresses() },
+  { name: 'Boys', slug: 'boys', departments: COMMON_DEPARTMENTS },
+];
+
+function slugify(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/&/g, ' ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 async function main() {
   const electronics = await prisma.category.upsert({
     where: { slug: 'electronics' },
@@ -79,6 +114,47 @@ async function main() {
     update: {},
     create: { name: 'Fashion', slug: 'fashion' },
   });
+
+  // Fashion > Men / Women / Girls / Boys > department, modelled on
+  // myrunway.co.za's navigation. Slugs are `<audience>` and
+  // `<audience>-<department>` so they stay unique across the whole tree.
+  for (const [audienceIndex, audience] of FASHION_TREE.entries()) {
+    const audienceCategory = await prisma.category.upsert({
+      where: { slug: audience.slug },
+      update: { sortOrder: audienceIndex },
+      create: {
+        name: audience.name,
+        slug: audience.slug,
+        parentId: fashion.id,
+        sortOrder: audienceIndex,
+      },
+    });
+
+    for (const [departmentIndex, department] of audience.departments.entries()) {
+      const slug = `${audience.slug}-${slugify(department)}`;
+      const departmentCategory = await prisma.category.upsert({
+        where: { slug },
+        update: { sortOrder: departmentIndex },
+        create: {
+          name: department,
+          slug,
+          parentId: audienceCategory.id,
+          sortOrder: departmentIndex,
+        },
+      });
+
+      await prisma.category.upsert({
+        where: { slug: `${slug}-size` },
+        update: { sortOrder: 0 },
+        create: {
+          name: 'Size',
+          slug: `${slug}-size`,
+          parentId: departmentCategory.id,
+          sortOrder: 0,
+        },
+      });
+    }
+  }
 
   const sportsOutdoor = await prisma.category.upsert({
     where: { slug: 'sports-outdoor' },
@@ -358,6 +434,7 @@ async function main() {
       price: 3499.0,
       imageUrl: '/images/merino-overcoat.jpg',
       segment: 'MEN' as const,
+      categorySlug: 'men-coats-jackets-size',
     },
     {
       name: 'Meridian Tailored Blazer',
@@ -368,6 +445,7 @@ async function main() {
       price: 2299.0,
       imageUrl: '/images/tailored-blazer.jpg',
       segment: 'WOMEN' as const,
+      categorySlug: 'women-coats-jackets-size',
     },
     {
       name: 'TerraFlex Performance Chinos',
@@ -378,6 +456,7 @@ async function main() {
       price: 899.0,
       imageUrl: '/images/performance-chinos.jpg',
       segment: 'MEN' as const,
+      categorySlug: 'men-bottoms-size',
     },
     {
       name: 'Apex Signature Oxford Shirt',
@@ -388,6 +467,7 @@ async function main() {
       price: 749.0,
       imageUrl: '/images/oxford-shirt.jpg',
       segment: 'MEN' as const,
+      categorySlug: 'men-tops-size',
     },
     {
       name: 'Solstice Cashmere Sweater',
@@ -397,6 +477,7 @@ async function main() {
       price: 1899.0,
       imageUrl: '/images/cashmere-sweater.jpg',
       segment: 'WOMEN' as const,
+      categorySlug: 'women-tops-size',
     },
     {
       name: 'Meridian Silk Tie',
@@ -406,6 +487,7 @@ async function main() {
       price: 599.0,
       imageUrl: '/images/meridian-silk-tie.jpg',
       segment: 'ACCESSORIES' as const,
+      categorySlug: 'men-accessories-size',
     },
     {
       name: 'Apex Leather Belt',
@@ -415,6 +497,7 @@ async function main() {
       price: 749.0,
       imageUrl: '/images/apex-leather-belt.jpg',
       segment: 'ACCESSORIES' as const,
+      categorySlug: 'men-accessories-size',
     },
     {
       name: 'Meridian Denim Jacket',
@@ -424,6 +507,7 @@ async function main() {
       price: 1499.0,
       imageUrl: '/images/meridian-denim-jacket.jpg',
       segment: 'WOMEN' as const,
+      categorySlug: 'women-coats-jackets-size',
     },
     {
       name: 'Solstice Wool Scarf',
@@ -434,6 +518,7 @@ async function main() {
       price: 549.0,
       imageUrl: '/images/solstice-wool-scarf.jpg',
       segment: 'ACCESSORIES' as const,
+      categorySlug: 'women-accessories-size',
     },
     {
       name: 'Apex Chelsea Boots',
@@ -444,6 +529,7 @@ async function main() {
       price: 2199.0,
       imageUrl: '/images/apex-chelsea-boots.jpg',
       segment: 'MEN' as const,
+      categorySlug: 'men-shoes-size',
     },
     {
       name: 'Meridian Linen Shirt',
@@ -453,6 +539,7 @@ async function main() {
       price: 849.0,
       imageUrl: '/images/meridian-linen-shirt.jpg',
       segment: 'MEN' as const,
+      categorySlug: 'men-tops-size',
     },
     {
       name: 'Apex Wool Trousers',
@@ -462,6 +549,7 @@ async function main() {
       price: 1299.0,
       imageUrl: '/images/apex-wool-trousers.jpg',
       segment: 'MEN' as const,
+      categorySlug: 'men-bottoms-size',
     },
     {
       name: 'Solstice Merino Polo',
@@ -472,6 +560,7 @@ async function main() {
       price: 899.0,
       imageUrl: '/images/solstice-merino-polo.jpg',
       segment: 'MEN' as const,
+      categorySlug: 'men-tops-size',
     },
     {
       name: 'Meridian Leather Gloves',
@@ -481,6 +570,7 @@ async function main() {
       price: 649.0,
       imageUrl: '/images/meridian-leather-gloves.jpg',
       segment: 'ACCESSORIES' as const,
+      categorySlug: 'men-accessories-size',
     },
     {
       name: 'Apex Silk Pocket Square',
@@ -490,10 +580,24 @@ async function main() {
       price: 349.0,
       imageUrl: '/images/apex-silk-pocket-square.jpg',
       segment: 'ACCESSORIES' as const,
+      categorySlug: 'men-accessories-size',
     },
   ]);
 
+  const fashionCategories = await prisma.category.findMany({
+    where: { slug: { in: clothingProducts.map((item) => item.categorySlug) } },
+    select: { id: true, slug: true },
+  });
+  const fashionCategoryIdBySlug = new Map(
+    fashionCategories.map((category) => [category.slug, category.id]),
+  );
+
   for (const item of clothingProducts) {
+    const categoryId = fashionCategoryIdBySlug.get(item.categorySlug);
+    if (!categoryId) {
+      throw new Error(`Fashion category "${item.categorySlug}" was not seeded`);
+    }
+
     await prisma.product.upsert({
       where: { sku: item.sku },
       update: {
@@ -503,6 +607,7 @@ async function main() {
         averageRating: ratingFor(item.slug),
         deliveryOption: deliveryOptionFor(item.slug),
         segment: item.segment,
+        categoryId,
       },
       create: {
         name: item.name,
@@ -512,7 +617,7 @@ async function main() {
         price: item.price,
         imageUrl: item.imageUrl,
         images: [item.imageUrl, item.imageUrl],
-        categoryId: fashion.id,
+        categoryId,
         vendorId: meridian.id,
         averageRating: ratingFor(item.slug),
         deliveryOption: deliveryOptionFor(item.slug),

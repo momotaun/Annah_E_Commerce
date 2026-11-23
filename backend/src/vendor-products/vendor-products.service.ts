@@ -14,7 +14,7 @@ import { ProductOptionInputDto } from './dto/product-option-input.dto';
 import { VendorProductResponseDto } from './dto/vendor-product-response.dto';
 import { ProductResponseDto } from 'src/products/dto/product-response.dto';
 import { ObjectStorageService } from '../uploads/object-storage.service';
-import { optionTypesForCategory } from '../common/product-option-types';
+import { resolveOptionTypesForCategory } from '../common/product-option-types';
 
 @Injectable()
 export class VendorProductsService {
@@ -84,15 +84,17 @@ export class VendorProductsService {
   // A DTO decorator can't see a sibling field's value, so which option
   // types are valid for a given category (product-option-types.ts) is
   // enforced here instead, once we actually have the category in hand.
-  private validateOptionsForCategory(
+  private async validateOptionsForCategory(
     options: ProductOptionInputDto[] | undefined,
-    categorySlug: string,
-  ): void {
+    category: { slug: string; parentId?: string | null },
+  ): Promise<void> {
     if (!options?.length) return;
 
-    const allowed = new Set(
-      optionTypesForCategory(categorySlug).map((o) => o.type),
+    const optionTypes = await resolveOptionTypesForCategory(
+      category,
+      (parentId) => this.prisma.category.findUnique({ where: { id: parentId } }),
     );
+    const allowed = new Set(optionTypes.map((o) => o.type));
     const seen = new Set<string>();
     for (const option of options) {
       if (!allowed.has(option.type)) {
@@ -123,13 +125,19 @@ export class VendorProductsService {
 
     const category = await this.prisma.category.findUnique({
       where: { id: dto.categoryId },
+      include: { children: { select: { id: true } } },
     });
     if (!category) {
       throw new NotFoundException(`Category "${dto.categoryId}" not found`);
     }
+    if (category.children.length > 0) {
+      throw new BadRequestException(
+        'Choose the most specific category for this product',
+      );
+    }
 
     const { options, ...rest } = dto;
-    this.validateOptionsForCategory(options, category.slug);
+    await this.validateOptionsForCategory(options, category);
 
     const slug = await this.generateUniqueSlug(dto.name);
 
@@ -180,15 +188,25 @@ export class VendorProductsService {
     // Sending options: [] clears every existing option; omitting the field
     // entirely (options === undefined) leaves them untouched — see the
     // CreateVendorProductDto.options comment.
-    if (options !== undefined) {
-      const categoryId = dto.categoryId ?? existing.categoryId;
+    const categoryId = dto.categoryId ?? existing.categoryId;
+    const categoryChanged =
+      dto.categoryId !== undefined && dto.categoryId !== existing.categoryId;
+    if (options !== undefined || categoryChanged) {
       const category = await this.prisma.category.findUnique({
         where: { id: categoryId },
+        include: { children: { select: { id: true } } },
       });
       if (!category) {
         throw new NotFoundException(`Category "${categoryId}" not found`);
       }
-      this.validateOptionsForCategory(options, category.slug);
+      if (categoryChanged && category.children.length > 0) {
+        throw new BadRequestException(
+          'Choose the most specific category for this product',
+        );
+      }
+      if (options !== undefined) {
+        await this.validateOptionsForCategory(options, category);
+      }
     }
 
     const updated = await this.prisma.product.update({

@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title description">
+  <title id="title">Apex Marketplace runtime architecture</title>
+  <desc id="description">A shopper's browser connects to the Next.js web application and NestJS API. The API uses PostgreSQL, object storage, payment gateways, email, push notifications, and Sentry. Docker Compose hosts the frontend, backend, and PostgreSQL.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#62748a"/>
+    </marker>
+    <style>
+      .bg{fill:#f4f7fb}.title{font:700 28px Arial,sans-serif;fill:#16263b}.subtitle{font:15px Arial,sans-serif;fill:#53657a}
+      .group{fill:#e9eff7;stroke:#c6d2e0;stroke-width:1.5}.group-label{font:700 13px Arial,sans-serif;letter-spacing:1px;fill:#53657a}
+      .box{fill:#fff;stroke:#9db0c5;stroke-width:1.5;rx:12}.core{fill:#eaf3ff;stroke:#4381c4;stroke-width:2}
+      .db{fill:#eaf7f0;stroke:#48a073;stroke-width:2}.external{fill:#fff7e8;stroke:#d69b34;stroke-width:1.7}
+      .name{font:700 17px Arial,sans-serif;fill:#172b44}.detail{font:13px Arial,sans-serif;fill:#53657a}
+      .connector{fill:none;stroke:#62748a;stroke-width:2;marker-end:url(#arrow)}.label{font:12px Arial,sans-serif;fill:#53657a}
+      .legend{font:12px Arial,sans-serif;fill:#53657a}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="680"/>
+  <text class="title" x="48" y="52">Apex Marketplace — Runtime Architecture</text>
+  <text class="subtitle" x="48" y="79">Local Docker Compose hosts the web app, API, and database; optional integrations connect to external providers.</text>
+
+  <rect class="group" x="355" y="122" width="490" height="430" rx="20"/>
+  <text class="group-label" x="380" y="151">DOCKER COMPOSE NETWORK</text>
+
+  <rect class="box" x="55" y="205" width="230" height="100" rx="12"/>
+  <text class="name" x="78" y="242">Shopper / Vendor / Admin</text>
+  <text class="detail" x="78" y="268">Browser UI and API requests</text>
+
+  <rect class="core" x="410" y="185" width="185" height="105" rx="12"/>
+  <text class="name" x="435" y="222">Next.js Web</text>
+  <text class="detail" x="435" y="248">React · App Router</text>
+  <text class="detail" x="435" y="269">Port 3000</text>
+
+  <rect class="core" x="635" y="185" width="185" height="105" rx="12"/>
+  <text class="name" x="659" y="222">NestJS API</text>
+  <text class="detail" x="659" y="248">REST · JWT · Prisma</text>
+  <text class="detail" x="659" y="269">Port 3001 /api</text>
+
+  <rect class="db" x="635" y="400" width="185" height="95" rx="12"/>
+  <text class="name" x="662" y="438">PostgreSQL 16</text>
+  <text class="detail" x="662" y="465">Marketplace data</text>
+
+  <rect class="external" x="930" y="125" width="220" height="78" rx="12"/>
+  <text class="name" x="953" y="158">PayFast / Ozow</text>
+  <text class="detail" x="953" y="181">Hosted checkout + webhooks</text>
+  <rect class="external" x="930" y="230" width="220" height="78" rx="12"/>
+  <text class="name" x="953" y="263">S3-compatible storage</text>
+  <text class="detail" x="953" y="286">Uploaded product images</text>
+  <rect class="external" x="930" y="335" width="220" height="78" rx="12"/>
+  <text class="name" x="953" y="368">Resend / Console</text>
+  <text class="detail" x="953" y="391">Transactional email</text>
+  <rect class="external" x="930" y="440" width="220" height="78" rx="12"/>
+  <text class="name" x="953" y="473">Firebase / Console</text>
+  <text class="detail" x="953" y="496">Push notifications</text>
+  <rect class="external" x="930" y="545" width="220" height="65" rx="12"/>
+  <text class="name" x="953" y="575">Sentry (optional)</text>
+  <text class="detail" x="953" y="596">Error monitoring</text>
+
+  <path class="connector" d="M285 235H405"/>
+  <text class="label" x="312" y="224">HTTPS / UI</text>
+  <path class="connector" d="M285 275C330 345 350 350 635 250"/>
+  <text class="label" x="377" y="330">Browser → public API URL</text>
+  <path class="connector" d="M595 237H629"/>
+  <text class="label" x="591" y="220">SSR → backend:3001</text>
+  <path class="connector" d="M727 290V394"/>
+  <text class="label" x="740" y="349">Prisma</text>
+  <path class="connector" d="M820 215C865 190 875 165 924 165"/>
+  <text class="label" x="848" y="185">Payments</text>
+  <path class="connector" d="M820 233C868 245 876 270 924 270"/>
+  <text class="label" x="850" y="260">Uploads</text>
+  <path class="connector" d="M820 250C874 295 874 370 924 370"/>
+  <text class="label" x="850" y="323">Email</text>
+  <path class="connector" d="M820 267C875 348 875 477 924 477"/>
+  <text class="label" x="851" y="416">Push</text>
+  <path class="connector" d="M820 280C876 390 871 575 924 575"/>
+  <text class="label" x="853" y="527">Errors</text>
+
+  <text class="legend" x="55" y="635">Browser URL: NEXT_PUBLIC_API_URL (build-time) · Frontend SSR URL: API_URL (runtime, internal in Compose)</text>
+</svg>

@@ -29,6 +29,17 @@ const CATEGORY_OPTION_TYPES: Record<string, ProductOptionTypeDef[]> = {
   "fitness-equipment": [{ type: "COLOR", label: "Color" }],
 };
 
+// Sub-categories (Fashion > Men > Tops) inherit the option types of their
+// nearest ancestor that defines any — mirrors the backend's
+// resolveOptionTypesForCategory. Pass the root-to-node slug chain.
+export function optionTypesForCategoryPath(slugPath: string[]): ProductOptionTypeDef[] {
+  for (let i = slugPath.length - 1; i >= 0; i--) {
+    const own = CATEGORY_OPTION_TYPES[slugPath[i]];
+    if (own) return own;
+  }
+  return [];
+}
+
 export function optionTypesForCategory(categorySlug: string | undefined): ProductOptionTypeDef[] {
   if (!categorySlug) return [];
   return CATEGORY_OPTION_TYPES[categorySlug] ?? [];

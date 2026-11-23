@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getProduct, getProducts } from "@/src/lib/api/products";
 import { getCategories } from "@/src/lib/api/categories";
+import { findCategoryById, getCategoryPath } from "@/src/lib/categoryTree";
 import ProductDetailsClient from "./ProductDetailsClient";
 
 export default async function ProductDetailsPage({
@@ -23,6 +24,7 @@ export default async function ProductDetailsPage({
   ]);
 
   const category = findCategoryById(categories, product.categoryId);
+  const categoryPath = category ? getCategoryPath(categories, category.slug) : [];
 
   return (
     <ProductDetailsClient
@@ -30,15 +32,7 @@ export default async function ProductDetailsPage({
       relatedProducts={relatedResult.data.filter((p) => p.id !== product.id).slice(0, 4)}
       categoryName={category?.name ?? "Uncategorized"}
       categorySlug={category?.slug}
+      categoryPath={categoryPath.map(({ name, slug }) => ({ name, slug }))}
     />
   );
-}
-
-function findCategoryById(categories: Awaited<ReturnType<typeof getCategories>>, id: string) {
-  for (const cat of categories) {
-    if (cat.id === id) return cat;
-    const child = cat.children.find((c) => c.id === id);
-    if (child) return child;
-  }
-  return undefined;
 }

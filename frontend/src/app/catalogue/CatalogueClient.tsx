@@ -16,6 +16,7 @@ import { useCart } from "@/src/context/CartContext";
 import { useWishlist } from "@/src/context/WishlistContext";
 import { Category, PaginatedProducts } from "@/src/lib/api-types";
 import { getProducts, ProductSort, searchProducts } from "@/src/lib/api/products";
+import { flattenCategoryTree } from "@/src/lib/categoryTree";
 import { formatPrice } from "@/src/lib/utils";
 
 const SORT_OPTIONS = [
@@ -40,17 +41,14 @@ interface CatalogueClientProps {
   activeVerifiedOnly?: boolean;
 }
 
-// Flatten the category tree into a flat list for the sidebar's checkbox
-// group — FilterSidebar expects { label, value } pairs, not a nested tree.
+// Flatten the top two levels of the category tree into the sidebar's
+// checkbox group — FilterSidebar expects { label, value } pairs. Deeper
+// levels (e.g. Fashion > Men > Tops) are browsed from their category pages.
 function flattenCategories(categories: Category[]): { label: string; value: string }[] {
-  const flat: { label: string; value: string }[] = [];
-  for (const cat of categories) {
-    flat.push({ label: cat.name, value: cat.slug });
-    for (const child of cat.children) {
-      flat.push({ label: child.name, value: child.slug });
-    }
-  }
-  return flat;
+  return flattenCategoryTree(categories, { maxDepth: 2 }).map(({ category }) => ({
+    label: category.name,
+    value: category.slug,
+  }));
 }
 
 export default function CatalogueClient({

@@ -1,16 +1,8 @@
 import { notFound } from "next/navigation";
 import { getProducts, ProductSort } from "@/src/lib/api/products";
 import { getCategories } from "@/src/lib/api/categories";
+import { findCategoryBySlug, getCategoryPath } from "@/src/lib/categoryTree";
 import CategoryClient from "./CategoryClient";
-
-function findCategoryBySlug(categories: Awaited<ReturnType<typeof getCategories>>, slug: string) {
-  for (const cat of categories) {
-    if (cat.slug === slug) return cat;
-    const child = cat.children.find((c) => c.slug === slug);
-    if (child) return child;
-  }
-  return undefined;
-}
 
 export default async function CategoryPage({
   params,
@@ -40,6 +32,7 @@ export default async function CategoryPage({
 
   const categories = await getCategories();
   const category = findCategoryBySlug(categories, slug);
+  const categoryPath = getCategoryPath(categories, slug);
 
   if (!category) {
     notFound();
@@ -72,6 +65,7 @@ export default async function CategoryPage({
   return (
     <CategoryClient
       category={category}
+      categoryPath={categoryPath}
       categories={categories}
       initialProducts={productsResult}
       activeMinPrice={minPrice}

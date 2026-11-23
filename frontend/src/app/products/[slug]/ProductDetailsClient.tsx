@@ -61,6 +61,8 @@ interface ProductDetailsClientProps {
   relatedProducts: Product[];
   categoryName: string;
   categorySlug?: string;
+  /** Root-to-category chain, e.g. Fashion > Men > Tops. */
+  categoryPath?: { name: string; slug: string }[];
 }
 
 export default function ProductDetailsClient({
@@ -68,11 +70,14 @@ export default function ProductDetailsClient({
   relatedProducts,
   categoryName,
   categorySlug,
+  categoryPath,
 }: ProductDetailsClientProps) {
   const { addItem } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
 
-  const isFashion = categoryName.trim().toLowerCase() === "fashion";
+  const isFashion =
+    categoryName.trim().toLowerCase() === "fashion" ||
+    (categoryPath ?? []).some((node) => node.slug === "fashion");
   const secondaryLabel = isFashion ? "Size" : "Storage Capacity";
   const secondaryOptions = isFashion ? sizeOptions : storageOptions;
 
@@ -113,7 +118,9 @@ export default function ProductDetailsClient({
         <Breadcrumb
           items={[
             { label: "Catalogue", href: "/catalogue" },
-            { label: categoryName, href: categorySlug ? `/categories/${categorySlug}` : "/catalogue" },
+            ...(categoryPath && categoryPath.length > 0
+              ? categoryPath.map((node) => ({ label: node.name, href: `/categories/${node.slug}` }))
+              : [{ label: categoryName, href: categorySlug ? `/categories/${categorySlug}` : "/catalogue" }]),
             { label: product.name },
           ]}
         />

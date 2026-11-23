@@ -10,7 +10,7 @@ export class CategoriesService {
     // Fetch every category flat, then assemble the parent/child tree in memory
     // rather than a recursive query — simpler and fine at this data volume.
     const categories = await this.prisma.category.findMany({
-      orderBy: { name: 'asc' },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     });
 
     const byId = new Map<string, CategoryResponseDto>(

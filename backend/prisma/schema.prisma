@@ -16,6 +16,8 @@ model Category {
   name      String
   slug      String     @unique
   parentId  String?
+  // Display order among siblings (lower first); ties fall back to name.
+  sortOrder Int        @default(0)
   parent    Category?  @relation("CategoryToSubcategory", fields: [parentId], references: [id])
   children  Category[] @relation("CategoryToSubcategory")
   products  Product[]
@@ -48,9 +50,8 @@ model Product {
   // specifically so the Rating filter can query it.
   averageRating  Decimal?        @db.Decimal(2, 1)
   deliveryOption DeliveryOption?
-  // Only meaningful for Fashion products — the filter sidebar's Category
-  // group there (Women/Men/Kids/Accessories) is an audience segment, not
-  // a real Category row, since Fashion has no sub-categories today.
+  // Legacy Fashion filter facet. The category tree now contains audiences
+  // and departments; KIDS and ACCESSORIES remain cross-cutting segment values.
   segment ProductSegment?
   categoryId String
   category   Category      @relation(fields: [categoryId], references: [id])

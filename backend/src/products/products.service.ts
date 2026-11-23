@@ -6,6 +6,7 @@ import {
   ProductResponseDto,
 } from './dto/product-response.dto';
 import { getProductOrderBy } from '../common/product-sort';
+import { expandToDescendantSlugs } from '../common/category-tree';
 import {
   PRODUCT_VENDOR_INCLUDE,
   toProductResponseDto,
@@ -24,13 +25,24 @@ export class ProductsService {
     const hasPriceFilter =
       query.minPrice !== undefined || query.maxPrice !== undefined;
 
+    // A category filter also matches everything nested beneath it, so
+    // "fashion" or "men" lists their sub-categories' products too.
+    const categorySlugs = query.category?.length
+      ? expandToDescendantSlugs(
+          await this.prisma.category.findMany({
+            select: { id: true, slug: true, parentId: true },
+          }),
+          query.category,
+        )
+      : undefined;
+
     const where = {
       // Drafts are only ever visible to their own vendor, via
       // VendorProductsService.findAllForVendor — never in any
       // customer-facing listing.
       status: 'PUBLISHED' as const,
-      ...(query.category?.length && {
-        category: { slug: { in: query.category } },
+      ...(categorySlugs && {
+        category: { slug: { in: categorySlugs } },
       }),
       ...(query.vendorId && { vendorId: query.vendorId }),
       ...(hasPriceFilter && {
