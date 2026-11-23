@@ -6,6 +6,7 @@ import {
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 import { PRODUCT_IMAGE_URL_PATTERN } from '../common/product-image-url-pattern';
+import { shouldForcePathStyle } from '../common/object-storage-config';
 
 const ALLOWED_MIME_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -36,7 +37,7 @@ export class ObjectStorageService {
       endpoint,
       region: process.env.OBJECT_STORAGE_REGION ?? 'auto',
       credentials: { accessKeyId, secretAccessKey },
-      forcePathStyle: process.env.OBJECT_STORAGE_FORCE_PATH_STYLE === 'true',
+      forcePathStyle: shouldForcePathStyle(endpoint),
     });
   }
 

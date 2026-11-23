@@ -2,6 +2,7 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { PRODUCT_IMAGE_URL_PATTERN } from '../src/common/product-image-url-pattern';
+import { shouldForcePathStyle } from '../src/common/object-storage-config';
 
 const SEED_IMAGES_DIR = join(__dirname, 'seed-images');
 
@@ -34,7 +35,7 @@ function getClient(): S3Client {
     endpoint,
     region: process.env.OBJECT_STORAGE_REGION ?? 'auto',
     credentials: { accessKeyId, secretAccessKey },
-    forcePathStyle: process.env.OBJECT_STORAGE_FORCE_PATH_STYLE === 'true',
+    forcePathStyle: shouldForcePathStyle(endpoint),
   });
   return client;
 }

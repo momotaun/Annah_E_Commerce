@@ -3,6 +3,7 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { PRODUCT_IMAGE_URL_PATTERN } from '../common/product-image-url-pattern';
+import { shouldForcePathStyle } from '../common/object-storage-config';
 import {
   GALLERY_BUCKET_IMAGE_COUNT,
   PRODUCT_GALLERY_BUCKETS,
@@ -26,7 +27,7 @@ function buildClient(): S3Client | null {
     endpoint,
     region: process.env.OBJECT_STORAGE_REGION ?? 'auto',
     credentials: { accessKeyId, secretAccessKey },
-    forcePathStyle: process.env.OBJECT_STORAGE_FORCE_PATH_STYLE === 'true',
+    forcePathStyle: shouldForcePathStyle(endpoint),
   });
 }
 
