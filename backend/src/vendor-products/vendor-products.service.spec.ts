@@ -291,6 +291,31 @@ describe('VendorProductsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
+    it('rejects creating a product in a category that has subcategories', async () => {
+      prisma.vendor.findUnique.mockResolvedValue({
+        id: 'vendor-1',
+        userId: 'user-1',
+        status: 'APPROVED',
+      });
+      prisma.product.findUnique.mockResolvedValue(null);
+      prisma.category.findUnique.mockResolvedValue({
+        id: 'fashion',
+        slug: 'fashion',
+        children: [{ id: 'women' }],
+      });
+
+      await expect(
+        service.create('user-1', 'vendor-1', {
+          name: 'New Product',
+          sku: 'NEW-SKU',
+          price: 100,
+          quantity: 10,
+          categoryId: 'fashion',
+        }),
+      ).rejects.toThrow(BadRequestException);
+      expect(prisma.product.create).not.toHaveBeenCalled();
+    });
+
     it('rejects creating a product under a store the caller does not own', async () => {
       prisma.vendor.findUnique.mockResolvedValue({
         id: 'vendor-B',
@@ -317,7 +342,7 @@ describe('VendorProductsService', () => {
         status: 'APPROVED',
       });
       prisma.product.findUnique.mockResolvedValue(null);
-      prisma.category.findUnique.mockResolvedValue({ id: 'cat-1' });
+      prisma.category.findUnique.mockResolvedValue({ id: 'cat-1', children: [] });
       prisma.product.create.mockResolvedValue({
         id: 'product-1',
         price: { toString: () => '100.00' },
@@ -349,7 +374,7 @@ describe('VendorProductsService', () => {
         status: 'APPROVED',
       });
       prisma.product.findUnique.mockResolvedValue(null);
-      prisma.category.findUnique.mockResolvedValue({ id: 'cat-1' });
+      prisma.category.findUnique.mockResolvedValue({ id: 'cat-1', children: [] });
       prisma.product.create.mockResolvedValue({
         id: 'product-1',
         price: { toString: () => '100.00' },
@@ -377,7 +402,7 @@ describe('VendorProductsService', () => {
         status: 'APPROVED',
       });
       prisma.product.findUnique.mockResolvedValue(null);
-      prisma.category.findUnique.mockResolvedValue({ id: 'cat-1' });
+      prisma.category.findUnique.mockResolvedValue({ id: 'cat-1', children: [] });
       prisma.product.create.mockResolvedValue({
         id: 'product-1',
         price: { toString: () => '100.00' },
@@ -415,6 +440,7 @@ describe('VendorProductsService', () => {
       prisma.category.findUnique.mockResolvedValue({
         id: 'cat-1',
         slug: 'computing',
+        children: [],
       });
 
       await expect(
@@ -440,6 +466,7 @@ describe('VendorProductsService', () => {
       prisma.category.findUnique.mockResolvedValue({
         id: 'cat-1',
         slug: 'fashion',
+        children: [],
       });
 
       await expect(
@@ -468,6 +495,7 @@ describe('VendorProductsService', () => {
       prisma.category.findUnique.mockResolvedValue({
         id: 'cat-1',
         slug: 'fashion',
+        children: [],
       });
       prisma.product.create.mockResolvedValue({
         id: 'product-1',
@@ -540,6 +568,7 @@ describe('VendorProductsService', () => {
       prisma.category.findUnique.mockResolvedValue({
         id: 'cat-1',
         slug: 'fashion',
+        children: [],
       });
       prisma.product.update.mockResolvedValue({
         id: 'product-1',
@@ -574,6 +603,7 @@ describe('VendorProductsService', () => {
       prisma.category.findUnique.mockResolvedValue({
         id: 'cat-1',
         slug: 'audio',
+        children: [],
       });
 
       await expect(

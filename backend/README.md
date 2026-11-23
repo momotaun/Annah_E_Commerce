@@ -8,7 +8,7 @@ NestJS + Prisma + PostgreSQL backend for Apex Marketplace. See the [repo root RE
 - [Prisma 6](https://www.prisma.io) against PostgreSQL 16
 - JWT auth (`@nestjs/jwt` + `passport-jwt`) with access + refresh tokens
 - `class-validator` / `class-transformer` for request validation (enforced globally — see `src/main.ts`)
-- [Ozow](https://ozow.com) as the payment gateway
+- [PayFast](https://payfast.co.za) and [Ozow](https://ozow.com) payment gateways
 - Jest for unit and e2e tests
 
 ## Setup
@@ -38,13 +38,18 @@ The API listens on `http://localhost:3001` with a global `/api` prefix (e.g. `GE
 | `JWT_REFRESH_SECRET` | Yes | Signing secret for refresh tokens (must differ from the access secret) |
 | `JWT_ACCESS_EXPIRES_IN` | No | Default `15m` |
 | `JWT_REFRESH_EXPIRES_IN` | No | Default `7d` |
+| `PAYMENT_PROVIDER` | No | Gateway for new payments: `payfast` (default) or `ozow` |
 | `DEFAULT_COMMISSION_RATE` | No | Percentage commission applied to vendor order items at checkout; default `10.00` |
-| `OZOW_SITE_CODE` | For payments | From your Ozow merchant dashboard |
-| `OZOW_PRIVATE_KEY` | For payments | Used to sign requests and verify webhook signatures — never expose this |
-| `OZOW_API_KEY` | For payments | Sent as the `ApiKey` header on requests to Ozow |
-| `OZOW_IS_TEST` | For payments | `true` routes to Ozow's staging API and marks transactions as test; set `false` to take real payments |
+| `PAYFAST_MERCHANT_ID`, `PAYFAST_MERCHANT_KEY` | For PayFast payments | From the PayFast merchant dashboard |
+| `PAYFAST_PASSPHRASE` | Optional for PayFast | Merchant passphrase used for signature verification |
+| `PAYFAST_IS_TEST` | No | Defaults to sandbox/test mode; set `false` only for live payments |
+| `OZOW_SITE_CODE`, `OZOW_PRIVATE_KEY`, `OZOW_API_KEY` | For Ozow payments | Merchant credentials; keep private keys secret |
+| `OZOW_IS_TEST` | No | Defaults to Ozow staging/test mode |
+| `RESEND_API_KEY` | No | Selects Resend for email; if unset the API logs email links through `ConsoleMailer` |
+| `OBJECT_STORAGE_*` | No | S3-compatible image upload configuration |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | No | Selects Firebase push notifications; if unset the API uses a console notifier |
 
-Everything except the `OZOW_*` and `BACKEND_URL` variables is required for the API to boot and serve most routes; payments-related endpoints will fail without the Ozow variables set.
+`DATABASE_URL`, `JWT_ACCESS_SECRET`, and `JWT_REFRESH_SECRET` are required for local startup. `FRONTEND_URL` is also required in production. Payment credentials are required only for the selected gateway when initiating payments; payment webhooks are handled by their matching gateway. `BACKEND_URL` must be publicly reachable for a payment provider to deliver webhooks.
 
 ## Available scripts
 
@@ -67,20 +72,21 @@ Schema and migrations live in `prisma/`. To change the schema:
 npx prisma migrate dev --name <describe-the-change>
 ```
 
-`prisma/seed.ts` (run via `npx prisma db seed`) is idempotent — every write is an `upsert`, so re-running it never overwrites data that's already been changed (e.g. admin edits to legal page content survive a reseed). It does, however, create the fixed local-dev accounts documented in the [root README](../README.md#2-backend-api) with known passwords, so it refuses to run at all when `NODE_ENV=production` (set `ALLOW_SEED_IN_PRODUCTION=true` for the rare case you genuinely mean to).
+`prisma/seed.ts` (run via `npx prisma db seed`) is idempotent — its writes use `upsert`, and admin-edited legal content survives a reseed. It also creates fixed local-development accounts with known passwords, documented in the [root README](../README.md#seeded-local-accounts), so it refuses to run when `NODE_ENV=production` unless `ALLOW_SEED_IN_PRODUCTION=true` is explicitly set.
 
-## Payments (Ozow)
+## Payments (PayFast and Ozow)
 
-`src/payments/` implements the payment flow behind a `PaymentGateway` interface (`src/payments/gateways/payment-gateway.interface.ts`), with `OzowPaymentGateway` as the concrete implementation:
+`src/payments/` implements the payment flow behind a `PaymentGateway` interface (`src/payments/gateways/payment-gateway.interface.ts`). Set `PAYMENT_PROVIDER=payfast` (the default) or `PAYMENT_PROVIDER=ozow` to select the gateway for new payments. Both gateway-specific webhook routes remain enabled:
 
-1. `POST /api/payments` (authenticated) — validates the order belongs to the caller and is still `PLACED`, calls Ozow's `PostPaymentRequest` API, and returns a redirect URL to Ozow's hosted payment page.
-2. Ozow redirects the shopper back to `${FRONTEND_URL}/checkout/payment-result` and, independently, POSTs a status notification to `POST /api/payments/webhook`. The webhook payload's `Hash` field is verified before anything is applied; on a genuine success the order is transactioned to `PAID`.
+1. `POST /api/payments` (authenticated) validates order ownership and status, then returns a redirect URL to the selected provider's hosted checkout.
+2. The shopper returns to `${FRONTEND_URL}/checkout/payment-result`; independently, the payment provider calls its webhook endpoint (`POST /api/payments/webhook` for Ozow or `POST /api/payments/webhook/payfast` for PayFast).
+3. The API validates the provider signature before updating payment/order state.
 
-Because Ozow needs to reach `BACKEND_URL` directly, local end-to-end testing requires exposing your local API through a tunnel and pointing Ozow's dashboard (or `BACKEND_URL`) at it.
+For local end-to-end payment testing, the selected provider must be able to reach `BACKEND_URL`; use a secure development tunnel and that public URL for callbacks. Keep the provider's test/sandbox mode enabled.
 
 ## Password reset & email
 
-There is no email provider wired up yet (no SMTP/SendGrid/Resend/etc.). `src/auth/` sends mail through a `Mailer` interface (`src/auth/mailer/mailer.interface.ts`); the only implementation right now is `ConsoleMailer`, which logs the reset link instead of emailing it — check the server log (`[ConsoleMailer] Password reset link for ...`) to get a working link during local development. Swap in a real implementation and change the provider in `src/auth/auth.module.ts` when one is chosen; nothing else needs to change.
+Email is sent through the `Mailer` interface. Set `RESEND_API_KEY` to use the Resend implementation; otherwise `ConsoleMailer` logs links instead of sending email, which is useful for local password-reset and verification flows. Check backend logs for the generated link.
 
 Reset tokens are single-use, expire after 1 hour, and resetting a password revokes every existing refresh token for that account.
 
@@ -99,10 +105,12 @@ docker run -p 3001:3001 --env-file .env \
 
 (`host.docker.internal` lets the container reach a Postgres running on your host; use the `postgres` service name instead when running via the root [`docker-compose.yml`](../docker-compose.yml).)
 
-The image doesn't run migrations on startup — apply them explicitly (from the host, against whichever `DATABASE_URL` you're targeting):
+The image applies pending Prisma migrations and seeds default site branding during startup. The full development seed (`npx prisma db seed`) is not run automatically because it creates accounts with known passwords and refuses to run in production mode. When using the root Compose stack, the backend container waits for PostgreSQL and applies migrations on startup; run the full seed from the host after copying `backend/.env.example` to `backend/.env` and ensuring its `DATABASE_URL` points to `localhost:5432`:
 
 ```bash
-npx prisma migrate deploy
+cd backend
+npm ci
+npx prisma db seed
 ```
 
 ### Frontend needs two API URLs when containerized
@@ -120,7 +128,7 @@ Each top-level module under `src/` is a self-contained Nest module (controller +
 | `products` / `categories` / `search` | Catalogue browsing |
 | `cart` | Session-based cart, mergeable into an account |
 | `checkout` | Converts a cart into an order; splits vendor line items and computes commissions |
-| `payments` | Ozow integration (see above) |
+| `payments` | PayFast and Ozow integrations (see above) |
 | `orders` | Authenticated order history and detail |
 | `order-requests` | Pre-checkout guest quote/inquiry requests |
 | `vendors` / `vendor-products` / `vendor-orders` | Vendor onboarding, product management, and order views |

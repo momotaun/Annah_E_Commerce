@@ -125,9 +125,15 @@ export class VendorProductsService {
 
     const category = await this.prisma.category.findUnique({
       where: { id: dto.categoryId },
+      include: { children: { select: { id: true } } },
     });
     if (!category) {
       throw new NotFoundException(`Category "${dto.categoryId}" not found`);
+    }
+    if (category.children.length > 0) {
+      throw new BadRequestException(
+        'Choose the most specific category for this product',
+      );
     }
 
     const { options, ...rest } = dto;
@@ -182,15 +188,25 @@ export class VendorProductsService {
     // Sending options: [] clears every existing option; omitting the field
     // entirely (options === undefined) leaves them untouched — see the
     // CreateVendorProductDto.options comment.
-    if (options !== undefined) {
-      const categoryId = dto.categoryId ?? existing.categoryId;
+    const categoryId = dto.categoryId ?? existing.categoryId;
+    const categoryChanged =
+      dto.categoryId !== undefined && dto.categoryId !== existing.categoryId;
+    if (options !== undefined || categoryChanged) {
       const category = await this.prisma.category.findUnique({
         where: { id: categoryId },
+        include: { children: { select: { id: true } } },
       });
       if (!category) {
         throw new NotFoundException(`Category "${categoryId}" not found`);
       }
-      await this.validateOptionsForCategory(options, category);
+      if (categoryChanged && category.children.length > 0) {
+        throw new BadRequestException(
+          'Choose the most specific category for this product',
+        );
+      }
+      if (options !== undefined) {
+        await this.validateOptionsForCategory(options, category);
+      }
     }
 
     const updated = await this.prisma.product.update({

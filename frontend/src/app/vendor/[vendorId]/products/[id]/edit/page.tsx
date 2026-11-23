@@ -10,6 +10,7 @@ import Button from "@/src/app/components/ui/Button";
 import Badge from "@/src/app/components/ui/Badge";
 import Spinner from "@/src/app/components/ui/Spinner";
 import ImageUploadGrid from "@/src/app/components/shared/ImageUploadGrid";
+import CategoryPicker from "@/src/app/components/shared/CategoryPicker";
 import { getCategories } from "@/src/lib/api/categories";
 import { Category } from "@/src/lib/api-types";
 import {
@@ -19,7 +20,7 @@ import {
   VendorProduct,
   VendorProductOption,
 } from "@/src/lib/api/vendor-products";
-import { flattenCategoryTree, getCategoryPath } from "@/src/lib/categoryTree";
+import { findCategoryById, getCategoryPath } from "@/src/lib/categoryTree";
 import { optionTypesForCategoryPath } from "@/src/lib/product-option-types";
 
 const MAX_IMAGES = 10;
@@ -82,10 +83,12 @@ export default function EditVendorProductPage() {
       .finally(() => setIsLoading(false));
   }, [vendorId, id]);
 
-  const flatCategories = flattenCategoryTree(categories);
-  const selectedCategory = flatCategories.find((f) => f.category.id === categoryId)?.category;
+  const selectedCategory = categoryId ? findCategoryById(categories, categoryId) : undefined;
+  const selectedCategoryPath = selectedCategory
+    ? getCategoryPath(categories, selectedCategory.slug)
+    : [];
   const applicableOptionTypes = optionTypesForCategoryPath(
-    selectedCategory ? getCategoryPath(categories, selectedCategory.slug).map((c) => c.slug) : [],
+    selectedCategoryPath.map((c) => c.slug),
   );
 
   function parseOptionValues(raw: string | undefined): string[] {
@@ -105,8 +108,21 @@ export default function EditVendorProductPage() {
 
     const parsedPrice = parseFloat(price);
     const parsedQuantity = parseInt(quantity, 10);
-    if (!name.trim() || !sku.trim() || !(parsedPrice > 0) || !(parsedQuantity >= 0) || !categoryId) {
-      setError("Name, SKU, a valid price, a valid quantity, and a category are all required.");
+    const categoryNeedsSubcategory =
+      selectedCategory && selectedCategory.children.length > 0 && categoryId !== product.categoryId;
+    if (
+      !name.trim() ||
+      !sku.trim() ||
+      !(parsedPrice > 0) ||
+      !(parsedQuantity >= 0) ||
+      !selectedCategory ||
+      categoryNeedsSubcategory
+    ) {
+      setError(
+        categoryNeedsSubcategory
+          ? "Choose the most specific category for this product."
+          : "Name, SKU, a valid price, a valid quantity, and a category are all required.",
+      );
       return;
     }
 
@@ -224,10 +240,10 @@ export default function EditVendorProductPage() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-900">Category</label>
-            <Select
+            <CategoryPicker
+              categories={categories}
               value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              options={flatCategories.map((f) => ({ label: f.label, value: f.category.id }))}
+              onChange={setCategoryId}
             />
           </div>
 

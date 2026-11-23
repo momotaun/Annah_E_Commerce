@@ -2,127 +2,190 @@
 
 [![CI](https://github.com/momotaun/Annah_E_Commerce/actions/workflows/ci.yml/badge.svg)](https://github.com/momotaun/Annah_E_Commerce/actions/workflows/ci.yml)
 
-A multi-vendor e-commerce marketplace: shoppers browse a shared catalogue, vendors apply to sell and manage their own storefronts and products, and admins approve vendors and maintain platform-wide content. Checkout is backed by [Ozow](https://ozow.com), a South African instant EFT payment gateway.
+A multi-vendor e-commerce marketplace. Customers browse products and place orders, vendors manage their products and fulfilment, and admins manage vendors and site content. Payments can use PayFast or Ozow.
 
-This repository is a monorepo with two independently deployable apps:
+This repository is a monorepo with two independently deployable applications:
 
-| App | Path | Stack |
+| Application | Directory | Stack |
 |---|---|---|
-| API | [`backend/`](backend) | NestJS 11, Prisma 6, PostgreSQL |
-| Web | [`frontend/`](frontend) | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
+| Web application | [`frontend/`](frontend/README.md) | Next.js 16 App Router, React 19, Tailwind CSS 4 |
+| API | [`backend/`](backend/README.md) | NestJS 11, Prisma 6, PostgreSQL 16 |
 
-See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend/README.md) for app-specific details. This file covers running the whole stack locally.
+This guide covers the overall architecture and running the complete project locally. See the [backend guide](backend/README.md) and [frontend guide](frontend/README.md) for app-specific details.
+
+## Architecture
+
+### Runtime architecture
+
+![Apex Marketplace runtime architecture](docs/architecture-system.svg)
+
+In the Docker setup, the browser reaches the API at `http://localhost:3001/api`. Server-rendered frontend requests instead use the internal Compose address `http://backend:3001/api`. Images are stored using an optional S3-compatible service; email and push notifications use external providers when configured and console implementations otherwise.
+
+### Commerce domain
+
+![Apex Marketplace commerce domain relationships](docs/architecture-domain.svg)
+
+The Prisma schema in [`backend/prisma/schema.prisma`](backend/prisma/schema.prisma) defines the database models and relations. Categories form a recursive tree; for example, Fashion categories include audience, department and Size levels. Products are assigned to a category and can have variant options such as color and size. An order belongs to a customer and shipping address, contains order-item snapshots, can have payments and an invoice, and may be split into vendor fulfilment items.
 
 ## Features
 
-- Product catalogue with categories, search, and per-vendor storefronts
-- Session-based cart (works for guests, merges into the account on login) and checkout
-- Payments via Ozow (hosted instant EFT redirect + webhook confirmation)
-- Order history for shoppers
-- Vendor onboarding, product management, and order/sales views
-- Admin dashboard for vendor approval, marketplace analytics, and editing legal pages (Privacy Policy, Terms of Service) without a deploy
-- JWT-based auth with short-lived access tokens and rotating refresh tokens
+- Product catalogue, nested categories, search, product reviews, and vendor storefronts
+- Session-based carts for guests and signed-in customers, checkout, order history, invoices, and return requests
+- PayFast and Ozow payment gateways with provider-specific webhooks
+- Vendor onboarding, product and inventory management, and order fulfilment
+- Admin vendor approval, analytics, site branding, hero slides, and editable legal pages
+- JWT authentication with access and rotating refresh tokens
+- Optional S3-compatible image storage, Resend email, Firebase push notifications, and Sentry error reporting
 
 ## Prerequisites
 
-- Node.js 20 or later
-- Docker (for a local PostgreSQL instance) — or a PostgreSQL 16 instance you provide yourself
+- Docker Desktop with Docker Compose (recommended for the complete stack)
+- Node.js 20 or later and npm (needed to run the seed script from the host or to run apps outside Docker)
 
-## Getting started
+The Docker Compose setup includes PostgreSQL 16. If you run services without Compose, provide a PostgreSQL 16 database yourself.
 
-Clone the repo, then set up the database, API, and web app in that order.
+## Quick start: Docker Compose
 
-### 1. Database
+Run these commands from the repository root in PowerShell:
 
-```bash
-cp .env.example .env
-docker compose up -d
+```powershell
+Copy-Item .env.example .env
+Copy-Item backend\.env.example backend\.env
 ```
 
-This starts a `postgres:16-alpine` container using the credentials in `.env`. The defaults in `.env.example` work out of the box for local development.
+In `backend\.env`, replace `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` with two different, randomly generated secrets. For example, run this twice in PowerShell:
 
-### 2. Backend (API)
-
-```bash
-cd backend
-cp .env.example .env
-npm install
+```powershell
+node -e "console.log(require('crypto').randomBytes(50).toString('hex'))"
 ```
 
-Open `backend/.env` and fill in:
+Start PostgreSQL, the API, and the web application:
 
-- `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` — generate each with `node -e "console.log(require('crypto').randomBytes(50).toString('hex'))"`
-- `OZOW_*` — only required to actually initiate a payment; everything else works without them. See [`backend/README.md`](backend/README.md#payments-ozow) for details.
+```powershell
+docker compose up -d --build
+docker compose ps
+```
 
-Then apply migrations, seed some sample data, and start the API:
+The API container applies pending migrations and seeds default site branding when it starts. To load the sample catalogue and local demo accounts, run the full development seed once from the host:
 
-```bash
-npx prisma migrate dev
+```powershell
+Set-Location backend
+npm ci
 npx prisma db seed
-npm run start:dev
+Set-Location ..
 ```
 
-The API is now running at `http://localhost:3001/api`.
+The full seed is intentionally run from the host: it creates accounts with known development passwords and refuses to run in production mode. It is idempotent and can be rerun to refresh seeded product/category data.
 
-The seed script creates two accounts for local testing — **do not use these outside local development**:
+Open the application:
+
+| Service | Address |
+|---|---|
+| Web application | [http://localhost:3000](http://localhost:3000) |
+| API | [http://localhost:3001/api](http://localhost:3001/api) |
+| API health check | [http://localhost:3001/api/health](http://localhost:3001/api/health) |
+| PostgreSQL | `localhost:5432` |
+
+### Seeded local accounts
+
+The seed creates local test accounts. These credentials are for local development only; never use them in a deployed environment.
 
 | Role | Email | Password |
 |---|---|---|
 | Admin | `admin@apex.co.za` | `adminPassword123` |
-| Vendor | `vendor@meridianapparel.co.za` | `vendorPassword123` |
+| Fashion vendor | `vendor@meridianapparel.co.za` | `vendorPassword123` |
+| Customer | `customer@apex.co.za` | `customerPassword123` |
 
-### 3. Frontend (Web)
+All seeded vendor accounts use `vendorPassword123`; see [`backend/prisma/seed.ts`](backend/prisma/seed.ts) for the other vendor emails and seeded data.
 
-```bash
-cd frontend
-npm install
-npm run dev
+### Stop and restart
+
+```powershell
+docker compose down       # Stop containers; preserve the database volume
+docker compose up -d      # Start again without rebuilding
+docker compose logs -f    # Follow service logs; Ctrl+C exits log view
 ```
 
-The site is now running at `http://localhost:3000`. It talks to the API at `http://localhost:3001/api` by default; override this with `NEXT_PUBLIC_API_URL` if your API runs elsewhere.
+To delete the local database and all its data, use `docker compose down -v`. This is destructive and should only be used when you intentionally want a clean local database.
 
-## Running the full stack in Docker
+### Common local setup issues
 
-Both apps have production Dockerfiles (multi-stage, non-root, with a `HEALTHCHECK`). `docker-compose.yml` runs all three services — Postgres, the API, and the web app:
+- **A port is already in use:** stop the other process using port `3000`, `3001`, or `5432`, or edit the corresponding host-side port mapping in `docker-compose.yml`.
+- **API does not become healthy:** check `docker compose logs backend postgres`; confirm both `.env` files exist and the JWT secrets are set.
+- **Changes to `NEXT_PUBLIC_API_URL`:** this value is baked into the frontend image at build time. Rebuild with `docker compose up -d --build frontend` after changing it.
+- **Payment, upload, email, or push features are unavailable:** set the corresponding optional provider credentials in `backend/.env`, then restart the backend. The core catalogue and account flows work without these integrations.
 
-```bash
-cp .env.example .env
-docker compose up -d --build
-```
+## Run without Docker
 
-Migrations aren't run automatically — apply them from the host once Postgres is up (same command either way, containerized or not):
+Use this option if you already have PostgreSQL 16 running locally.
 
-```bash
-cd backend && npx prisma migrate deploy
-```
+1. Copy `backend/.env.example` to `backend/.env`.
+2. Set `DATABASE_URL` to your PostgreSQL connection string and provide unique values for `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET`.
+3. In a terminal, install backend dependencies, migrate and seed the database, then start the API:
 
-The API is then healthy at `http://localhost:3001/api/health`, and the site at `http://localhost:3000`. See [`backend/README.md`](backend/README.md#docker) for why the frontend needs two different API URLs (one for the browser, one for server-side rendering inside its own container).
+   ```powershell
+   Set-Location backend
+   npm ci
+   npx prisma migrate dev
+   npx prisma db seed
+   npm run start:dev
+   ```
 
-The `http://localhost:3001/api` default only works when the whole stack runs on one local machine — it's baked into the browser bundle at build time. Deploying for real users needs the actual public API URL instead:
+4. In a second terminal, start the frontend:
 
-```bash
-NEXT_PUBLIC_API_URL=https://api.example.com docker compose up -d --build
-```
+   ```powershell
+   Set-Location frontend
+   npm ci
+   npm run dev
+   ```
 
-## Running tests
+The site runs at [http://localhost:3000](http://localhost:3000) and calls the API at `http://localhost:3001/api` by default. If the API uses another address, set `NEXT_PUBLIC_API_URL` in `frontend/.env.local` and restart the frontend.
 
-```bash
-cd backend && npm test      # Jest — unit tests
-cd frontend && npm test     # Vitest — component tests
-```
+## Environment and optional integrations
+
+The root `.env` configures the PostgreSQL Compose service. `backend/.env` configures the API. Do not commit either file.
+
+| Integration | Configuration | Behavior when not configured |
+|---|---|---|
+| Database | `DATABASE_URL` (overridden inside Compose to reach the `postgres` service) | Required |
+| Authentication | `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | Required |
+| Payments | `PAYMENT_PROVIDER` (`payfast` by default or `ozow`), plus provider credentials | Payment initiation requires valid credentials; keep sandbox/test mode enabled during development |
+| Email | `RESEND_API_KEY`, optionally `RESEND_FROM_EMAIL` | Uses console mailer; email links appear in backend logs |
+| Product image uploads | `OBJECT_STORAGE_*` | Upload operations report that storage is not configured |
+| Push notifications | `FIREBASE_SERVICE_ACCOUNT_JSON` | Uses console notifier |
+| Error monitoring | `SENTRY_DSN` | Disabled |
+
+See [`backend/.env.example`](backend/.env.example) for the full variable list and [`backend/README.md`](backend/README.md) for provider-specific details.
+
+When deploying the Docker stack for users, set `NEXT_PUBLIC_API_URL` to the public API origin before building the frontend. The default `http://localhost:3001/api` is only suitable for a browser using the same machine as the stack.
+
+## Development commands
+
+| Working directory | Command | Purpose |
+|---|---|---|
+| `backend/` | `npm run start:dev` | Run API in watch mode |
+| `backend/` | `npm run build` | Build API |
+| `backend/` | `npm test` | Run API unit tests |
+| `backend/` | `npm run test:e2e` | Run API end-to-end tests |
+| `frontend/` | `npm run dev` | Run web app in development mode |
+| `frontend/` | `npm run build` | Build web app |
+| `frontend/` | `npm test` | Run web component tests |
+| `frontend/` | `npm run lint` | Lint web app |
+
+For schema changes, edit `backend/prisma/schema.prisma`, create a migration with `npx prisma migrate dev --name <description>`, and commit the generated migration.
 
 ## Continuous integration
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push and PR to `develop`: lint, production build, unit tests, and (backend) `test:e2e` against a real Postgres service container with migrations applied. Backend lint currently runs with `continue-on-error` — it surfaces a real, pre-existing body of lint debt (mostly `any`-typed Prisma mocks in older `*.service.spec.ts` files) that predates CI and is too large to fix as a side effect of adding it; everything else gates the build.
+The [CI workflow](.github/workflows/ci.yml) runs on pushes and pull requests to `develop`. It runs linting, builds, unit tests, and backend end-to-end tests against PostgreSQL with migrations applied. Backend lint is currently non-blocking because of existing lint issues; consult the workflow for the up-to-date checks.
 
 ## Repository layout
 
-```
+```text
 .
-├── backend/             NestJS API — see backend/README.md
-├── frontend/            Next.js web app — see frontend/README.md
-├── docker-compose.yml   Local PostgreSQL for development
-└── .env.example         Env vars for docker-compose (Postgres credentials)
+├── backend/                  NestJS API, Prisma schema, migrations, and seed
+├── frontend/                 Next.js web application
+├── docs/                     Architecture diagrams used in this README
+├── docker-compose.yml        Local PostgreSQL, API, and web application
+├── .env.example              Root Compose/PostgreSQL configuration template
+└── render.yaml               API deployment configuration
 ```
-
-Note there are two separate `.env` files: the one at the repo root only configures the local Postgres container via `docker-compose.yml`; the API's own configuration (database connection, JWT secrets, payment gateway credentials) lives in `backend/.env`.
